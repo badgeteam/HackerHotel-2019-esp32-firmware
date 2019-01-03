@@ -300,7 +300,6 @@ badge_eink_dev_init(enum badge_eink_dev_t dev_type)
 	return ESP_OK;
 }
 
-
 #else
 
 // add dummy functions

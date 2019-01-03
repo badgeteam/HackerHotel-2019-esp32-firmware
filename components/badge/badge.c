@@ -19,8 +19,35 @@
 #include "badge_eink_dev.h"
 #include "badge_eink.h"
 #include "badge_nvs.h"
+#include "badge_disobey_samd.h"
 
 static const char *TAG = "badge";
+
+#ifdef I2C_DISOBEY_SAMD_ADDR
+static void
+disobey_samd_event_handler(int event)
+{
+	// convert into button queue event
+	int event_type = (event >> 16) & 0x0f; // 0=touch, 1=release, 2=slider
+	if (event_type == 0 || event_type == 1) {
+		static const int conv[12] = {
+			[ DISOBEY_SAMD_BUTTON_LEFT   ] = BADGE_BUTTON_LEFT,
+			[ DISOBEY_SAMD_BUTTON_UP     ] = BADGE_BUTTON_UP,
+			[ DISOBEY_SAMD_BUTTON_RIGHT  ] = BADGE_BUTTON_RIGHT,
+			[ DISOBEY_SAMD_BUTTON_DOWN   ] = BADGE_BUTTON_DOWN,
+			[ DISOBEY_SAMD_BUTTON_BACK   ] = BADGE_BUTTON_B,
+			[ DISOBEY_SAMD_BUTTON_OK     ] = BADGE_BUTTON_A,
+		};
+		if (((event >> 8) & 0xff) < 12) {
+			int button_id = conv[(event >> 8) & 0xff];
+			if (button_id != 0)
+			{
+				badge_input_add_event(button_id, event_type == 0 ? EVENT_BUTTON_PRESSED : EVENT_BUTTON_RELEASED, NOT_IN_ISR);
+			}
+		}
+	}
+}
+#endif
 
 #ifdef I2C_CPT112S_ADDR
 static void
@@ -160,6 +187,20 @@ badge_init(void)
 		ESP_LOGE(TAG, "badge_i2c_init failed: %d", err);
 	}
 #endif // PIN_NUM_I2C_CLK
+
+#ifdef I2C_DISOBEY_SAMD_ADDR
+	badge_disobey_samd_set_interrupt_handler(DISOBEY_SAMD_BUTTON_LEFT  , disobey_samd_event_handler, (void*) (BADGE_BUTTON_LEFT));
+	badge_disobey_samd_set_interrupt_handler(DISOBEY_SAMD_BUTTON_UP    , disobey_samd_event_handler, (void*) (BADGE_BUTTON_UP));
+	badge_disobey_samd_set_interrupt_handler(DISOBEY_SAMD_BUTTON_BACK  , disobey_samd_event_handler, (void*) (BADGE_BUTTON_B));
+	badge_disobey_samd_set_interrupt_handler(DISOBEY_SAMD_BUTTON_OK    , disobey_samd_event_handler, (void*) (BADGE_BUTTON_A));
+	badge_disobey_samd_set_interrupt_handler(DISOBEY_SAMD_BUTTON_DOWN  , disobey_samd_event_handler, (void*) (BADGE_BUTTON_DOWN));
+	badge_disobey_samd_set_interrupt_handler(DISOBEY_SAMD_BUTTON_RIGHT , disobey_samd_event_handler, (void*) (BADGE_BUTTON_RIGHT));
+	err = badge_disobey_samd_init();
+	if (err != ESP_OK)
+	{
+		ESP_LOGE(TAG, "badge_disobey_samd_init failed: %d", err);
+	}
+#endif // I2C_CPT112S_ADDR
 
 #ifdef I2C_CPT112S_ADDR
 	badge_cpt112s_set_event_handler(cpt112s_event_handler);
