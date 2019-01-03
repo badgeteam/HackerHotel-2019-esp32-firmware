@@ -142,9 +142,15 @@
 		#define PIN_NUM_BUTTON_FLASH      0
 		#define PIN_NUM_I2C_CLK          22
 		#define PIN_NUM_I2C_DATA         23
-		#define I2C_DISOBEY_SAMD_ADDR    48
 		#define PIN_NUM_DISOBEY_SAMD_INT 25
+
+		#define I2C_DISOBEY_SAMD_ADDR    48
+		#define I2C_ERC12864_ADDR        0x38
+
+		#define ERC12864_FLIP            true
+
 		#define CONFIG_SHA_BADGE_DISOBEY_SAMD_DEBUG
+		#define CONFIG_SHA_BADGE_ERC12864_DEBUG
 
 	#elif defined(HACKERHOTEL_BADGE_V0) //Hackerhotel 2019 prototype
 		#define PIN_NUM_LEDS         32

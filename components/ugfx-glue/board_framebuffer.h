@@ -16,9 +16,12 @@
 
 #include <esp_system.h>
 
+#include <badge_pins.h>
 #include <badge_nvs.h>
 #include <badge_eink.h>
 #include <badge_eink_fb.h>
+#include <badge_erc12864.h>
+#include <badge_disobey_samd.h>
 
 // Set this to your frame buffer pixel format.
 #ifndef GDISP_LLD_PIXELFORMAT
@@ -26,15 +29,21 @@
 #endif
 
 // Uncomment this if your frame buffer device requires flushing
-#define GDISP_HARDWARE_FLUSH		TRUE
+#define GDISP_HARDWARE_FLUSH TRUE
 
 // For now we simply keep the current state of the framebuffer in memory, and
 // encode it and send it to the badge_eink driver on flush
 uint8_t target_lut;
 
+#ifdef I2C_ERC12864_ADDR_IGNORE
+uint8_t badge_lcd_fb[BADGE_ERC12864_DATA_LENGTH];
+#define GDISP_NEED_CONTROL TRUE
+#endif
+
 #ifdef GDISP_DRIVER_VMT
 
 	static void board_init(GDisplay *g, fbInfo *fbi) {
+#ifdef PIN_NUM_EPD_RESET
 		uint8_t eink_type = BADGE_EINK_DEFAULT;
 		badge_nvs_get_u8("badge", "eink.dev.type", &eink_type);
 		esp_err_t err = badge_eink_init(eink_type);
@@ -50,10 +59,19 @@ uint8_t target_lut;
 		fbi->linelen = g->g.Width;
 		fbi->pixels = badge_eink_fb;
 		target_lut = 2;
+#elif defined(I2C_ERC12864_ADDR_IGNORE)
+		g->g.Width = BADGE_ERC12864_WIDTH;
+		g->g.Height = BADGE_ERC12864_HEIGHT;
+		g->g.Backlight = 100;
+		g->g.Contrast = 50;
+		fbi->linelen = g->g.Width;
+		fbi->pixels = badge_lcd_fb;
+#endif
 	}
 
 	#if GDISP_HARDWARE_FLUSH
 		bool ugfx_screen_flipped = false;
+		#ifdef PIN_NUM_EPD_RESET
 		static void board_flush(GDisplay *g) {
 			(void) g;
 
@@ -76,13 +94,27 @@ uint8_t target_lut;
 				badge_eink_display(badge_eink_fb, flags | DISPLAY_FLAG_LUT(target_lut));
 			}
 		}
+		#elif defined(I2C_ERC12864_ADDR_IGNORE)
+		static void board_flush(GDisplay *g) {
+			badge_erc12864_write(badge_lcd_fb);
+		}
+		#else
+		static void board_flush(GDisplay *g) {
+			(void) g;
+		}
+		#endif
 	#endif
 
 	#if GDISP_NEED_CONTROL
 		static void board_backlight(GDisplay *g, uint8_t percent) {
 			// TODO: Can be an empty function if your hardware doesn't support this
-			(void) g;
-			(void) percent;
+			#ifdef I2C_ERC12864_ADDR_IGNORE
+				int value = (percent*255)/100;
+				badge_disobey_samd_write_backlight(value);
+			#else
+				(void) g;
+				(void) percent;
+			#endif
 		}
 
 		static void board_contrast(GDisplay *g, uint8_t percent) {

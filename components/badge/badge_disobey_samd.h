@@ -120,4 +120,4 @@ extern esp_err_t badge_disobey_samd_write_off(void);
 
 __END_DECLS
 
-#endif // BADGE_disobey_samd_H
+#endif // BADGE_DISOBEY_SAMD_H

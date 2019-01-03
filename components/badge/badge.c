@@ -20,6 +20,7 @@
 #include "badge_eink.h"
 #include "badge_nvs.h"
 #include "badge_disobey_samd.h"
+#include "badge_erc12864.h"
 
 static const char *TAG = "badge";
 
@@ -285,6 +286,14 @@ badge_init(void)
 		ESP_LOGE(TAG, "badge_vibrator_init failed: %d", err);
 	}
 #endif // defined(FXL6408_PIN_NUM_VIBRATOR) || defined(MPR121_PIN_NUM_VIBRATOR)
+
+#ifdef I2C_ERC12864_ADDR
+	err = badge_erc12864_init();
+	if (err != ESP_OK)
+	{
+		ESP_LOGE(TAG, "badge_erc12864_init failed: %d", err);
+	}
+#endif
 
 	err = badge_sdcard_init();
 	if (err != ESP_OK)
