@@ -16,7 +16,7 @@
 __BEGIN_DECLS
 
 /** interrupt handler type */
-typedef void (*badge_disobey_samd_intr_t)(void*, bool);
+typedef void (*badge_disobey_samd_intr_t)(int, int);
 
 /** touch info */
 struct badge_disobey_samd_touch_info {
@@ -39,7 +39,7 @@ extern esp_err_t badge_disobey_samd_init(void);
  * @param arg the argument passed on to the handler.
  * @note It is safe to set the interrupt handler before a call to badge_disobey_samd_init().
  */
-extern void badge_disobey_samd_set_interrupt_handler(uint8_t pin, badge_disobey_samd_intr_t handler, void *arg);
+extern void badge_disobey_samd_set_interrupt_handler(badge_disobey_samd_intr_t handler);
 
 /**
  * Retrieve the disobey_samd status.

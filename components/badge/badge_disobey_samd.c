@@ -36,7 +36,7 @@ xSemaphoreHandle badge_disobey_samd_mux = NULL;
 xSemaphoreHandle badge_disobey_samd_intr_trigger = NULL;
 
 // handlers per disobey_samd port.
-badge_disobey_samd_intr_t badge_disobey_samd_handlers[12] = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+badge_disobey_samd_intr_t badge_disobey_samd_handler = NULL;
 void* badge_disobey_samd_arg[12] = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 int badge_disobey_samd_read_state()
@@ -147,18 +147,21 @@ badge_disobey_samd_intr_task(void *arg)
 				vTaskDelay(1000 / portTICK_PERIOD_MS);
 			}
 
-			int i;
-			for (i=0; i<8; i++)
-			{
-				if ((state & (1 << i)) != (old_state & (1 << i)))
-				{
-					xSemaphoreTake(badge_disobey_samd_mux, portMAX_DELAY);
-					badge_disobey_samd_intr_t handler = badge_disobey_samd_handlers[i];
-					void *arg = badge_disobey_samd_arg[i];
-					xSemaphoreGive(badge_disobey_samd_mux);
+			int pressed = 0;
+			int released = 0;
 
-					if (handler != NULL)
-						handler(arg, (state & (1 << i)) != 0);
+			for (uint8_t i = 0; i<6; i++) {
+				if (((state>>i)&0x01)&&(!((old_state>>i)&0x01))) pressed |= (1<<i);
+				if (((old_state>>i)&0x01)&&(!((state>>i)&0x01))) released |= (1<<i);
+			}
+
+			if (state != old_state) {
+				xSemaphoreTake(badge_disobey_samd_mux, portMAX_DELAY);
+				badge_disobey_samd_intr_t handler = badge_disobey_samd_handler;
+				xSemaphoreGive(badge_disobey_samd_mux);
+
+				if (handler != NULL) {
+					handler(pressed, released);
 				}
 			}
 
@@ -176,12 +179,12 @@ badge_disobey_samd_intr_handler(void *arg)
 	static int gpio_last_state = -1;
 	if (gpio_state != -1 && gpio_last_state != gpio_state)
 	{
-		ets_printf("badge_disobey_samd: I2C Int %s\n", gpio_state == 1 ? "up" : "down");
+		ets_printf("badge_disobey_samd: I2C Int %s\n", gpio_state == 0 ? "up" : "down");
 	}
 	gpio_last_state = gpio_state;
 #endif // CONFIG_SHA_BADGE_disobey_samd_DEBUG
 
-	if (gpio_state == 1)
+	if (gpio_state == 0)
 	{
 		xSemaphoreGiveFromISR(badge_disobey_samd_intr_trigger, NULL);
 	}
@@ -217,6 +220,17 @@ badge_disobey_samd_init(void)
 	if (res != ESP_OK)
 		return res;
 
+	gpio_config_t io_conf = {
+		.intr_type    = GPIO_INTR_ANYEDGE,
+		.mode         = GPIO_MODE_INPUT,
+		.pin_bit_mask = 1LL << PIN_NUM_DISOBEY_SAMD_INT,
+		.pull_down_en = 0,
+		.pull_up_en   = 0,
+	};
+	res = gpio_config(&io_conf);
+	if (res != ESP_OK)
+		return res;
+
 	xTaskCreate(&badge_disobey_samd_intr_task, "disobey_samd interrupt task", 4096, NULL, 10, NULL);
 
 	xSemaphoreGive(badge_disobey_samd_intr_trigger);
@@ -229,19 +243,17 @@ badge_disobey_samd_init(void)
 }
 
 void
-badge_disobey_samd_set_interrupt_handler(uint8_t pin, badge_disobey_samd_intr_t handler, void *arg)
+badge_disobey_samd_set_interrupt_handler(badge_disobey_samd_intr_t handler)
 {
 	if (badge_disobey_samd_mux == NULL)
 	{ // allow setting handlers when badge_disobey_samd is not initialized yet.
-		badge_disobey_samd_handlers[pin] = handler;
-		badge_disobey_samd_arg[pin] = arg;
+		badge_disobey_samd_handler = handler;
 	}
 	else
 	{
 		xSemaphoreTake(badge_disobey_samd_mux, portMAX_DELAY);
 
-		badge_disobey_samd_handlers[pin] = handler;
-		badge_disobey_samd_arg[pin] = arg;
+		badge_disobey_samd_handler = handler;
 
 		xSemaphoreGive(badge_disobey_samd_mux);
 	}

@@ -25,25 +25,24 @@ static const char *TAG = "badge";
 
 #ifdef I2C_DISOBEY_SAMD_ADDR
 static void
-disobey_samd_event_handler(int event)
+disobey_samd_event_handler(int pressed, int released)
 {
-	// convert into button queue event
-	int event_type = (event >> 16) & 0x0f; // 0=touch, 1=release, 2=slider
-	if (event_type == 0 || event_type == 1) {
-		static const int conv[12] = {
-			[ DISOBEY_SAMD_BUTTON_LEFT   ] = BADGE_BUTTON_LEFT,
-			[ DISOBEY_SAMD_BUTTON_UP     ] = BADGE_BUTTON_UP,
-			[ DISOBEY_SAMD_BUTTON_RIGHT  ] = BADGE_BUTTON_RIGHT,
-			[ DISOBEY_SAMD_BUTTON_DOWN   ] = BADGE_BUTTON_DOWN,
-			[ DISOBEY_SAMD_BUTTON_BACK   ] = BADGE_BUTTON_B,
-			[ DISOBEY_SAMD_BUTTON_OK     ] = BADGE_BUTTON_A,
-		};
-		if (((event >> 8) & 0xff) < 12) {
-			int button_id = conv[(event >> 8) & 0xff];
-			if (button_id != 0)
-			{
-				badge_input_add_event(button_id, event_type == 0 ? EVENT_BUTTON_PRESSED : EVENT_BUTTON_RELEASED, NOT_IN_ISR);
-			}
+	static const int conv[12] = {
+		[ DISOBEY_SAMD_BUTTON_LEFT   ] = BADGE_BUTTON_LEFT,
+		[ DISOBEY_SAMD_BUTTON_UP     ] = BADGE_BUTTON_UP,
+		[ DISOBEY_SAMD_BUTTON_RIGHT  ] = BADGE_BUTTON_RIGHT,
+		[ DISOBEY_SAMD_BUTTON_DOWN   ] = BADGE_BUTTON_DOWN,
+		[ DISOBEY_SAMD_BUTTON_BACK   ] = BADGE_BUTTON_B,
+		[ DISOBEY_SAMD_BUTTON_OK     ] = BADGE_BUTTON_A,
+	};
+
+	for (uint8_t btn = 0; btn<6; btn++) {
+		int button_id = conv[btn];
+		if ((pressed >> btn)&0x01) {
+			badge_input_add_event(button_id, EVENT_BUTTON_PRESSED, NOT_IN_ISR);
+		}
+		if ((released >> btn)&0x01) {
+			badge_input_add_event(button_id, EVENT_BUTTON_RELEASED, NOT_IN_ISR);
 		}
 	}
 }
@@ -189,12 +188,7 @@ badge_init(void)
 #endif // PIN_NUM_I2C_CLK
 
 #ifdef I2C_DISOBEY_SAMD_ADDR
-	badge_disobey_samd_set_interrupt_handler(DISOBEY_SAMD_BUTTON_LEFT  , disobey_samd_event_handler, (void*) (BADGE_BUTTON_LEFT));
-	badge_disobey_samd_set_interrupt_handler(DISOBEY_SAMD_BUTTON_UP    , disobey_samd_event_handler, (void*) (BADGE_BUTTON_UP));
-	badge_disobey_samd_set_interrupt_handler(DISOBEY_SAMD_BUTTON_BACK  , disobey_samd_event_handler, (void*) (BADGE_BUTTON_B));
-	badge_disobey_samd_set_interrupt_handler(DISOBEY_SAMD_BUTTON_OK    , disobey_samd_event_handler, (void*) (BADGE_BUTTON_A));
-	badge_disobey_samd_set_interrupt_handler(DISOBEY_SAMD_BUTTON_DOWN  , disobey_samd_event_handler, (void*) (BADGE_BUTTON_DOWN));
-	badge_disobey_samd_set_interrupt_handler(DISOBEY_SAMD_BUTTON_RIGHT , disobey_samd_event_handler, (void*) (BADGE_BUTTON_RIGHT));
+	badge_disobey_samd_set_interrupt_handler(disobey_samd_event_handler);
 	err = badge_disobey_samd_init();
 	if (err != ESP_OK)
 	{
