@@ -25,7 +25,11 @@
 
 // Set this to your frame buffer pixel format.
 #ifndef GDISP_LLD_PIXELFORMAT
-	#define GDISP_LLD_PIXELFORMAT		GDISP_PIXELFORMAT_GRAY256
+	#ifdef I2C_ERC12864_ADDR
+		#define GDISP_LLD_PIXELFORMAT		GDISP_PIXELFORMAT_MONO
+	#else
+		#define GDISP_LLD_PIXELFORMAT		GDISP_PIXELFORMAT_GRAY256
+	#endif
 #endif
 
 // Uncomment this if your frame buffer device requires flushing
@@ -35,8 +39,7 @@
 // encode it and send it to the badge_eink driver on flush
 uint8_t target_lut;
 
-#ifdef I2C_ERC12864_ADDR_IGNORE
-uint8_t badge_lcd_fb[BADGE_ERC12864_DATA_LENGTH];
+#ifdef I2C_ERC12864_ADDR
 #define GDISP_NEED_CONTROL TRUE
 #endif
 
@@ -59,13 +62,16 @@ uint8_t badge_lcd_fb[BADGE_ERC12864_DATA_LENGTH];
 		fbi->linelen = g->g.Width;
 		fbi->pixels = badge_eink_fb;
 		target_lut = 2;
-#elif defined(I2C_ERC12864_ADDR_IGNORE)
+#elif defined(I2C_ERC12864_ADDR)
+		esp_err_t err = badge_eink_fb_init();
+		assert( err == ESP_OK );
+
 		g->g.Width = BADGE_ERC12864_WIDTH;
 		g->g.Height = BADGE_ERC12864_HEIGHT;
 		g->g.Backlight = 100;
 		g->g.Contrast = 50;
 		fbi->linelen = g->g.Width;
-		fbi->pixels = badge_lcd_fb;
+		fbi->pixels = badge_eink_fb;
 #endif
 	}
 
@@ -94,9 +100,10 @@ uint8_t badge_lcd_fb[BADGE_ERC12864_DATA_LENGTH];
 				badge_eink_display(badge_eink_fb, flags | DISPLAY_FLAG_LUT(target_lut));
 			}
 		}
-		#elif defined(I2C_ERC12864_ADDR_IGNORE)
+		#elif defined(I2C_ERC12864_ADDR)
 		static void board_flush(GDisplay *g) {
-			badge_erc12864_write(badge_lcd_fb);
+			printf("ERC12864 FLUSH FROM UGFX!\n");
+			badge_erc12864_write(badge_eink_fb);
 		}
 		#else
 		static void board_flush(GDisplay *g) {
@@ -108,7 +115,7 @@ uint8_t badge_lcd_fb[BADGE_ERC12864_DATA_LENGTH];
 	#if GDISP_NEED_CONTROL
 		static void board_backlight(GDisplay *g, uint8_t percent) {
 			// TODO: Can be an empty function if your hardware doesn't support this
-			#ifdef I2C_ERC12864_ADDR_IGNORE
+			#ifdef I2C_ERC12864_ADDR
 				int value = (percent*255)/100;
 				badge_disobey_samd_write_backlight(value);
 			#else

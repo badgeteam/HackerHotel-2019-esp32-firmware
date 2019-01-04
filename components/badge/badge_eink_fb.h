@@ -6,11 +6,16 @@
 #include <esp_err.h>
 
 #include "badge_eink.h"
+#include "badge_erc12864.h"
 
 __BEGIN_DECLS
 
 /** the size of the badge_eink_fb buffer */
-#define BADGE_EINK_FB_LEN (BADGE_EINK_WIDTH * BADGE_EINK_HEIGHT)
+#ifdef I2C_ERC12864_ADDR
+	#define BADGE_EINK_FB_LEN (BADGE_EINK_WIDTH * BADGE_EINK_HEIGHT)
+#else
+	#define BADGE_EINK_FB_LEN BADGE_ERC12864_DATA_LENGTH
+#endif
 
 /** A one byte per pixel frame-buffer */
 extern uint8_t *badge_eink_fb;

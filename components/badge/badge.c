@@ -34,7 +34,7 @@ disobey_samd_event_handler(int pressed, int released)
 		[ DISOBEY_SAMD_BUTTON_RIGHT  ] = BADGE_BUTTON_RIGHT,
 		[ DISOBEY_SAMD_BUTTON_DOWN   ] = BADGE_BUTTON_DOWN,
 		[ DISOBEY_SAMD_BUTTON_BACK   ] = BADGE_BUTTON_B,
-		[ DISOBEY_SAMD_BUTTON_OK     ] = BADGE_BUTTON_A,
+		[ DISOBEY_SAMD_BUTTON_OK     ] = BADGE_BUTTON_START,
 	};
 
 	for (uint8_t btn = 0; btn<6; btn++) {
