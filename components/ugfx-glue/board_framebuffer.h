@@ -62,7 +62,7 @@ uint8_t target_lut;
 		fbi->linelen = g->g.Width;
 		fbi->pixels = badge_eink_fb;
 		target_lut = 2;
-#elif defined(I2C_ERC12864_ADDR)
+#elif defined(I2C_ERC12864_ADDR_XX)
 		esp_err_t err = badge_eink_fb_init();
 		assert( err == ESP_OK );
 
@@ -100,7 +100,7 @@ uint8_t target_lut;
 				badge_eink_display(badge_eink_fb, flags | DISPLAY_FLAG_LUT(target_lut));
 			}
 		}
-		#elif defined(I2C_ERC12864_ADDR)
+		#elif defined(I2C_ERC12864_ADDR_XX)
 		static void board_flush(GDisplay *g) {
 			printf("ERC12864 FLUSH FROM UGFX!\n");
 			badge_erc12864_write(badge_eink_fb);
