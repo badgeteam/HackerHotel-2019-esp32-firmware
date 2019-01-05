@@ -5,7 +5,7 @@
 
 #include <badge_pins.h>
 #include <badge_eink.h>
-#include <badge_eink_fb.h>
+#include <badge_fb.h>
 #include <badge_power.h>
 #include <badge_input.h>
 
@@ -19,7 +19,7 @@ demoPower(void) {
 	int v_bat = -1;
 	int v_usb = -1;
 
-	esp_err_t err = badge_eink_fb_init();
+	esp_err_t err = badge_fb_init();
 	assert( err == ESP_OK );
 
 	while (1)
@@ -47,22 +47,22 @@ demoPower(void) {
 			v_bat = new_v_bat;
 			v_usb = new_v_usb;
 
-			memset(badge_eink_fb, 0xff, BADGE_EINK_FB_LEN);
+			memset(badge_fb, 0xff, BADGE_FB_LEN);
 
 			snprintf(text, sizeof(text), "Is charging: %s", bat_cs ? "true" : "false");
-			draw_font(badge_eink_fb, 16,  8, BADGE_EINK_WIDTH-32, text,
+			draw_font(badge_fb, 16,  8, BADGE_EINK_WIDTH-32, text,
 					FONT_MONOSPACE | FONT_INVERT);
 
 			snprintf(text, sizeof(text), "Vusb       : %d.%03d V", v_usb / 1000, v_usb % 1000);
-			draw_font(badge_eink_fb, 16, 16, BADGE_EINK_WIDTH-32, text,
+			draw_font(badge_fb, 16, 16, BADGE_EINK_WIDTH-32, text,
 					FONT_MONOSPACE | FONT_INVERT);
 
 			snprintf(text, sizeof(text), "Vbat       : %d.%03d V", v_bat / 1000, v_bat % 1000);
-			draw_font(badge_eink_fb, 16, 24, BADGE_EINK_WIDTH-32, text,
+			draw_font(badge_fb, 16, 24, BADGE_EINK_WIDTH-32, text,
 					FONT_MONOSPACE | FONT_INVERT);
 
 			/* update display */
-			badge_eink_display(badge_eink_fb, DISPLAY_FLAG_LUT(2));
+			badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(2));
 		}
 
 		// wait 1 second

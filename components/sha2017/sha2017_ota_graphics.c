@@ -1,9 +1,8 @@
-
 #include "sdkconfig.h"
-
 #include <gfx.h>
-
 #include "sha2017_ota_graphics.h"
+#include "badge_eink.h"
+#include "badge_eink_dev.h"
 
 font_t permanentMarker36;
 font_t robotoBlackItalic;
@@ -15,9 +14,12 @@ void sha2017_ota_percentage_init() {
   robotoBlackItalic = gdispOpenFont("Roboto_BlackItalic24");
   permanentMarker = gdispOpenFont("PermanentMarker22");
   permanentMarker36 = gdispOpenFont("PermanentMarker36");
+
+	target_lut = BADGE_EINK_LUT_FASTER;
 }
 
-void show_percentage(char *name, uint8_t percentage, bool show_percentage) {
+void show_percentage(char *name, uint8_t percentage, bool show_percentage, bool force) {
+  if ((!force)&&(badge_eink_dev_is_busy())) return;
 
   color_t front = White;
   color_t back = Black;

@@ -5,7 +5,7 @@
 #include <badge_input.h>
 #include <badge_eink_dev.h>
 #include <badge_eink_lut.h>
-#include <badge_eink_fb.h>
+#include <badge_fb.h>
 #include <badge_eink.h>
 
 #include "img_hacking.h"
@@ -18,7 +18,7 @@
  * sed 's/ /,/g'
  */
 void demoGreyscaleImg1(void) {
-  uint32_t *tmpbuf = (uint32_t *) badge_eink_fb;
+  uint32_t *tmpbuf = (uint32_t *) badge_fb;
 
   // trying to get rid of all ghosting and end with a black screen.
   int i;

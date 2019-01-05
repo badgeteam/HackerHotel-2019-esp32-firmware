@@ -19,17 +19,17 @@
 #include <badge_pins.h>
 #include <badge_nvs.h>
 #include <badge_eink.h>
-#include <badge_eink_fb.h>
+#include <badge_fb.h>
 #include <badge_erc12864.h>
 #include <badge_disobey_samd.h>
 
 // Set this to your frame buffer pixel format.
 #ifndef GDISP_LLD_PIXELFORMAT
-	#ifdef I2C_ERC12864_ADDR
-		#define GDISP_LLD_PIXELFORMAT		GDISP_PIXELFORMAT_MONO
-	#else
+	//#ifdef I2C_ERC12864_ADDR
+	//	#define GDISP_LLD_PIXELFORMAT		GDISP_PIXELFORMAT_MONO
+	//#else
 		#define GDISP_LLD_PIXELFORMAT		GDISP_PIXELFORMAT_GRAY256
-	#endif
+	//#endif
 #endif
 
 // Uncomment this if your frame buffer device requires flushing
@@ -52,7 +52,7 @@ uint8_t target_lut;
 		esp_err_t err = badge_eink_init(eink_type);
 		assert( err == ESP_OK );
 
-		err = badge_eink_fb_init();
+		err = badge_fb_init();
 		assert( err == ESP_OK );
 
 		g->g.Width = BADGE_EINK_WIDTH;
@@ -60,10 +60,10 @@ uint8_t target_lut;
 		g->g.Backlight = 100;
 		g->g.Contrast = 50;
 		fbi->linelen = g->g.Width;
-		fbi->pixels = badge_eink_fb;
+		fbi->pixels = badge_fb;
 		target_lut = 2;
-#elif defined(I2C_ERC12864_ADDR_XX)
-		esp_err_t err = badge_eink_fb_init();
+#elif defined(I2C_ERC12864_ADDR)
+		esp_err_t err = badge_fb_init();
 		assert( err == ESP_OK );
 
 		g->g.Width = BADGE_ERC12864_WIDTH;
@@ -71,7 +71,7 @@ uint8_t target_lut;
 		g->g.Backlight = 100;
 		g->g.Contrast = 50;
 		fbi->linelen = g->g.Width;
-		fbi->pixels = badge_eink_fb;
+		fbi->pixels = badge_fb;
 #endif
 	}
 
@@ -89,21 +89,21 @@ uint8_t target_lut;
 			if (target_lut >= 0xf0)
 			{
 				// 0xf0 was used in some examples. support it for now..
-				badge_eink_display_greyscale(badge_eink_fb, flags, target_lut > 0xf0 ? target_lut - 0xf0 : BADGE_EINK_MAX_LAYERS);
+				badge_eink_display_greyscale(badge_fb, flags, target_lut > 0xf0 ? target_lut - 0xf0 : BADGE_EINK_MAX_LAYERS);
 			}
 			else if (target_lut > BADGE_EINK_LUT_MAX)
 			{
-				badge_eink_display(badge_eink_fb, flags);
+				badge_eink_display(badge_fb, flags);
 			}
 			else
 			{
-				badge_eink_display(badge_eink_fb, flags | DISPLAY_FLAG_LUT(target_lut));
+				badge_eink_display(badge_fb, flags | DISPLAY_FLAG_LUT(target_lut));
 			}
 		}
-		#elif defined(I2C_ERC12864_ADDR_XX)
+		#elif defined(I2C_ERC12864_ADDR)
 		static void board_flush(GDisplay *g) {
 			printf("ERC12864 FLUSH FROM UGFX!\n");
-			badge_erc12864_write(badge_eink_fb);
+			badge_erc12864_write_8bitcompat(badge_fb);
 		}
 		#else
 		static void board_flush(GDisplay *g) {

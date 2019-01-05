@@ -138,6 +138,24 @@ esp_err_t badge_erc12864_write(const uint8_t *buffer)
 	return ESP_OK;
 }
 
+esp_err_t badge_erc12864_write_8bitcompat(const uint8_t *buffer)
+{
+	uint8_t newBuffer[BADGE_ERC12864_1BPP_DATA_LENGTH];
+	memset(newBuffer, 0, BADGE_ERC12864_1BPP_DATA_LENGTH);
+	
+	for (uint8_t x = 0; x < BADGE_ERC12864_WIDTH; x++) {
+		for (uint8_t y = 0; y < BADGE_ERC12864_HEIGHT/8; y++) {
+			uint16_t targetByte = (y*BADGE_ERC12864_WIDTH) + x;
+			newBuffer[targetByte] = 0;
+			for (uint8_t targetBit = 0; targetBit < 8; targetBit++) {
+				uint16_t fromByte = ((y*8+targetBit)*BADGE_ERC12864_WIDTH) + x;
+				if (buffer[fromByte] < 128) newBuffer[targetByte] += (1<<targetBit);
+			}
+		}
+	}
+	return badge_erc12864_write(newBuffer);
+}
+
 void badge_erc12864_set_rotation(bool newFlip)
 {
 	flip = newFlip;
