@@ -33,10 +33,10 @@
 #include "mbedtls/ssl.h"
 
 #include "badge.h"
-#include "badge_eink.h"
-#include "badge_eink_dev.h"
+//#include "badge_eink.h"
+//#include "badge_eink_dev.h"
 #include "badge_nvs.h"
-#include "wildcard_sha2017_org.h"
+#include "letsencrypt.h"
 #include "sha2017_ota_graphics.h"
 #include <gfx.h>
 
@@ -49,8 +49,18 @@
  #define BADGE_OTA_WEB_PATH CONFIG_OTA_SERVER_PATH "-rev0.0.1-" CONFIG_ESPTOOLPY_FLASHSIZE ".bin"
 #elif defined(CONFIG_SHA_BADGE_V2)
  #define BADGE_OTA_WEB_PATH CONFIG_OTA_SERVER_PATH "-rev0.1.0-" CONFIG_ESPTOOLPY_FLASHSIZE ".bin"
+#elif defined(CONFIG_SHA_BADGE_V3)
+ #define BADGE_OTA_WEB_PATH CONFIG_OTA_SERVER_PATH "-rev1.0.0-" CONFIG_ESPTOOLPY_FLASHSIZE ".bin"
+#elif defined(CONFIG_SHA_BADGE_V3_LITE)
+ #define BADGE_OTA_WEB_PATH CONFIG_OTA_SERVER_PATH "-rev1.0.0-lite-" CONFIG_ESPTOOLPY_FLASHSIZE ".bin"
+#elif defined(CONFIG_DISOBEY)
+ #define BADGE_OTA_WEB_PATH CONFIG_OTA_SERVER_PATH "-disobey-rev1.0-" CONFIG_ESPTOOLPY_FLASHSIZE ".bin"
+#elif defined(CONFIG_HACKERHOTEL_BADGE_V0)
+ #define BADGE_OTA_WEB_PATH CONFIG_OTA_SERVER_PATH "-hackerhotel-rev0.1-" CONFIG_ESPTOOLPY_FLASHSIZE ".bin"
+#elif defined(CONFIG_HACKERHOTEL_BADGE_V1)
+ #define BADGE_OTA_WEB_PATH CONFIG_OTA_SERVER_PATH "-hackerhotel-rev1.0-" CONFIG_ESPTOOLPY_FLASHSIZE ".bin"
 #else
- #define BADGE_OTA_WEB_PATH CONFIG_OTA_SERVER_PATH "-" CONFIG_ESPTOOLPY_FLASHSIZE ".bin"
+ #define BADGE_OTA_WEB_PATH CONFIG_OTA_SERVER_PATH "-generic-" CONFIG_ESPTOOLPY_FLASHSIZE ".bin"
 #endif
 
 static uint8_t buffer[1024];
@@ -132,7 +142,7 @@ static void __attribute__((noreturn))
 task_fatal_error(void)
 {
 	ESP_LOGE(TAG, "Exiting task due to fatal error...");
-	show_percentage("OTA Update failed :(", 0, false);
+	show_percentage("OTA Update failed :(", 0, false, true);
 
 	(void)vTaskDelete(NULL);
 
@@ -246,9 +256,7 @@ sha2017_ota_task(void *pvParameter)
 	ESP_LOGI(TAG, "Writing to partition type %d subtype %d (offset 0x%08x)",
 			part_update->type, part_update->subtype, part_update->address);
 
-	target_lut = BADGE_EINK_LUT_FASTER;
-
-	show_percentage("Connecting to WiFi", 0, false);
+	show_percentage("Connecting to WiFi", 0, false, true);
 	/* Wait for the callback to set the CONNECTED_BIT in the
 	   event group.
 	 */
@@ -280,8 +288,7 @@ sha2017_ota_task(void *pvParameter)
 	}
 
 	ESP_LOGI(TAG, "Loading the CA root certificate...");
-
-	ret = mbedtls_x509_crt_parse_der(&cacert, wildcard_sha2017_org, 856);
+	ret = mbedtls_x509_crt_parse_der(&cacert, letsencrypt, LETSENCRYPT_LENGTH);
 	if (ret < 0) {
 		ESP_LOGE(TAG, "mbedtls_x509_crt_parse returned -0x%x\n\n", -ret);
 		abort();
@@ -328,7 +335,7 @@ sha2017_ota_task(void *pvParameter)
 
 	mbedtls_net_init(&server_fd);
 
-	show_percentage("Handshaking server", 0, false);
+	show_percentage("Handshaking server", 0, false, true);
 
 	ESP_LOGI(TAG, "Connecting to %s:%s...", BADGE_OTA_WEB_SERVER,
 			BADGE_OTA_WEB_PORT);
@@ -375,7 +382,7 @@ sha2017_ota_task(void *pvParameter)
 	}
 	ESP_LOGI(TAG, "%d bytes written", strlen(REQUEST));
 
-	show_percentage("Starting OTA update", 0, false);
+	show_percentage("Starting OTA update", 0, false, true);
 
 	/* read until we have received the status line */
 	ESP_LOGI(TAG, "Reading HTTP response status line.");
@@ -517,9 +524,9 @@ sha2017_ota_task(void *pvParameter)
 		buffer_len = 0;
 
 		uint8_t newperc = (uint8_t) round(((float) content_pos * 100) / content_length);
-		if (newperc != percentage && !badge_eink_dev_is_busy()) {
+		if (newperc != percentage) {
 			percentage = newperc;
-			show_percentage("Updating", percentage, true);
+			show_percentage("Updating", percentage, true, false);
 		}
 	}
 
@@ -537,7 +544,7 @@ sha2017_ota_task(void *pvParameter)
 	 * new OTA partition.
 	 */
 
-	show_percentage("Rebooting the badge", 0, false);
+	show_percentage("Rebooting the badge", 0, false, true);
 
 	err = esp_ota_set_boot_partition(part_update);
 	if (err != ESP_OK) {
