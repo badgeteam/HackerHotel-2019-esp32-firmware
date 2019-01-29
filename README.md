@@ -4,21 +4,18 @@ This repository contains the firmware for the SHA2017 badge, the Hackerhotel bad
  
 # Resources
 
-* [Project documentation](https://wiki.sha2017.org/w/Projects:Badge)
-* [Wiki](https://wiki.sha2017.org/w/Projects:Badge)
-* [Documentation](https://wiki.sha2017.org/w/Projects:Badge/Documentation)
-* [Firmware](https://github.com/SHA2017-badge/Firmware)
-* [PCB](https://github.com/SHA2017-badge/PCB)
-* [Pad](https://pad.sha2017.org/p/badge)
+* [Project documentation](https://wiki.badge.team)
+* [Documentation](https://wiki.badge.team/Firmware)
+* [Firmware](https://github.com/badgeteam/ESP32-Firmware)
 * [Changelog](CHANGELOG.md)
 
-Copyright (C) 2017 SHA2017 Badge team.
+Copyright (C) 2017-2019 Badge team.
+Using [Espressif Audio Development Framework](https://github.com/espressif/esp-adf) Copyright (C) 2018 Espressif Systems.
 Based on template application for [Espressif IoT Development Framework (ESP-IDF)](https://github.com/espressif/esp-idf).
-Copyright (C) 2016 Espressif Systems, licensed under the Apache License 2.0
-as described in the file LICENSE.
+Copyright (C) 2016 Espressif Systems, licensed under the Apache License 2.0 as described in the file LICENSE.
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/d73b02ee522942b8ae1244aa2ee62f43)](https://www.codacy.com/app/annejan/Firmware?utm_source=github.com&utm_medium=referral&utm_content=SHA2017-badge/Firmware&utm_campaign=badger)
-[![Build Status](https://travis-ci.org/SHA2017-badge/Firmware.svg?branch=master)](https://travis-ci.org/SHA2017-badge/Firmware)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/a61bf7ca8c6040e78382af2741a67d04)](https://www.codacy.com/app/Badgeteam/ESP32-Firmware?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=badgeteam/ESP32-Firmware&amp;utm_campaign=Badge.team)
+[![Build Status](https://travis-ci.org/badgeteam/ESP32-Firmware.svg?branch=master)](https://travis-ci.org/badgeteam/ESP32-Firmware)
 
 # Build instructions
 To build the basic firmware:
