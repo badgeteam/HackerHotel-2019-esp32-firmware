@@ -1,11 +1,10 @@
-Firmware SHA2017Badge
-=====================
+# Badge team ESP32 Firmware
 
-Read [project documentation](https://wiki.sha2017.org/w/Projects:Badge)
-and get involved.
+This repository contains the firmware for the SHA2017 badge, the Hackerhotel badge and the Disobey badge.
+ 
+# Resources
 
-Project updates:
-
+* [Project documentation](https://wiki.sha2017.org/w/Projects:Badge)
 * [Wiki](https://wiki.sha2017.org/w/Projects:Badge)
 * [Documentation](https://wiki.sha2017.org/w/Projects:Badge/Documentation)
 * [Firmware](https://github.com/SHA2017-badge/Firmware)
@@ -21,15 +20,23 @@ as described in the file LICENSE.
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/d73b02ee522942b8ae1244aa2ee62f43)](https://www.codacy.com/app/annejan/Firmware?utm_source=github.com&utm_medium=referral&utm_content=SHA2017-badge/Firmware&utm_campaign=badger)
 [![Build Status](https://travis-ci.org/SHA2017-badge/Firmware.svg?branch=master)](https://travis-ci.org/SHA2017-badge/Firmware)
 
-Debian prerequisites
---------------------
+# Build instructions
+To build the basic firmware:
+ * make menuconfig
+ * make
+
+To build the Micropython firmware:
+ * Build the basic firmware 
+ * cd micropython/esp32
+ * make
+
+## Debian prerequisites
 
 ```
 sudo apt-get install libncurses5-dev flex bison gperf python-serial libffi-dev libsdl2-dev libmbedtls-dev perl
 ```
 
-Compiling and flashing
-----------------------
+## Compiling and flashing
 
 ```
 git submodule update --init --recursive
@@ -38,22 +45,20 @@ make defconfig
 make -j5
 ```
 
-Optional configuration
--------------
+## Optional configuration
+
 ```
 make menuconfig
 ```
 
-Compiling MicroPython
-----------------------------------
+## Compiling MicroPython
 
 ```
 make -j5 -C micropython/mpy-cross
 make -j5 -C micropython/esp32/
 ```
 
-Flashing MicroPython
-----------------------------------
+## Flashing MicroPython
 
 ```
 cd auto-flasher
@@ -61,14 +66,13 @@ cp ../micropython/esp32/build/application.bin firmware/sha2017-badge.bin
 ./auto_flash.pl /dev/ttyUSB0
 ```
 
-Interacting via serial
-----------------------
+# Interacting via serial
+
 ```
 make monitor
 ```
 
-Building on OSX
----------------
+# Building on OSX
 
 First you have to replace the linux toolchain:
 * download the [mac toolchain](https://dl.espressif.com/dl/xtensa-esp32-elf-osx-1.22.0-61-gab8375a-5.2.0.tar.gz) from [this page](https://dl.espressif.com/doc/esp-idf/latest/get-started/macos-setup.html)
@@ -81,8 +85,8 @@ In the `sdkconfig` file change this line:
 
     CONFIG_ESPTOOLPY_PORT="/dev/tty.SLAB_USBtoUART"
 
-MicroPython
------------
+# MicroPython
+
 ```
 import badge
 badge.eink_init()
@@ -103,8 +107,8 @@ ugfx.flush()
 ```
 More info on the [MicroPython badge features](https://wiki.sha2017.org/w/Projects:Badge/MicroPython)
 
-Badge Emulator
---------------
+# Badge Emulator
+
 ```
 make -C micropython/unix
 cd micropython/unix
