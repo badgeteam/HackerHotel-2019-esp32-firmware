@@ -1,6 +1,7 @@
 #include "sdkconfig.h"
+#include <string.h>
 #include <gfx.h>
-#include "sha2017_ota_graphics.h"
+#include "graphics.h"
 #include "badge_eink.h"
 #include "badge_eink_dev.h"
 
@@ -8,30 +9,36 @@ font_t fontPercentage;
 font_t fontTitle;
 font_t fontStatus;
 
-void sha2017_ota_percentage_init() {
-  gfxInit();
+#define TITLE_LEN 64
+
+char title[TITLE_LEN];
+
+void graphics_init(const char* arg_title) {
+	memset(title, 0, TITLE_LEN);
+	strncpy(title, arg_title, TITLE_LEN-1);
+	gfxInit();
 #ifdef CONFIG_DISOBEY
-  fontTitle = gdispOpenFont("Roboto_Regular18");
-  fontStatus = gdispOpenFont("Roboto_Regular12");
-  fontPercentage = gdispOpenFont("Roboto_Regular18");
+	fontTitle = gdispOpenFont("Roboto_Regular18");
+	fontStatus = gdispOpenFont("Roboto_Regular12");
+	fontPercentage = gdispOpenFont("Roboto_Regular18");
 #else
-  fontTitle = gdispOpenFont("Roboto_BlackItalic24");
-  fontStatus = gdispOpenFont("PermanentMarker22");
-  fontPercentage = gdispOpenFont("PermanentMarker36");
+	fontTitle = gdispOpenFont("Roboto_BlackItalic24");
+	fontStatus = gdispOpenFont("PermanentMarker22");
+	fontPercentage = gdispOpenFont("PermanentMarker36");
 #endif
 
 	target_lut = BADGE_EINK_LUT_FASTER;
 }
 
 #ifdef CONFIG_DISOBEY
-void show_percentage(char *name, uint8_t percentage, bool show_percentage, bool force) {
+void graphics_show(char *name, uint8_t percentage, bool show_percentage, bool force) {
   if ((!force)&&(badge_eink_dev_is_busy())) return;
 
   color_t front = Black;
   color_t back = White;
 
   gdispClear(back);
-  gdispDrawString(0, 0, "OTA UPDATE", fontTitle, front);
+  gdispDrawString(0, 0, title, fontTitle, front);
   gdispDrawString(0, 20, name, fontStatus, front);
   if (show_percentage) {
     char perc[10];
@@ -41,7 +48,7 @@ void show_percentage(char *name, uint8_t percentage, bool show_percentage, bool 
   gdispFlush();
 }
 #else
-void show_percentage(char *name, uint8_t percentage, bool show_percentage, bool force) {
+void graphics_show(char *name, uint8_t percentage, bool show_percentage, bool force) {
   if ((!force)&&(badge_eink_dev_is_busy())) return;
 
   color_t front = White;

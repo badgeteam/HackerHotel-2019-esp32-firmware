@@ -25,6 +25,9 @@
 #include <badge_button.h>
 #include <badge_power.h>
 #include <badge_sdcard.h>
+#include <badge_i2c.h>
+#include <badge_disobey_samd.h>
+#include <badge_erc12864.h>
 #include <font.h>
 #include <sha2017_ota.h>
 
@@ -57,14 +60,14 @@ const char *touch_name[8] = {
 	"LEFT",
 };
 
-void
+bool
 load_png(int x, int y, const char *filename)
 {
 	struct lib_file_reader *fr = lib_file_new(filename, 1024);
 	if (fr == NULL)
 	{
 		fprintf(stderr, "file not found (or out of memory).\n");
-		return;
+		return false;
 	}
 
 	struct lib_png_reader *pr = lib_png_new((lib_reader_read_t) &lib_file_read, fr);
@@ -72,21 +75,27 @@ load_png(int x, int y, const char *filename)
 	{
 		fprintf(stderr, "out of memory.\n");
 		lib_file_destroy(fr);
-		return;
+		return false;
 	}
 
-	int res = lib_png_load_image(pr, &badge_fb[x + y*BADGE_EINK_WIDTH], 0, 0, BADGE_EINK_WIDTH-x, BADGE_EINK_HEIGHT-y, BADGE_EINK_WIDTH);
+	int res = lib_png_load_image(pr, &badge_fb[x + y*BADGE_FB_WIDTH], 0, 0, BADGE_FB_WIDTH-x, BADGE_FB_HEIGHT-y, BADGE_FB_WIDTH);
 	lib_png_destroy(pr);
 	lib_file_destroy(fr);
 
 	if (res < 0)
 	{
 		fprintf(stderr, "failed to load image: res = %i\n", res);
-		return;
+		return false;
 	}
+	return true;
 }
 
-#define NUM_DISP_LINES 12
+#ifdef CONFIG_DISOBEY
+	#define NUM_DISP_LINES 8
+#else
+	#define NUM_DISP_LINES 12
+#endif
+
 #define NO_NEWLINE 0x80
 // can use the lower <n> lines for showing measurements
 void
@@ -99,26 +108,34 @@ disp_line(const char *line, int flags)
 		while (next_line >= NUM_DISP_LINES - height)
 		{ // scroll up
 			next_line--;
-			memmove(badge_fb, &badge_fb[BADGE_EINK_WIDTH], (NUM_DISP_LINES-1)*BADGE_EINK_WIDTH);
-			memset(&badge_fb[(NUM_DISP_LINES-1)*BADGE_EINK_WIDTH], 0xff, BADGE_EINK_WIDTH);
+			memmove(badge_fb, &badge_fb[BADGE_FB_WIDTH], (NUM_DISP_LINES-1)*BADGE_FB_WIDTH);
+			memset(&badge_fb[(NUM_DISP_LINES-1)*BADGE_FB_WIDTH], 0xff, BADGE_FB_WIDTH);
 		}
-		int len = draw_font(badge_fb, 0, 8*next_line, BADGE_EINK_WIDTH, line, (FONT_FULL_WIDTH|FONT_INVERT)^flags);
+		int len = draw_font(badge_fb, 0, 8*next_line, BADGE_FB_WIDTH, line, (FONT_FULL_WIDTH|FONT_INVERT)^flags);
 		if (height == 2)
 			next_line++;
 		if ((flags & NO_NEWLINE) == 0)
 		{
 			next_line++;
-			draw_font(badge_fb, 0, 8*next_line, BADGE_EINK_WIDTH, "_", FONT_FULL_WIDTH|FONT_INVERT);
+			draw_font(badge_fb, 0, 8*next_line, BADGE_FB_WIDTH, "_", FONT_FULL_WIDTH|FONT_INVERT);
 		}
 #ifdef CONFIG_DEBUG_ADD_DELAYS
+#ifdef CONFIG_DISOBEY
+		badge_erc12864_write(badge_fb);
+#else
 		badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(2));
+#endif
 		vTaskDelay(1000 / portTICK_PERIOD_MS);
 #endif // CONFIG_DEBUG_ADD_DELAYS
 
 		if (len == 0 || line[len] == 0)
 		{
 #ifndef CONFIG_DEBUG_ADD_DELAYS
-			badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(2));
+#ifdef CONFIG_DISOBEY
+		badge_erc12864_write(badge_fb);
+#else
+		badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(2));
+#endif
 #endif // CONFIG_DEBUG_ADD_DELAYS
 			return;
 		}
@@ -141,19 +158,23 @@ update_mpr121_bars( const struct badge_mpr121_touch_info *ti, const uint32_t *ba
 		if (xu > 295) xu = 295;
 		if (xd > 295) xd = 295;
 
-		int pos = ( 102 + y*3 ) * (BADGE_EINK_WIDTH/8);
-		memset(&badge_fb[pos-(BADGE_EINK_WIDTH/8)], 0xff, (BADGE_EINK_WIDTH/8)*3);
+		int pos = ( 102 + y*3 ) * (BADGE_FB_WIDTH/8);
+		memset(&badge_fb[pos-(BADGE_FB_WIDTH/8)], 0xff, (BADGE_FB_WIDTH/8)*3);
 		while (x >= 0)
 		{
 			badge_fb[pos + (x >> 3)] &= ~( 1 << (x&7) );
 			x--;
 		}
-		badge_fb[pos - (BADGE_EINK_WIDTH/8) + (xu >> 3)] &= ~( 1 << (xu&7) );
+		badge_fb[pos - (BADGE_FB_WIDTH/8) + (xu >> 3)] &= ~( 1 << (xu&7) );
 		badge_fb[pos           + (xu >> 3)] &= ~( 1 << (xu&7) );
 		badge_fb[pos           + (xd >> 3)] &= ~( 1 << (xd&7) );
-		badge_fb[pos + (BADGE_EINK_WIDTH/8) + (xd >> 3)] &= ~( 1 << (xd&7) );
+		badge_fb[pos + (BADGE_FB_WIDTH/8) + (xd >> 3)] &= ~( 1 << (xd&7) );
 	}
-	badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(2));
+#ifdef CONFIG_DISOBEY
+		badge_erc12864_write(badge_fb);
+#else
+		badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(2));
+#endif
 #ifdef CONFIG_DEBUG_ADD_DELAYS
 	vTaskDelay(100 / portTICK_PERIOD_MS);
 #endif // CONFIG_DEBUG_ADD_DELAYS
@@ -400,6 +421,18 @@ badge_first_run(void)
 	char line[100];
 
 	// initialize display
+#ifdef CONFIG_DISOBEY
+	esp_err_t err = badge_i2c_init();
+	assert( err == ESP_OK );
+	err = badge_disobey_samd_init();
+	assert( err == ESP_OK );
+	err = badge_erc12864_init();
+	err = badge_fb_init();
+	assert( err == ESP_OK );
+	memset(badge_fb, 0x00, BADGE_FB_LEN);
+	badge_disobey_samd_write_backlight(255);
+	badge_erc12864_write(badge_fb);
+#else
 	esp_err_t err = badge_eink_init(BADGE_EINK_DEFAULT);
 	assert( err == ESP_OK );
 
@@ -409,13 +442,13 @@ badge_first_run(void)
 	// start with white screen
 	memset(badge_fb, 0xff, BADGE_FB_LEN);
 	badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(0));
-
+#endif
+	
 	// add line in split-screen
 	if (NUM_DISP_LINES < 16) {
-		memset(&badge_fb[NUM_DISP_LINES*BADGE_EINK_WIDTH], 0x00, BADGE_EINK_WIDTH/8);
+		memset(&badge_fb[NUM_DISP_LINES*BADGE_FB_WIDTH], 0x00, BADGE_FB_WIDTH/8);
 	}
-
-	disp_line("SHA2017-Badge", FONT_16PX);
+	disp_line("Factory test", FONT_16PX);
 	disp_line("",0);
 	disp_line("Built on: " __DATE__ ", " __TIME__, 0);
 	disp_line("Initializing and testing badge.",0);
@@ -530,6 +563,7 @@ badge_first_run(void)
 	disp_line("MPR121 ok.",0);
 #endif // I2C_MPR121_ADDR
 
+#ifndef CONFIG_DISOBEY
 	// power measurements
 	disp_line("measure power.",0);
 	err = badge_power_init();
@@ -574,6 +608,7 @@ badge_first_run(void)
 	}
 
 	disp_line("power measurements ok.",0);
+#endif
 
 #if defined(FXL6408_PIN_NUM_SD_CD) || defined(MPR121_PIN_NUM_SD_CD)
 	// sdcard detect (not expecting an sd-card)
@@ -731,10 +766,19 @@ badge_first_run(void)
 
 	// if we get here, the badge is ok.
 	badge_init();
+#ifndef CONFIG_DISOBEY
 	load_png(0,0, "/media/hacking.png");
 	load_png(2,2, "/media/badge_version.png");
 	load_png(0,0, "/media/badge_type.png");
+#else
+	disp_line("TEST OK", 0);
+#endif
+	
+#ifdef CONFIG_DISOBEY
+	badge_erc12864_write(badge_fb);
+#else
 	badge_eink_display_greyscale(badge_fb, DISPLAY_FLAG_8BITPIXEL, BADGE_EINK_MAX_LAYERS);
+#endif
 
 	while (1)
 	{
