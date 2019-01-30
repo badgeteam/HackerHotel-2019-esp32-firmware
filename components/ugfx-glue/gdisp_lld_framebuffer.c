@@ -82,8 +82,8 @@ LLDSPEC void gdisp_lld_draw_pixel(GDisplay *g) {
 			y = g->p.x;
 			break;
 		}
-		if (x < 0 || x >= BADGE_EINK_WIDTH) return;
-		if (y < 0 || y >= BADGE_EINK_HEIGHT) return;
+		if (x < 0 || x >= BADGE_FB_WIDTH) return;
+		if (y < 0 || y >= BADGE_FB_HEIGHT) return;
 		pos = PIXIL_POS(g, x, y);
 	#else
 		pos = PIXIL_POS(g, g->p.x, g->p.y);
@@ -117,8 +117,8 @@ LLDSPEC	color_t gdisp_lld_get_pixel_color(GDisplay *g) {
 			y = g->p.x;
 			break;
 		}
-		if (x < 0 || x >= BADGE_EINK_WIDTH) return gdispNative2Color(255);
-		if (y < 0 || y >= BADGE_EINK_HEIGHT) return gdispNative2Color(255);
+		if (x < 0 || x >= BADGE_FB_WIDTH) return gdispNative2Color(255);
+		if (y < 0 || y >= BADGE_FB_HEIGHT) return gdispNative2Color(255);
 		pos = PIXIL_POS(g, x, y);
 	#else
 		pos = PIXIL_POS(g, g->p.x, g->p.y);

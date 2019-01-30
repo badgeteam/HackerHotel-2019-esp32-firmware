@@ -16,9 +16,12 @@
 
 #include <esp_system.h>
 
+#include <badge_pins.h>
 #include <badge_nvs.h>
 #include <badge_eink.h>
 #include <badge_fb.h>
+#include <badge_erc12864.h>
+#include <badge_disobey_samd.h>
 
 // Set this to your frame buffer pixel format.
 #ifndef GDISP_LLD_PIXELFORMAT
@@ -35,6 +38,7 @@ uint8_t target_lut;
 #ifdef GDISP_DRIVER_VMT
 
 	static void board_init(GDisplay *g, fbInfo *fbi) {
+#ifdef PIN_NUM_EPD_RESET
 		uint8_t eink_type = BADGE_EINK_DEFAULT;
 		badge_nvs_get_u8("badge", "eink.dev.type", &eink_type);
 		esp_err_t err = badge_eink_init(eink_type);
@@ -50,10 +54,22 @@ uint8_t target_lut;
 		fbi->linelen = g->g.Width;
 		fbi->pixels = badge_fb;
 		target_lut = 2;
+#elif defined(I2C_ERC12864_ADDR)
+		esp_err_t err = badge_fb_init();
+		assert( err == ESP_OK );
+
+		g->g.Width = BADGE_ERC12864_WIDTH;
+		g->g.Height = BADGE_ERC12864_HEIGHT;
+		g->g.Backlight = 100;
+		g->g.Contrast = 50;
+		fbi->linelen = g->g.Width;
+		fbi->pixels = badge_fb;
+#endif
 	}
 
 	#if GDISP_HARDWARE_FLUSH
 		bool ugfx_screen_flipped = false;
+		#ifdef PIN_NUM_EPD_RESET
 		static void board_flush(GDisplay *g) {
 			(void) g;
 
@@ -76,6 +92,15 @@ uint8_t target_lut;
 				badge_eink_display(badge_fb, flags | DISPLAY_FLAG_LUT(target_lut));
 			}
 		}
+		#elif defined(I2C_ERC12864_ADDR)
+		static void board_flush(GDisplay *g) {
+			badge_erc12864_write_8bitcompat(badge_fb);
+		}
+		#else
+		static void board_flush(GDisplay *g) {
+			(void) g;
+		}
+		#endif
 	#endif
 
 	#if GDISP_NEED_CONTROL
