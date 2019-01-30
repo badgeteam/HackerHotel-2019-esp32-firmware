@@ -10,7 +10,7 @@
 #include "freertos/task.h"
 
 #include <badge_eink.h>
-#include <badge_eink_fb.h>
+#include <badge_fb.h>
 #include <badge_input.h>
 #include <badge_button.h>
 #include <badge_mpr121.h>
@@ -33,12 +33,12 @@ demoMpr121(void)
 		"Left",
 	};
 
-	esp_err_t err = badge_eink_fb_init();
+	esp_err_t err = badge_fb_init();
 	assert( err == ESP_OK );
 
 	while (1)
 	{
-		memset(badge_eink_fb, 0xff, BADGE_EINK_FB_LEN);
+		memset(badge_fb, 0xff, BADGE_FB_LEN);
 		struct badge_mpr121_touch_info info;
 
 		int res = badge_mpr121_get_touch_info(&info);
@@ -50,7 +50,7 @@ demoMpr121(void)
 			if ((info.touch_state >> i) & 1)
 				flags |= FONT_INVERT;
 
-			draw_font(badge_eink_fb, 2, 16 + 10*i, 36, names[i], (FONT_FULL_WIDTH | FONT_INVERT) ^ flags);
+			draw_font(badge_fb, 2, 16 + 10*i, 36, names[i], (FONT_FULL_WIDTH | FONT_INVERT) ^ flags);
 			if (res == ESP_OK) {
 				int x, y;
 				int d = (info.data[i] >> 2) & 255;
@@ -58,7 +58,7 @@ demoMpr121(void)
 				{
 					for (x=40; x<40+d; x++)
 					{
-						badge_eink_fb[y*(296/8) + (x/8)] &= ~( 1 << (x&7) );
+						badge_fb[y*(296/8) + (x/8)] &= ~( 1 << (x&7) );
 					}
 				}
 				d = info.baseline[i] & 255;
@@ -66,7 +66,7 @@ demoMpr121(void)
 				{
 					for (x=40; x<40+d; x++)
 					{
-						badge_eink_fb[y*(296/8) + (x/8)] &= ~( 1 << (x&7) );
+						badge_fb[y*(296/8) + (x/8)] &= ~( 1 << (x&7) );
 					}
 				}
 				d = info.baseline[i] - (info.touch[i] >> 2);
@@ -76,7 +76,7 @@ demoMpr121(void)
 				{
 					for (x=40+d-1; x<40+d+1; x++)
 					{
-						badge_eink_fb[y*(296/8) + (x/8)] &= ~( 1 << (x&7) );
+						badge_fb[y*(296/8) + (x/8)] &= ~( 1 << (x&7) );
 					}
 				}
 				d = info.baseline[i] - (info.release[i] >> 2);
@@ -86,14 +86,14 @@ demoMpr121(void)
 				{
 					for (x=40+d-1; x<40+d+1; x++)
 					{
-						badge_eink_fb[y*(296/8) + (x/8)] &= ~( 1 << (x&7) );
+						badge_fb[y*(296/8) + (x/8)] &= ~( 1 << (x&7) );
 					}
 				}
 			}
 		}
 
 		/* update display */
-		badge_eink_display(badge_eink_fb, DISPLAY_FLAG_LUT(2));
+		badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(2));
 
 		// wait 0.1 second
 		badge_input_get_event(100);

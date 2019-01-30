@@ -3,14 +3,14 @@
 #include <string.h>
 
 #include <badge_eink.h>
-#include <badge_eink_fb.h>
+#include <badge_fb.h>
 #include <badge_input.h>
 
 #include <font.h>
 
 void
 demoText2(void) {
-	esp_err_t err = badge_eink_fb_init();
+	esp_err_t err = badge_fb_init();
 	assert( err == ESP_OK );
 
 	/* draw test pattern */
@@ -18,10 +18,10 @@ demoText2(void) {
 		int y;
 		for (y=0; y<BADGE_EINK_HEIGHT; y++)
 		{
-			memset(&badge_eink_fb[y * (BADGE_EINK_WIDTH/8)], (y&1) ? 0x55 : 0xaa, (BADGE_EINK_WIDTH/8));
+			memset(&badge_fb[y * (BADGE_EINK_WIDTH/8)], (y&1) ? 0x55 : 0xaa, (BADGE_EINK_WIDTH/8));
 		}
 
-		badge_eink_display(badge_eink_fb, DISPLAY_FLAG_LUT(0));
+		badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(0));
 	}
 
 	/* draw text with 16px font */
@@ -36,17 +36,17 @@ demoText2(void) {
 	int row = 8;
 	while (line_1[pos]) {
 		int num =
-			draw_font(badge_eink_fb, 16, row, BADGE_EINK_WIDTH-32, &line_1[pos], FONT_16PX | FONT_INVERT | FONT_FULL_WIDTH);
+			draw_font(badge_fb, 16, row, BADGE_EINK_WIDTH-32, &line_1[pos], FONT_16PX | FONT_INVERT | FONT_FULL_WIDTH);
 		if (num == 0)
 			break;
 		pos += num;
 		row += 16;
 	}
-	draw_font(badge_eink_fb, 16, row, BADGE_EINK_WIDTH-32, "", FONT_16PX | FONT_INVERT | FONT_FULL_WIDTH);
+	draw_font(badge_fb, 16, row, BADGE_EINK_WIDTH-32, "", FONT_16PX | FONT_INVERT | FONT_FULL_WIDTH);
 
-	draw_font(badge_eink_fb, 0, 120, BADGE_EINK_WIDTH, " Just a status line. Wifi status: not connected", FONT_FULL_WIDTH);
+	draw_font(badge_fb, 0, 120, BADGE_EINK_WIDTH, " Just a status line. Wifi status: not connected", FONT_FULL_WIDTH);
 
-	badge_eink_display(badge_eink_fb, DISPLAY_FLAG_LUT(0));
+	badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(0));
 
 	// wait for random keypress
 	badge_input_get_event(-1);

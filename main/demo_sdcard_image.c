@@ -13,7 +13,7 @@
 #include "sdmmc_cmd.h"
 
 #include <badge_eink.h>
-#include <badge_eink_fb.h>
+#include <badge_fb.h>
 #include <badge_input.h>
 #include <badge_power.h>
 
@@ -25,10 +25,10 @@ static const char* TAG = "example";
 void
 demo_sdcard_image(void)
 {
-	esp_err_t err = badge_eink_fb_init();
+	esp_err_t err = badge_fb_init();
 	assert( err == ESP_OK );
 
-	memset(badge_eink_fb, 0, BADGE_EINK_FB_LEN);
+	memset(badge_fb, 0, BADGE_FB_LEN);
 
 	badge_power_sdcard_enable();
 
@@ -74,7 +74,7 @@ demo_sdcard_image(void)
         return;
     }
 
-	int res = lib_png_load_image(pr, badge_eink_fb, 0, 0, BADGE_EINK_WIDTH, BADGE_EINK_HEIGHT, BADGE_EINK_WIDTH);
+	int res = lib_png_load_image(pr, badge_fb, 0, 0, BADGE_EINK_WIDTH, BADGE_EINK_HEIGHT, BADGE_EINK_WIDTH);
 	lib_png_destroy(pr);
 	lib_file_destroy(fr);
 	esp_vfs_fat_sdmmc_unmount();
@@ -86,7 +86,7 @@ demo_sdcard_image(void)
 		return;
 	}
 
-	badge_eink_display_greyscale(badge_eink_fb, DISPLAY_FLAG_8BITPIXEL, BADGE_EINK_MAX_LAYERS);
+	badge_eink_display_greyscale(badge_fb, DISPLAY_FLAG_8BITPIXEL, BADGE_EINK_MAX_LAYERS);
 
 	// wait for random keypress
 	badge_input_get_event(-1);
