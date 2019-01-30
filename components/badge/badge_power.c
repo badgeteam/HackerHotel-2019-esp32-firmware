@@ -17,6 +17,7 @@
 #include "badge_fxl6408.h"
 #include "badge_mpr121.h"
 #include "badge_power.h"
+#include "badge_disobey_samd.h"
 
 static const char *TAG = "badge_power";
 
@@ -29,6 +30,8 @@ badge_battery_volt_sense(void)
 		return -1;
 
 	return (val * 22 * 9 * 32) >> 12;
+#elif defined(I2C_DISOBEY_SAMD_ADDR)
+	return badge_disobey_samd_read_battery();
 #else
 	return -1;
 #endif // ADC1_CHAN_VBAT_SENSE
@@ -43,6 +46,8 @@ badge_usb_volt_sense(void)
 		return -1;
 
 	return (val * 22 * 9 * 32) >> 12;
+#elif defined(I2C_DISOBEY_SAMD_ADDR)
+	return badge_disobey_samd_read_usb()*5000; //This returns a boolean, changed to a fake voltage.
 #else
 	return -1;
 #endif // ADC1_CHAN_VUSB_SENSE

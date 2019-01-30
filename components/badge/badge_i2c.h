@@ -21,6 +21,8 @@ extern esp_err_t badge_i2c_read_reg(uint8_t addr, uint8_t reg, uint8_t *value, s
  * @return ESP_OK on success; any other value indicates an error
  */
 extern esp_err_t badge_i2c_write_reg(uint8_t addr, uint8_t reg, uint8_t value);
+extern esp_err_t badge_i2c_write_reg32(uint8_t addr, uint8_t reg, uint32_t value);
+extern esp_err_t badge_i2c_write_buffer(uint8_t addr, const uint8_t* buffer, uint16_t len);
 
 /** read event via i2c bus
  * @return ESP_OK on success; any other value indicates an error
