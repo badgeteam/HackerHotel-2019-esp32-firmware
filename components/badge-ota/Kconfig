@@ -2,7 +2,7 @@ menu "OTA firmware update"
 
 config OTA_SERVER_NAME
     string "OTA server name"
-    default "badge.disobey.fi"
+    default "badge.team"
     help
         Hostname of the OTA server
 

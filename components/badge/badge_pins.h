@@ -188,6 +188,10 @@
 		#define MPR121_PIN_NUM_CHRGSTAT  9
 		#define MPR121_PIN_NUM_LEDS     10
 		#define MPR121_PIN_NUM_SD_CD    11
+		#define IIS_SCLK 13
+		#define IIS_LCLK 15
+		#define IIS_DSIN 2
+		#define IIS_DOUT -1
 
 	#elif defined(HACKERHOTEL_BADGE_V1) //Hackerhotel 2019
 		#define PIN_NUM_LEDS         32
@@ -228,7 +232,11 @@
 		#define MPR121_PIN_NUM_CHRGSTAT  9
 		#define MPR121_PIN_NUM_LEDS     10
 		#define MPR121_PIN_NUM_SD_CD    11
-
+		#define IIS_SCLK 13
+		#define IIS_LCLK 15
+		#define IIS_DSIN 2
+		#define IIS_DOUT -1
+		
 	#endif
 
 #endif // BADGE_PINS_H

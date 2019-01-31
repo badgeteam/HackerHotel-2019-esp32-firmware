@@ -1,4 +1,4 @@
-menu "SHA2017 Badge First Run"
+menu "Badge First Run"
 
 config DEBUG_ADD_DELAYS
     bool "debug -- add delays"

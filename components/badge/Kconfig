@@ -1,27 +1,28 @@
-menu "SHA2017 Badge"
+menu "Badge"
 
 choice SHA_BADGE_REV
-    prompt "SHA Badge revision"
+    prompt "Badge revision"
     default SHA_BADGE_V3
     help
         This option sets the type of badge for which the firmware will be compiled
-        - Hackerhotel: The Hackerhotel 2019 badge
-        - Disobey: The disobey 2019 badge
-        - SHA2017 Rev1.0.0 Dev: Release candidate
+        - Hackerhotel: The Hackerhotel 2019 badge.
+        - Hackerhotel Prototype: SHA2017 with audio breakout.
+        - Disobey: The disobey 2019 badge.
+        - SHA2017 Rev1.0.0 Dev: Release candidate.
           (may 2017)
         - SHA2017  Rev1.0.0 Dev without the MPR121 chip.
         - SHA2017  Rev0.1.0 Dev: Improved badge.
           (february 2017)
         - SHA2017  Rev0.0.1 Dev: The original development badge.
           (december 2016)
-        - Plain ESP32 hardware
+        - Plain ESP32 hardware.
 
-config DISOBEY
-    bool "Disobey badge"
 config HACKERHOTEL_BADGE_V1
     bool "Hackerhotel badge"
 config HACKERHOTEL_BADGE_V0
     bool "Hackerhotel badge (Prototype)"
+config DISOBEY
+    bool "Disobey badge"
 config SHA_BADGE_V3
     bool "SHA2017"
 config SHA_BADGE_V3_LITE
@@ -35,7 +36,7 @@ config SHA_BADGE_NONE
 endchoice
 
 choice SHA_BADGE_EINK_DEFAULT_TYPE
-    prompt "SHA Badge e-ink default display type"
+    prompt "Badge e-ink default display type"
     default SHA_BADGE_EINK_DEF_DEPG0290B1
     depends on SHA_BADGE_V1 || SHA_BADGE_V2 || SHA_BADGE_V3 || SHA_BADGE_V3_LITE || HACKERHOTEL_BADGE_V0 || HACKERHOTEL_BADGE_V1
     help

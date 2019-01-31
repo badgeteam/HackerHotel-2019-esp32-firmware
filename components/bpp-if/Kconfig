@@ -1,8 +1,8 @@
-menu "SHA2017 BPP"
+menu "BPP"
 
 config SHA_BPP_ENABLE
     bool "Enable BPP"
-    default y
+    default n
     help
         Enable passive firmware and read-only filesystem updates
 
