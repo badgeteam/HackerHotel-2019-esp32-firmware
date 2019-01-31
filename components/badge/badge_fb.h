@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <esp_err.h>
 
+#include "badge_pins.h"
 #include "badge_eink.h"
 #include "badge_erc12864.h"
 

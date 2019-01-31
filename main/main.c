@@ -9,17 +9,25 @@
 #include <badge.h>
 #include <badge_input.h>
 #include <badge_eink.h>
+#include <badge_disobey_samd.h>
 #include <badge_fb.h>
 #include <badge_pins.h>
 #include <badge_button.h>
 #include <badge_first_run.h>
 #include <sha2017_ota.h>
 
+#ifdef PIN_NUM_EPD_CLK
 #include "imgv2_sha.h"
 #include "imgv2_menu.h"
 #include "imgv2_nick.h"
 #include "imgv2_weather.h"
 #include "imgv2_test.h"
+#endif
+
+#ifdef I2C_ERC12864_ADDR
+#include "imgv2_disobey.h"
+#include "imgv2_woezelenpip.h"
+#endif
 
 struct menu_item {
   const char *title;
@@ -47,6 +55,7 @@ const struct menu_item demoMenu[] = {
 #ifdef I2C_MPR121_ADDR
     {"mpr121 touch demo", &demoMpr121},
 #endif // I2C_MPR121_ADDR
+#ifdef PIN_NUM_EPD_CLK
     {"text demo 1", &demoText1},
     {"text demo 2", &demoText2},
     {"greyscale 1", &demoGreyscale1},
@@ -58,23 +67,34 @@ const struct menu_item demoMenu[] = {
 	{"demo sd-card image", &demo_sdcard_image},
     {"partial update test", &demoPartialUpdate},
     {"dot 1", &demoDot1},
+#endif
+#ifndef CONFIG_DISOBEY
     {"ADC test", &demoTestAdc},
+#endif
 #ifdef PIN_NUM_LEDS
     {"LEDs demo", &demo_leds},
 #endif // PIN_NUM_LEDS
     {"uGFX demo", &demoUgfx},
+#ifndef CONFIG_DISOBEY
     {"charging demo", &demoPower},
+#endif
 #ifdef CONFIG_WIFI_USE
     {"OTA update", &sha2017_ota_update},
 #endif // CONFIG_WIFI_USE
-    {"tetris?", NULL},
-    {"something else", NULL},
-    {"test, test, test", NULL},
-    {"another item..", NULL},
-    {"dot 2", NULL},
-    {"dot 3", NULL},
     {NULL, NULL},
 };
+
+#ifdef I2C_ERC12864_ADDR
+	#define MENU_FONT 0
+	#define MENU_FONT_SIZE 8
+	#define MENU_SIZE 5
+#else
+	#define MENU_FONT FONT_16PX
+	#define MENU_FONT_SIZE 16
+	#define MENU_SIZE 7
+#endif
+
+bool mainMenuActive = true;
 
 void
 displayMenu(const char *menu_title, const struct menu_item *itemlist) {
@@ -92,16 +112,17 @@ displayMenu(const char *menu_title, const struct menu_item *itemlist) {
 			draw_font(badge_fb, 0, 0, BADGE_FB_WIDTH, menu_title,
 					FONT_16PX | FONT_INVERT | FONT_FULL_WIDTH | FONT_UNDERLINE_2);
 			int i;
-			for (i = 0; i < 7; i++) {
+			for (i = 0; i < MENU_SIZE; i++) {
 				int pos = scroll_pos + i;
-				draw_font(badge_fb, 0, 16+16*i, BADGE_FB_WIDTH,
+				draw_font(badge_fb, 0, 16+MENU_FONT_SIZE*i, BADGE_FB_WIDTH,
 						(pos < num_items) ? itemlist[pos].title : "",
-						FONT_16PX | FONT_FULL_WIDTH |
+						MENU_FONT | FONT_FULL_WIDTH |
 						((pos == item_pos) ? 0 : FONT_INVERT));
 			}
 #ifdef I2C_ERC12864_ADDR
 			badge_erc12864_write(badge_fb);
-#else
+#endif
+#ifdef PIN_NUM_EPD_CLK
 			badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(BADGE_EINK_LUT_NORMAL) );
 #endif
 			need_redraw = false;
@@ -111,6 +132,8 @@ displayMenu(const char *menu_title, const struct menu_item *itemlist) {
 		uint32_t button_id;
 		if ((button_id = badge_input_get_event(-1)) != 0)
 		{
+			if (!mainMenuActive) return;
+			
 			if (button_id == BADGE_BUTTON_B) {
 				ets_printf("Button B handling\n");
 				return;
@@ -118,14 +141,19 @@ displayMenu(const char *menu_title, const struct menu_item *itemlist) {
 
 			if (button_id == BADGE_BUTTON_START) {
 				ets_printf("Selected '%s'\n", itemlist[item_pos].title);
-				if (itemlist[item_pos].handler != NULL)
+				if (itemlist[item_pos].handler != NULL) {
+#ifdef CONFIG_DISOBEY
+					mainMenuActive = false;
+#endif
 					itemlist[item_pos].handler();
+				}
 
 				// reset screen
 				memset(badge_fb, 0xff, BADGE_FB_WIDTH * BADGE_FB_HEIGHT / 8);
 #ifdef I2C_ERC12864_ADDR
 			badge_erc12864_write(badge_fb);
-#else
+#endif
+#ifdef PIN_NUM_EPD_CLK
 				badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(BADGE_EINK_LUT_NORMAL) | DISPLAY_FLAG_FULL_UPDATE);
 #endif
 
@@ -160,16 +188,26 @@ displayMenu(const char *menu_title, const struct menu_item *itemlist) {
 // pictures
 #define NUM_PICTURES 5
 const uint8_t *pictures[NUM_PICTURES] = {
+#ifdef PIN_NUM_EPD_CLK
 	imgv2_sha,
 	imgv2_menu,
 	imgv2_nick,
 	imgv2_weather,
 	imgv2_test,
+#endif
+#ifdef I2C_ERC12864_ADDR
+	imgv2_disobey,
+	imgv2_woezelenpip,
+#endif
 };
 
 void
 display_picture(int picture_id, int selected_lut)
 {
+#ifdef I2C_ERC12864_ADDR
+	memcpy(badge_fb, pictures[picture_id], BADGE_FB_WIDTH*BADGE_FB_HEIGHT);
+	ets_printf("Showing picture %d\n", picture_id);
+#else
 	memcpy(badge_fb, pictures[picture_id], BADGE_FB_WIDTH*BADGE_FB_HEIGHT/8);
 	char str[30];
 	if (selected_lut == -1)
@@ -177,10 +215,12 @@ display_picture(int picture_id, int selected_lut)
 	else
 		sprintf(str, "[ pic %d, lut %d ]", picture_id, selected_lut);
 	draw_font(badge_fb, 8, 4, BADGE_FB_WIDTH, str, FONT_INVERT);
+#endif
 
 #ifdef I2C_ERC12864_ADDR
 	badge_erc12864_write(badge_fb);
-#else
+#endif
+#ifdef PIN_NUM_EPD_CLK
 	badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(selected_lut));
 #endif
 }
@@ -189,7 +229,11 @@ void
 app_main(void) {
 	badge_check_first_run();
 	badge_init();
-
+	
+#ifdef I2C_ERC12864_ADDR
+	badge_disobey_samd_write_backlight(255);
+#endif
+	
 	esp_err_t err = badge_fb_init();
 	assert( err == ESP_OK );
 
@@ -217,6 +261,8 @@ app_main(void) {
     uint32_t button_id;
 	if ((button_id = badge_input_get_event(-1)) != 0)
 	{
+	  if (!mainMenuActive) continue;
+
       if (button_id == BADGE_BUTTON_B) {
         ets_printf("Button B handling\n");
         /* redraw with default LUT */

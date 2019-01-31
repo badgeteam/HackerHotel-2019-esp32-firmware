@@ -31,6 +31,7 @@ void graphics_init(const char* arg_title) {
 }
 
 #ifdef CONFIG_DISOBEY
+
 void graphics_show(char *name, uint8_t percentage, bool show_percentage, bool force) {
   if ((!force)&&(badge_eink_dev_is_busy())) return;
 
