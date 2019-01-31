@@ -94,8 +94,6 @@ const struct menu_item demoMenu[] = {
 	#define MENU_SIZE 7
 #endif
 
-bool mainMenuActive = true;
-
 void
 displayMenu(const char *menu_title, const struct menu_item *itemlist) {
 	int num_items = 0;
@@ -132,19 +130,15 @@ displayMenu(const char *menu_title, const struct menu_item *itemlist) {
 		uint32_t button_id;
 		if ((button_id = badge_input_get_event(-1)) != 0)
 		{
-			if (!mainMenuActive) return;
 			
 			if (button_id == BADGE_BUTTON_B) {
 				ets_printf("Button B handling\n");
 				return;
 			}
-
+			
 			if (button_id == BADGE_BUTTON_START) {
 				ets_printf("Selected '%s'\n", itemlist[item_pos].title);
 				if (itemlist[item_pos].handler != NULL) {
-#ifdef CONFIG_DISOBEY
-					mainMenuActive = false;
-#endif
 					itemlist[item_pos].handler();
 				}
 
@@ -261,8 +255,6 @@ app_main(void) {
     uint32_t button_id;
 	if ((button_id = badge_input_get_event(-1)) != 0)
 	{
-	  if (!mainMenuActive) continue;
-
       if (button_id == BADGE_BUTTON_B) {
         ets_printf("Button B handling\n");
         /* redraw with default LUT */
