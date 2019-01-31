@@ -50,15 +50,15 @@ demoPower(void) {
 			memset(badge_fb, 0xff, BADGE_FB_LEN);
 
 			snprintf(text, sizeof(text), "Is charging: %s", bat_cs ? "true" : "false");
-			draw_font(badge_fb, 16,  8, BADGE_EINK_WIDTH-32, text,
+			draw_font(badge_fb, 16,  8, BADGE_FB_WIDTH-32, text,
 					FONT_MONOSPACE | FONT_INVERT);
 
 			snprintf(text, sizeof(text), "Vusb       : %d.%03d V", v_usb / 1000, v_usb % 1000);
-			draw_font(badge_fb, 16, 16, BADGE_EINK_WIDTH-32, text,
+			draw_font(badge_fb, 16, 16, BADGE_FB_WIDTH-32, text,
 					FONT_MONOSPACE | FONT_INVERT);
 
 			snprintf(text, sizeof(text), "Vbat       : %d.%03d V", v_bat / 1000, v_bat % 1000);
-			draw_font(badge_fb, 16, 24, BADGE_EINK_WIDTH-32, text,
+			draw_font(badge_fb, 16, 24, BADGE_FB_WIDTH-32, text,
 					FONT_MONOSPACE | FONT_INVERT);
 
 			/* update display */

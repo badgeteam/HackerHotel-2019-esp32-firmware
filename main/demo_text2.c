@@ -16,9 +16,9 @@ demoText2(void) {
 	/* draw test pattern */
 	{
 		int y;
-		for (y=0; y<BADGE_EINK_HEIGHT; y++)
+		for (y=0; y<BADGE_FB_HEIGHT; y++)
 		{
-			memset(&badge_fb[y * (BADGE_EINK_WIDTH/8)], (y&1) ? 0x55 : 0xaa, (BADGE_EINK_WIDTH/8));
+			memset(&badge_fb[y * (BADGE_FB_WIDTH/8)], (y&1) ? 0x55 : 0xaa, (BADGE_FB_WIDTH/8));
 		}
 
 		badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(0));
@@ -36,15 +36,15 @@ demoText2(void) {
 	int row = 8;
 	while (line_1[pos]) {
 		int num =
-			draw_font(badge_fb, 16, row, BADGE_EINK_WIDTH-32, &line_1[pos], FONT_16PX | FONT_INVERT | FONT_FULL_WIDTH);
+			draw_font(badge_fb, 16, row, BADGE_FB_WIDTH-32, &line_1[pos], FONT_16PX | FONT_INVERT | FONT_FULL_WIDTH);
 		if (num == 0)
 			break;
 		pos += num;
 		row += 16;
 	}
-	draw_font(badge_fb, 16, row, BADGE_EINK_WIDTH-32, "", FONT_16PX | FONT_INVERT | FONT_FULL_WIDTH);
+	draw_font(badge_fb, 16, row, BADGE_FB_WIDTH-32, "", FONT_16PX | FONT_INVERT | FONT_FULL_WIDTH);
 
-	draw_font(badge_fb, 0, 120, BADGE_EINK_WIDTH, " Just a status line. Wifi status: not connected", FONT_FULL_WIDTH);
+	draw_font(badge_fb, 0, 120, BADGE_FB_WIDTH, " Just a status line. Wifi status: not connected", FONT_FULL_WIDTH);
 
 	badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(0));
 

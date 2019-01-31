@@ -90,13 +90,18 @@ load_png(int x, int y, const char *filename)
 	return true;
 }
 
-#ifdef CONFIG_DISOBEY
+#ifdef I2C_ERC12864_ADDR
 	#define NUM_DISP_LINES 8
+	#define COLOR_WHITE 0xFF
+	#define COLOR_BLACH 0x00
 #else
 	#define NUM_DISP_LINES 12
+	#define COLOR_WHITE 0x00
+	#define COLOR_BLACH 0xFF
 #endif
 
 #define NO_NEWLINE 0x80
+
 // can use the lower <n> lines for showing measurements
 void
 disp_line(const char *line, int flags)
@@ -109,7 +114,7 @@ disp_line(const char *line, int flags)
 		{ // scroll up
 			next_line--;
 			memmove(badge_fb, &badge_fb[BADGE_FB_WIDTH], (NUM_DISP_LINES-1)*BADGE_FB_WIDTH);
-			memset(&badge_fb[(NUM_DISP_LINES-1)*BADGE_FB_WIDTH], 0xff, BADGE_FB_WIDTH);
+			memset(&badge_fb[(NUM_DISP_LINES-1)*BADGE_FB_WIDTH], COLOR_WHITE, BADGE_FB_WIDTH);
 		}
 		int len = draw_font(badge_fb, 0, 8*next_line, BADGE_FB_WIDTH, line, (FONT_FULL_WIDTH|FONT_INVERT)^flags);
 		if (height == 2)
@@ -120,9 +125,10 @@ disp_line(const char *line, int flags)
 			draw_font(badge_fb, 0, 8*next_line, BADGE_FB_WIDTH, "_", FONT_FULL_WIDTH|FONT_INVERT);
 		}
 #ifdef CONFIG_DEBUG_ADD_DELAYS
-#ifdef CONFIG_DISOBEY
+#ifdef I2C_ERC12864_ADDR
 		badge_erc12864_write(badge_fb);
-#else
+#endif
+#ifdef PIN_NUM_EPD_CLK
 		badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(2));
 #endif
 		vTaskDelay(1000 / portTICK_PERIOD_MS);
@@ -131,9 +137,10 @@ disp_line(const char *line, int flags)
 		if (len == 0 || line[len] == 0)
 		{
 #ifndef CONFIG_DEBUG_ADD_DELAYS
-#ifdef CONFIG_DISOBEY
+#ifdef I2C_ERC12864_ADDR
 		badge_erc12864_write(badge_fb);
-#else
+#endif
+#ifdef PIN_NUM_EPD_CLK
 		badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(2));
 #endif
 #endif // CONFIG_DEBUG_ADD_DELAYS
@@ -170,9 +177,10 @@ update_mpr121_bars( const struct badge_mpr121_touch_info *ti, const uint32_t *ba
 		badge_fb[pos           + (xd >> 3)] &= ~( 1 << (xd&7) );
 		badge_fb[pos + (BADGE_FB_WIDTH/8) + (xd >> 3)] &= ~( 1 << (xd&7) );
 	}
-#ifdef CONFIG_DISOBEY
+#ifdef I2C_ERC12864_ADDR
 		badge_erc12864_write(badge_fb);
-#else
+#endif
+#ifdef PIN_NUM_EPD_CLK
 		badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(2));
 #endif
 #ifdef CONFIG_DEBUG_ADD_DELAYS
@@ -188,7 +196,7 @@ badge_init_locfd(void)
 			ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_OTA_1, "ota_1");
 	if (part_ota1 == NULL)
 	{
-		ESP_LOGE(TAG, "ota1 partition not found.");
+		ESP_LOGE(TAG, "ota1 partition not found!");
 		return ESP_FAIL;
 	}
 
@@ -196,14 +204,14 @@ badge_init_locfd(void)
 	struct lib_deflate_reader *dr = (struct lib_deflate_reader *) malloc(sizeof(struct lib_deflate_reader));
 	if (dr == NULL)
 	{
-		ESP_LOGE(TAG, "failed to init deflate object.");
+		ESP_LOGE(TAG, "failed to init deflate object");
 		return ESP_ERR_NO_MEM;
 	}
 
 	struct lib_flash_reader *fr = lib_flash_new(part_ota1, 4096);
 	if (fr == NULL)
 	{
-		ESP_LOGE(TAG, "failed to init flash-reader.");
+		ESP_LOGE(TAG, "failed to init flash-reader");
 		return ESP_ERR_NO_MEM;
 	}
 
@@ -214,7 +222,7 @@ badge_init_locfd(void)
 		ssize_t res = lib_flash_read(fr, (uint8_t *) &pk_sig, 4);
 		if (res == -1 || res != 4)
 		{
-			ESP_LOGE(TAG, "(%d) failed to read from flash.", __LINE__);
+			ESP_LOGE(TAG, "(%d) failed to read from flash", __LINE__);
 			return ESP_FAIL;
 		}
 
@@ -236,26 +244,26 @@ badge_init_locfd(void)
 			res = lib_flash_read(fr, (uint8_t *) &local_file_header, sizeof(local_file_header));
 			if (res == -1 || res != sizeof(local_file_header))
 			{
-				ESP_LOGE(TAG, "(%d) failed to read from flash.", __LINE__);
+				ESP_LOGE(TAG, "(%d) failed to read from flash", __LINE__);
 				return ESP_FAIL;
 			}
 
 			char fname[256];
 			if (local_file_header.fname_len == 0)
 			{
-				ESP_LOGE(TAG, "filename too short.");
+				ESP_LOGE(TAG, "filename too short");
 				return ESP_FAIL;
 			}
 			if (local_file_header.fname_len >= sizeof(fname)-1)
 			{
-				ESP_LOGE(TAG, "filename too long.");
+				ESP_LOGE(TAG, "filename too long");
 				return ESP_FAIL;
 			}
 
 			res = lib_flash_read(fr, (uint8_t *) &fname[1], local_file_header.fname_len);
 			if (res == -1 || res != local_file_header.fname_len)
 			{
-				ESP_LOGE(TAG, "(%d) failed to read from flash.", __LINE__);
+				ESP_LOGE(TAG, "(%d) failed to read from flash", __LINE__);
 				return ESP_FAIL;
 			}
 			fname[ 0 ] = '/';
@@ -269,7 +277,7 @@ badge_init_locfd(void)
 				res = lib_flash_read(fr, tmpbuf, sz);
 				if (res == -1 || res != sz)
 				{
-					ESP_LOGE(TAG, "(%d) failed to read from flash.", __LINE__);
+					ESP_LOGE(TAG, "(%d) failed to read from flash", __LINE__);
 					return ESP_FAIL;
 				}
 				local_file_header.ext_len -= sz;
@@ -282,7 +290,7 @@ badge_init_locfd(void)
 				int err = mkdir(fname, 0755);
 				if (err < 0)
 				{
-					ESP_LOGE(TAG, "failed to create dir '%s': %d.", fname, errno);
+					ESP_LOGE(TAG, "failed to create dir '%s': %d", fname, errno);
 					return ESP_FAIL;
 				}
 			}
@@ -300,7 +308,7 @@ badge_init_locfd(void)
 				}
 				else if (local_file_header.compr_method != 0)
 				{ // not stored
-					ESP_LOGE(TAG, "unknown compression type for file '%s'.", fname);
+					ESP_LOGE(TAG, "unknown compression type for file '%s'", fname);
 					return ESP_FAIL;
 				}
 
@@ -309,7 +317,7 @@ badge_init_locfd(void)
 				int fd = open(fname, O_WRONLY|O_CREAT|O_TRUNC, 0644);
 				if (fd < 0)
 				{
-					ESP_LOGE(TAG, "failed to open file '%s': %d.", fname, errno);
+					ESP_LOGE(TAG, "failed to open file '%s': %d", fname, errno);
 					return ESP_FAIL;
 				}
 
@@ -321,7 +329,7 @@ badge_init_locfd(void)
 					res = reader(reader_obj, buf, sz);
 					if (res == -1 || res != sz)
 					{
-						ESP_LOGE(TAG, "(%d) failed to read from flash.", __LINE__);
+						ESP_LOGE(TAG, "(%d) failed to read from flash", __LINE__);
 						return ESP_FAIL;
 					}
 					s -= sz;
@@ -332,7 +340,7 @@ badge_init_locfd(void)
 						int err = write(fd, ptr, sz);
 						if (err <= 0)
 						{
-							ESP_LOGE(TAG, "failed to write to fat.");
+							ESP_LOGE(TAG, "failed to write to fat");
 							return ESP_FAIL;
 						}
 						ptr = &ptr[err];
@@ -349,7 +357,7 @@ badge_init_locfd(void)
 					ssize_t res = reader(reader_obj, &read_end, 1);
 					if (res != 0) // should be 'end-of-stream'
 					{
-						ESP_LOGE(TAG, "(%d) failed to read from flash.", __LINE__);
+						ESP_LOGE(TAG, "(%d) failed to read from flash", __LINE__);
 						return ESP_FAIL;
 					}
 				}
@@ -357,17 +365,17 @@ badge_init_locfd(void)
 		}
 		else if (pk_sig == 0x02014b50 || pk_sig == 0x06054b50)
 		{ // directory object or end-of-directory object
-			ESP_LOGD(TAG, "end of zip reached.");
+			ESP_LOGD(TAG, "end of zip reached");
 			break;
 		}
 		else if (first_chunk)
 		{
-			ESP_LOGI(TAG, "no preseed .zip found.");
+			ESP_LOGI(TAG, "no preseed .zip found");
 			return ESP_OK;
 		}
 		else
 		{
-			ESP_LOGE(TAG, "unknown zip object type 0x%08x.", pk_sig);
+			ESP_LOGE(TAG, "unknown zip object type 0x%08x", pk_sig);
 			return ESP_FAIL;
 		}
 		first_chunk = false;
@@ -448,10 +456,12 @@ badge_first_run(void)
 	if (NUM_DISP_LINES < 16) {
 		memset(&badge_fb[NUM_DISP_LINES*BADGE_FB_WIDTH], 0x00, BADGE_FB_WIDTH/8);
 	}
+
 	disp_line("Factory test", FONT_16PX);
 	disp_line("",0);
+
 	disp_line("Built on: " __DATE__ ", " __TIME__, 0);
-	disp_line("Initializing and testing badge.",0);
+	disp_line("Initializing and testing badge",0);
 
 	// do checks
 
@@ -460,21 +470,21 @@ badge_first_run(void)
 	int btn_flash = gpio_get_level(PIN_NUM_BUTTON_FLASH);
 	if (btn_flash != 1)
 	{
-		disp_line("Error: Flash button is pressed.",FONT_MONOSPACE);
+		disp_line("Error: Flash button is pressed",FONT_MONOSPACE);
 		return;
 	}
-	disp_line("flash button ok.",0);
+	disp_line("flash button ok",0);
 #endif // PIN_NUM_BUTTON_FLASH
 
 #ifdef I2C_MPR121_ADDR
 	// mpr121
-	disp_line("initializing MPR121.",0);
+	disp_line("initializing MPR121",0);
 	err = badge_mpr121_init();
 	assert( err == ESP_OK );
 	err = badge_mpr121_configure(NULL, false);
 	assert( err == ESP_OK );
 
-	disp_line("reading touch data.",0);
+	disp_line("reading touch data",0);
 	int i;
 	uint32_t baseline[8] = { 0,0,0,0,0,0,0,0 };
 	// read touch data for a few seconds; take average as baseline.
@@ -500,7 +510,7 @@ badge_first_run(void)
 		baseline[i] = (baseline[i] + 8) >> 4;
 	}
 
-	disp_line("re-initializing MPR121.",0);
+	disp_line("re-initializing MPR121",0);
 	{
 		badge_mpr121_configure(baseline, true);
 	}
@@ -509,18 +519,18 @@ badge_first_run(void)
 		bool check = false;
 		if (baseline[i] * 100 < baseline_def[i] * 85) {
 			// more than 15% lower
-			sprintf(line, "odd readings for button %s. (low)", touch_name[i]);
+			sprintf(line, "odd readings for button %s (low)", touch_name[i]);
 			disp_line(line,FONT_MONOSPACE);
 			check = true;
 		} else if (baseline[i] * 95 > baseline_def[i] * 100) {
 			// more than 5% higher
-			sprintf(line, "odd readings for button %s. (high)", touch_name[i]);
+			sprintf(line, "odd readings for button %s (high)", touch_name[i]);
 			disp_line(line,FONT_MONOSPACE);
 			check = true;
 		}
 
 		if (check) {
-			sprintf(line, "*ACTION* touch button %s.", touch_name[i]);
+			sprintf(line, "*ACTION* touch button %s", touch_name[i]);
 			disp_line(line, FONT_INVERT|NO_NEWLINE);
 			// wait for touch event
 			while (1) {
@@ -536,10 +546,10 @@ badge_first_run(void)
 					break;
 			}
 
-			sprintf(line, "button %s touch ok.", touch_name[i]);
+			sprintf(line, "button %s touch ok", touch_name[i]);
 			disp_line(line, 0);
 
-			sprintf(line, "*ACTION* release button %s.", touch_name[i]);
+			sprintf(line, "*ACTION* release button %s", touch_name[i]);
 			disp_line(line, FONT_INVERT|NO_NEWLINE);
 			// wait for release event
 			while (1) {
@@ -555,17 +565,17 @@ badge_first_run(void)
 					break;
 			}
 
-			sprintf(line, "button %s release ok.", touch_name[i]);
+			sprintf(line, "button %s release ok", touch_name[i]);
 			disp_line(line, 0);
 		}
 	}
 
-	disp_line("MPR121 ok.",0);
+	disp_line("MPR121 ok",0);
 #endif // I2C_MPR121_ADDR
 
 #ifndef CONFIG_DISOBEY
 	// power measurements
-	disp_line("measure power.",0);
+	disp_line("measure power",0);
 	err = badge_power_init();
 	assert( err == ESP_OK );
 	bool bat_chrg = badge_battery_charge_status();
@@ -580,10 +590,10 @@ badge_first_run(void)
 	disp_line(line, 0);
 	if (pwr_vbat > 100) {
 #ifdef CONFIG_ALLOW_BATTERY_FIRST_BOOT
-		disp_line("WARNING: Did not expect any power on Vbat.",FONT_MONOSPACE);
+		disp_line("WARNING: Did not expect any power on Vbat",FONT_MONOSPACE);
 		vTaskDelay(2000 / portTICK_PERIOD_MS);
 #else // CONFIG_ALLOW_BATTERY_FIRST_BOOT
-		disp_line("Error: Did not expect any power on Vbat.",FONT_MONOSPACE);
+		disp_line("Error: Did not expect any power on Vbat",FONT_MONOSPACE);
 		return;
 #endif // CONFIG_ALLOW_BATTERY_FIRST_BOOT
 	}
@@ -591,7 +601,7 @@ badge_first_run(void)
 	{ // no battery detected. why is it charging?
 		disp_line("WARNING: Charging, but no battery connected?",FONT_MONOSPACE);
 #ifdef I2C_MPR121_ADDR
-		disp_line("*ACTION* touch button A to accept.", FONT_INVERT|NO_NEWLINE);
+		disp_line("*ACTION* touch button A to accept", FONT_INVERT|NO_NEWLINE);
 		int i = wait_for_key_a();
 		if (i == -1)
 			return; // error
@@ -603,28 +613,28 @@ badge_first_run(void)
 	sprintf(line, "Vusb = %u.%03u V", pwr_vusb/1000, pwr_vusb % 1000);
 	disp_line(line, 0);
 	if (pwr_vusb < 4200 || pwr_vusb > 5700) {
-		disp_line("Error: Vusb should be approx. 5 volt.",FONT_MONOSPACE);
+		disp_line("Error: Vusb should be approx. 5 volt",FONT_MONOSPACE);
 		return;
 	}
 
-	disp_line("power measurements ok.",0);
+	disp_line("power measurements ok",0);
 #endif
 
 #if defined(FXL6408_PIN_NUM_SD_CD) || defined(MPR121_PIN_NUM_SD_CD)
 	// sdcard detect (not expecting an sd-card)
-	disp_line("read sdcard-detect line.",0);
+	disp_line("read sdcard-detect line",0);
 	err = badge_sdcard_init();
 	assert( err == ESP_OK );
 	bool sdcard = badge_sdcard_detected();
 	if (sdcard) {
-		disp_line("sdcard detected. (error)",FONT_MONOSPACE);
+		disp_line("sdcard detected (error)",FONT_MONOSPACE);
 		return;
 	}
-	disp_line("no sdcard detected. (as expected)",0);
+	disp_line("no sdcard detected (as expected)",0);
 #endif // *_PIN_NUM_SD_CD
 
 	// test wifi
-	disp_line("testing wifi.",0);
+	disp_line("testing wifi...",0);
 	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
 	cfg.nvs_enable = 0;
 	int res = esp_wifi_init(&cfg);
@@ -673,17 +683,19 @@ badge_first_run(void)
 			// disp_line(line, 0);
 		}
 		if (num_ap == 0) {
-			disp_line("no ssids found.",0);
+			disp_line("no ssids found!",0);
 			res = -1;
 		}
 	}
 	free(ap_records);
 	if (res != ESP_OK) {
-		disp_line("wifi init failed.",FONT_MONOSPACE);
+		disp_line("wifi init failed",FONT_MONOSPACE);
 		return;
 	}
 
-	disp_line("wifi test ok.",0);
+	disp_line("wifi ok",FONT_16PX);
+	
+	
 
 	wl_handle_t s_wl_handle = WL_INVALID_HANDLE;
 
@@ -694,21 +706,21 @@ badge_first_run(void)
 	err = esp_vfs_fat_spiflash_mount("", "locfd", &mount_config, &s_wl_handle);
 	if (err != ESP_OK) {
 		ESP_LOGE(TAG, "Failed to mount FATFS (0x%x)", err);
-		disp_line("failed to create/open locfd fat fs.",FONT_MONOSPACE);
+		disp_line("failed to create/open locfd fat fs",FONT_MONOSPACE);
 		return;
 	}
-	disp_line("flash fat fs ok.",0);
+	disp_line("flash fat fs ok",0);
 
-	disp_line("Testing done.",0);
+	disp_line("Testing done",0);
 
-	disp_line("Extracting.",0);
+	disp_line("Extracting...",0);
 	res = badge_init_locfd();
 	if (res != ESP_OK) {
-		disp_line("extracting failed.",FONT_MONOSPACE);
+		disp_line("extracting failed",FONT_MONOSPACE);
 		return;
+	} else {
+		disp_line("Extracting done",0);
 	}
-
-	disp_line("Extracting done.",0);
 
 #ifdef CONFIG_DEBUG_ADD_DELAYS
 	vTaskDelay(10000 / portTICK_PERIOD_MS);
@@ -774,9 +786,10 @@ badge_first_run(void)
 	disp_line("TEST OK", 0);
 #endif
 	
-#ifdef CONFIG_DISOBEY
-	badge_erc12864_write(badge_fb);
-#else
+#ifdef I2C_ERC12864_ADDR
+		badge_erc12864_write(badge_fb);
+#endif
+#ifdef PIN_NUM_EPD_CLK
 	badge_eink_display_greyscale(badge_fb, DISPLAY_FLAG_8BITPIXEL, BADGE_EINK_MAX_LAYERS);
 #endif
 
@@ -795,7 +808,7 @@ badge_check_first_run(void)
 			ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_NVS, NULL);
 	if (nvs_partition == NULL)
 	{
-		ESP_LOGE(TAG, "NVS partition not found.");
+		ESP_LOGE(TAG, "NVS partition not found!");
 		return;
 	}
 

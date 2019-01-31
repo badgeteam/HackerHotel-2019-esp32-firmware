@@ -42,7 +42,7 @@ demoTestAdc(void) {
 			else
 				val = -1;
 			snprintf(text, TEXTLEN, "ADC channel %d: %d", channel, val);
-			draw_font(badge_fb, 16, 8+8*channel, BADGE_EINK_WIDTH-32, text,
+			draw_font(badge_fb, 16, 8+8*channel, BADGE_FB_WIDTH-32, text,
 					FONT_FULL_WIDTH | FONT_MONOSPACE | FONT_INVERT);
 			ets_printf("%s\n", text);
 		}

@@ -25,7 +25,9 @@ const char* displayNames[] = {
     "Roosted",
     "the_JinX",
     "realitygaps",
-    "raboof"
+    "raboof",
+	"Renze",
+	"Kliment"
 };
 
 #define numNames (sizeof(displayNames) / sizeof (const char*))
@@ -45,6 +47,7 @@ void showDemo(uint8_t name, color_t front, color_t back) {
   }
 
   gdispClear(back);
+#ifdef PIN_NUM_EPD_CLK
   gdispDrawString(150, 25, "STILL", robotoBlackItalic, front);
   gdispDrawString(130, 50, displayNames[name], permanentMarker, front);
   // underline:
@@ -57,6 +60,12 @@ void showDemo(uint8_t name, color_t front, color_t back) {
                 front);
   gdispDrawString(140, 75, "Anyway", robotoBlackItalic, front);
   gdispDrawCircle(60, 60, 50, front);
+#endif
+#ifdef I2C_ERC12864_ADDR
+  gdispDrawString(0, 0, "DEMO", robotoBlackItalic, front);
+  gdispDrawString(0, 20, displayNames[name], permanentMarker, front);
+  gdispDrawCircle(64, 32, 32, front);
+#endif
   gdispFlush();
 }
 

@@ -16,9 +16,9 @@ demoText1(void) {
 	/* draw test pattern */
 	{
 		int y;
-		for (y=0; y<BADGE_EINK_HEIGHT; y++)
+		for (y=0; y<BADGE_FB_HEIGHT; y++)
 		{
-			memset(&badge_fb[y * (BADGE_EINK_WIDTH/8)], (y&1) ? 0x55 : 0xaa, (BADGE_EINK_WIDTH/8));
+			memset(&badge_fb[y * (BADGE_FB_WIDTH/8)], (y&1) ? 0x55 : 0xaa, (BADGE_FB_WIDTH/8));
 		}
 
 		badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(0));
@@ -36,13 +36,13 @@ demoText1(void) {
 	int row = 8;
 	while (line_1[pos]) {
 		int num =
-			draw_font(badge_fb, 16, row, BADGE_EINK_WIDTH-32, &line_1[pos], FONT_INVERT | FONT_FULL_WIDTH);
+			draw_font(badge_fb, 16, row, BADGE_FB_WIDTH-32, &line_1[pos], FONT_INVERT | FONT_FULL_WIDTH);
 		if (num == 0)
 			break;
 		pos += num;
 		row += 8;
 	}
-	draw_font(badge_fb, 16, row, BADGE_EINK_WIDTH-32, "", FONT_INVERT | FONT_FULL_WIDTH);
+	draw_font(badge_fb, 16, row, BADGE_FB_WIDTH-32, "", FONT_INVERT | FONT_FULL_WIDTH);
 
 	row += 8;
 
@@ -54,7 +54,7 @@ demoText1(void) {
 	pos = 0;
 	while (line_2[pos]) {
 		int num =
-			draw_font(badge_fb, 16, row, BADGE_EINK_WIDTH-32, &line_2[pos], FONT_INVERT | FONT_FULL_WIDTH);
+			draw_font(badge_fb, 16, row, BADGE_FB_WIDTH-32, &line_2[pos], FONT_INVERT | FONT_FULL_WIDTH);
 		if (num == 0)
 			break;
 		pos += num;
@@ -62,7 +62,7 @@ demoText1(void) {
 	}
 
 	// try monospace
-	draw_font(badge_fb, 0, 120, BADGE_EINK_WIDTH, " Just a status line. Wifi status: not connected",
+	draw_font(badge_fb, 0, 120, BADGE_FB_WIDTH, " Just a status line. Wifi status: not connected",
 			FONT_FULL_WIDTH | FONT_MONOSPACE);
 
 	badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(0));

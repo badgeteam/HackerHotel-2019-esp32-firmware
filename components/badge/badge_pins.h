@@ -144,7 +144,7 @@
 		#define PIN_NUM_I2C_DATA         23
 		#define PIN_NUM_DISOBEY_SAMD_INT 25
 
-		#define I2C_DISOBEY_SAMD_ADDR    48
+		#define I2C_DISOBEY_SAMD_ADDR    0x30
 		#define I2C_ERC12864_ADDR        0x38
 
 		#define ERC12864_FLIP            true
