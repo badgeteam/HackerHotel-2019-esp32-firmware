@@ -89,18 +89,21 @@ displayMenu(const char *menu_title, const struct menu_item *itemlist) {
 		/* draw menu */
 		if (need_redraw) {
 			// init buffer
-			draw_font(badge_fb, 0, 0, BADGE_EINK_WIDTH, menu_title,
+			draw_font(badge_fb, 0, 0, BADGE_FB_WIDTH, menu_title,
 					FONT_16PX | FONT_INVERT | FONT_FULL_WIDTH | FONT_UNDERLINE_2);
 			int i;
 			for (i = 0; i < 7; i++) {
 				int pos = scroll_pos + i;
-				draw_font(badge_fb, 0, 16+16*i, BADGE_EINK_WIDTH,
+				draw_font(badge_fb, 0, 16+16*i, BADGE_FB_WIDTH,
 						(pos < num_items) ? itemlist[pos].title : "",
 						FONT_16PX | FONT_FULL_WIDTH |
 						((pos == item_pos) ? 0 : FONT_INVERT));
 			}
-
+#ifdef I2C_ERC12864_ADDR
+			badge_erc12864_write(badge_fb);
+#else
 			badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(BADGE_EINK_LUT_NORMAL) );
+#endif
 			need_redraw = false;
 		}
 
@@ -119,8 +122,12 @@ displayMenu(const char *menu_title, const struct menu_item *itemlist) {
 					itemlist[item_pos].handler();
 
 				// reset screen
-				memset(badge_fb, 0xff, BADGE_EINK_WIDTH * BADGE_EINK_HEIGHT / 8);
+				memset(badge_fb, 0xff, BADGE_FB_WIDTH * BADGE_FB_HEIGHT / 8);
+#ifdef I2C_ERC12864_ADDR
+			badge_erc12864_write(badge_fb);
+#else
 				badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(BADGE_EINK_LUT_NORMAL) | DISPLAY_FLAG_FULL_UPDATE);
+#endif
 
 				need_redraw = true;
 				ets_printf("Button START handled\n");
@@ -163,15 +170,19 @@ const uint8_t *pictures[NUM_PICTURES] = {
 void
 display_picture(int picture_id, int selected_lut)
 {
-	memcpy(badge_fb, pictures[picture_id], 296*128/8);
+	memcpy(badge_fb, pictures[picture_id], BADGE_FB_WIDTH*BADGE_FB_HEIGHT/8);
 	char str[30];
 	if (selected_lut == -1)
 		sprintf(str, "[ pic %d, full update ]", picture_id);
 	else
 		sprintf(str, "[ pic %d, lut %d ]", picture_id, selected_lut);
-	draw_font(badge_fb, 8, 4, BADGE_EINK_WIDTH, str, FONT_INVERT);
+	draw_font(badge_fb, 8, 4, BADGE_FB_WIDTH, str, FONT_INVERT);
 
+#ifdef I2C_ERC12864_ADDR
+	badge_erc12864_write(badge_fb);
+#else
 	badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(selected_lut));
+#endif
 }
 
 void
