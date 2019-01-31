@@ -82,7 +82,7 @@ static EventGroupHandle_t wifi_event_group = 0;
 
 /* the esp event-loop handler */
 static esp_err_t
-sha2017_ota_event_handler(void *ctx, system_event_t *event)
+badge_ota_event_handler(void *ctx, system_event_t *event)
 {
 	switch (event->event_id) {
 		case SYSTEM_EVENT_STA_START:
@@ -107,11 +107,11 @@ sha2017_ota_event_handler(void *ctx, system_event_t *event)
 }
 
 static void
-sha2017_ota_initialise_wifi(void)
+badge_ota_initialise_wifi(void)
 {
 	tcpip_adapter_init();
 	wifi_event_group = xEventGroupCreate();
-	ESP_ERROR_CHECK(esp_event_loop_init(sha2017_ota_event_handler, NULL));
+	ESP_ERROR_CHECK(esp_event_loop_init(badge_ota_event_handler, NULL));
 	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
 	ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 	ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
@@ -237,12 +237,12 @@ mbedtls_ssl_write_(mbedtls_ssl_context *ssl, const unsigned char *buf, size_t le
 }
 
 static void
-sha2017_ota_task(void *pvParameter)
+badge_ota_task(void *pvParameter)
 {
 	esp_err_t err;
 
 	ESP_LOGW(TAG, "Starting OTA update ...");
-	
+
 	ESP_LOGW(TAG, "Server:" BADGE_OTA_WEB_SERVER);
 
 	/* determine partitions */
@@ -556,7 +556,7 @@ sha2017_ota_task(void *pvParameter)
 	return;
 }
 
-void sha2017_ota_update() {
+void badge_ota_update() {
 	esp_err_t err = nvs_flash_init();
 	// Init the badge
 	badge_init();
@@ -575,6 +575,6 @@ void sha2017_ota_update() {
 	}
 	ESP_ERROR_CHECK(err);
 
-	sha2017_ota_initialise_wifi();
-	xTaskCreatePinnedToCore(&sha2017_ota_task, "sha2017_ota_task", 8192, NULL, 3, NULL, 0);
+	badge_ota_initialise_wifi();
+	xTaskCreatePinnedToCore(&badge_ota_task, "badge_ota_task", 8192, NULL, 3, NULL, 0);
 }
