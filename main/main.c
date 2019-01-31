@@ -14,7 +14,7 @@
 #include <badge_pins.h>
 #include <badge_button.h>
 #include <badge_first_run.h>
-#include <sha2017_ota.h>
+#include <badge_ota.h>
 
 #ifdef PIN_NUM_EPD_CLK
 #include "imgv2_sha.h"
@@ -79,7 +79,7 @@ const struct menu_item demoMenu[] = {
     {"charging demo", &demoPower},
 #endif
 #ifdef CONFIG_WIFI_USE
-    {"OTA update", &sha2017_ota_update},
+    {"OTA update", &badge_ota_update},
 #endif // CONFIG_WIFI_USE
     {NULL, NULL},
 };
@@ -130,12 +130,12 @@ displayMenu(const char *menu_title, const struct menu_item *itemlist) {
 		uint32_t button_id;
 		if ((button_id = badge_input_get_event(-1)) != 0)
 		{
-			
+
 			if (button_id == BADGE_BUTTON_B) {
 				ets_printf("Button B handling\n");
 				return;
 			}
-			
+
 			if (button_id == BADGE_BUTTON_START) {
 				ets_printf("Selected '%s'\n", itemlist[item_pos].title);
 				if (itemlist[item_pos].handler != NULL) {
@@ -223,11 +223,11 @@ void
 app_main(void) {
 	badge_check_first_run();
 	badge_init();
-	
+
 #ifdef I2C_ERC12864_ADDR
 	badge_disobey_samd_write_backlight(255);
 #endif
-	
+
 	esp_err_t err = badge_fb_init();
 	assert( err == ESP_OK );
 

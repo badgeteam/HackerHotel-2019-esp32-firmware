@@ -3,7 +3,7 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := sha2017-badge-test
+PROJECT_NAME := badge-firmware
 
 ifndef PROJECT_PATH
 PROJECT_PATH := $(abspath $(dir $(firstword $(MAKEFILE_LIST))))

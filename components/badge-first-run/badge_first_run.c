@@ -29,7 +29,7 @@
 #include <badge_disobey_samd.h>
 #include <badge_erc12864.h>
 #include <font.h>
-#include <sha2017_ota.h>
+#include <badge_ota.h>
 
 #include <file_reader.h>
 #include <flash_reader.h>
@@ -451,7 +451,7 @@ badge_first_run(void)
 	memset(badge_fb, 0xff, BADGE_FB_LEN);
 	badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(0));
 #endif
-	
+
 	// add line in split-screen
 	if (NUM_DISP_LINES < 16) {
 		memset(&badge_fb[NUM_DISP_LINES*BADGE_FB_WIDTH], 0x00, BADGE_FB_WIDTH/8);
@@ -694,8 +694,8 @@ badge_first_run(void)
 	}
 
 	disp_line("wifi ok",FONT_16PX);
-	
-	
+
+
 
 	wl_handle_t s_wl_handle = WL_INVALID_HANDLE;
 
@@ -785,7 +785,7 @@ badge_first_run(void)
 #else
 	disp_line("TEST OK", 0);
 #endif
-	
+
 #ifdef I2C_ERC12864_ADDR
 		badge_erc12864_write(badge_fb);
 #endif
