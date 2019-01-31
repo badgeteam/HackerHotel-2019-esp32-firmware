@@ -37,10 +37,10 @@
 //#include "badge_eink_dev.h"
 #include "badge_nvs.h"
 #include "letsencrypt.h"
-#include "sha2017_ota_graphics.h"
+#include "graphics.h"
 #include <gfx.h>
 
-#define TAG "sha2017-ota"
+#define TAG "ota-update"
 
 #define BADGE_OTA_WEB_SERVER CONFIG_OTA_SERVER_NAME
 #define BADGE_OTA_WEB_PORT "443"
@@ -132,7 +132,7 @@ sha2017_ota_initialise_wifi(void)
 		strncpy((char *) wifi_config.sta.password, CONFIG_WIFI_PASSWORD, sizeof(wifi_config.sta.password));
 	}
 
-	ESP_LOGI(TAG, "Setting WiFi configuration SSID %s...", wifi_config.sta.ssid);
+	ESP_LOGW(TAG, "Setting WiFi configuration SSID %s...", wifi_config.sta.ssid);
 	ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
 	ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
 	ESP_ERROR_CHECK(esp_wifi_start());
@@ -142,12 +142,10 @@ static void __attribute__((noreturn))
 task_fatal_error(void)
 {
 	ESP_LOGE(TAG, "Exiting task due to fatal error...");
-	show_percentage("OTA Update failed :(", 0, false, true);
-
-	(void)vTaskDelete(NULL);
-
+	graphics_show("OTA Update failed :(", 0, false, true);
 	vTaskDelay(1000 / portTICK_PERIOD_MS);
 	esp_restart();
+	(void)vTaskDelete(NULL);
 }
 
 static inline uint8_t *
@@ -177,11 +175,11 @@ mbedtls_ssl_handshake_(mbedtls_ssl_context *ssl)
 
 		if (ret == MBEDTLS_ERR_SSL_WANT_READ) {
 			// FIXME: implement wait?
-			ESP_LOGI(TAG, "mbedtls_ssl_handshake returned MBEDTLS_ERR_SSL_WANT_READ");
+			ESP_LOGW(TAG, "mbedtls_ssl_handshake returned MBEDTLS_ERR_SSL_WANT_READ");
 
 		} else if (ret == MBEDTLS_ERR_SSL_WANT_WRITE) {
 			// FIXME: implement wait?
-			ESP_LOGI(TAG, "mbedtls_ssl_handshake returned MBEDTLS_ERR_SSL_WANT_WRITE");
+			ESP_LOGW(TAG, "mbedtls_ssl_handshake returned MBEDTLS_ERR_SSL_WANT_WRITE");
 
 		} else {
 			return ret;
@@ -198,11 +196,11 @@ mbedtls_ssl_read_(mbedtls_ssl_context *ssl, unsigned char *buf, size_t len)
 
 		if (ret == MBEDTLS_ERR_SSL_WANT_READ) {
 			// FIXME: implement wait?
-			ESP_LOGI(TAG, "mbedtls_ssl_read returned MBEDTLS_ERR_SSL_WANT_READ");
+			ESP_LOGW(TAG, "mbedtls_ssl_read returned MBEDTLS_ERR_SSL_WANT_READ");
 
 		} else if (ret == MBEDTLS_ERR_SSL_WANT_WRITE) {
 			// FIXME: implement wait?
-			ESP_LOGI(TAG, "mbedtls_ssl_read returned MBEDTLS_ERR_SSL_WANT_WRITE");
+			ESP_LOGW(TAG, "mbedtls_ssl_read returned MBEDTLS_ERR_SSL_WANT_WRITE");
 
 		} else {
 			return ret;
@@ -224,11 +222,11 @@ mbedtls_ssl_write_(mbedtls_ssl_context *ssl, const unsigned char *buf, size_t le
 
 		} else if (ret == MBEDTLS_ERR_SSL_WANT_READ) {
 			// FIXME: implement wait?
-			ESP_LOGI(TAG, "mbedtls_ssl_write returned MBEDTLS_ERR_SSL_WANT_READ");
+			ESP_LOGW(TAG, "mbedtls_ssl_write returned MBEDTLS_ERR_SSL_WANT_READ");
 
 		} else if (ret == MBEDTLS_ERR_SSL_WANT_WRITE) {
 			// FIXME: implement wait?
-			ESP_LOGI(TAG, "mbedtls_ssl_write returned MBEDTLS_ERR_SSL_WANT_WRITE");
+			ESP_LOGW(TAG, "mbedtls_ssl_write returned MBEDTLS_ERR_SSL_WANT_WRITE");
 
 		} else {
 			return ret;
@@ -243,26 +241,28 @@ sha2017_ota_task(void *pvParameter)
 {
 	esp_err_t err;
 
-	ESP_LOGI(TAG, "Starting OTA update ...");
+	ESP_LOGW(TAG, "Starting OTA update ...");
+	
+	ESP_LOGW(TAG, "Server:" BADGE_OTA_WEB_SERVER);
 
 	/* determine partitions */
 	const esp_partition_t *part_running = esp_ota_get_running_partition();
 	assert(part_running != NULL);
-	ESP_LOGI(TAG, "Running from partition type %d subtype %d (offset 0x%08x)",
+	ESP_LOGW(TAG, "Running from partition type %d subtype %d (offset 0x%08x)",
 			part_running->type, part_running->subtype, part_running->address);
 
 	const esp_partition_t *part_update = esp_ota_get_next_update_partition(NULL);
 	assert(part_update != NULL);
-	ESP_LOGI(TAG, "Writing to partition type %d subtype %d (offset 0x%08x)",
+	ESP_LOGW(TAG, "Writing to partition type %d subtype %d (offset 0x%08x)",
 			part_update->type, part_update->subtype, part_update->address);
 
-	show_percentage("Connecting to WiFi", 0, false, true);
+	graphics_show("Connecting to WiFi", 0, false, true);
 	/* Wait for the callback to set the CONNECTED_BIT in the
 	   event group.
 	 */
 	xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, false, true,
 			portMAX_DELAY);
-	ESP_LOGI(TAG, "Connect to Wifi ! Start to Connect to Server....");
+	ESP_LOGW(TAG, "Connect to Wifi ! Start to Connect to Server....");
 
 	int ret;
 
@@ -276,7 +276,7 @@ sha2017_ota_task(void *pvParameter)
 	mbedtls_ssl_init(&ssl);
 	mbedtls_x509_crt_init(&cacert);
 	mbedtls_ctr_drbg_init(&ctr_drbg);
-	ESP_LOGI(TAG, "Seeding the random number generator");
+	ESP_LOGW(TAG, "Seeding the random number generator");
 
 	mbedtls_ssl_config_init(&conf);
 
@@ -287,14 +287,14 @@ sha2017_ota_task(void *pvParameter)
 		abort();
 	}
 
-	ESP_LOGI(TAG, "Loading the CA root certificate...");
+	ESP_LOGW(TAG, "Loading the CA root certificate...");
 	ret = mbedtls_x509_crt_parse_der(&cacert, letsencrypt, LETSENCRYPT_LENGTH);
 	if (ret < 0) {
 		ESP_LOGE(TAG, "mbedtls_x509_crt_parse returned -0x%x\n\n", -ret);
 		abort();
 	}
 
-	ESP_LOGI(TAG, "Setting hostname for TLS session...");
+	ESP_LOGW(TAG, "Setting hostname for TLS session...");
 
 	/* Hostname set here should match CN in server certificate */
 	ret = mbedtls_ssl_set_hostname(&ssl, BADGE_OTA_WEB_SERVER);
@@ -303,7 +303,7 @@ sha2017_ota_task(void *pvParameter)
 		abort();
 	}
 
-	ESP_LOGI(TAG, "Setting up the SSL/TLS structure...");
+	ESP_LOGW(TAG, "Setting up the SSL/TLS structure...");
 
 	ret = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_CLIENT,
 			MBEDTLS_SSL_TRANSPORT_STREAM,
@@ -331,13 +331,13 @@ sha2017_ota_task(void *pvParameter)
 	 */
 	xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, false, true,
 			portMAX_DELAY);
-	ESP_LOGI(TAG, "Connected to AP");
+	ESP_LOGW(TAG, "Connected to AP");
 
 	mbedtls_net_init(&server_fd);
 
-	show_percentage("Handshaking server", 0, false, true);
+	graphics_show("Handshaking server", 0, false, true);
 
-	ESP_LOGI(TAG, "Connecting to %s:%s...", BADGE_OTA_WEB_SERVER,
+	ESP_LOGW(TAG, "Connecting to %s:%s...", BADGE_OTA_WEB_SERVER,
 			BADGE_OTA_WEB_PORT);
 
 	ret = mbedtls_net_connect(&server_fd, BADGE_OTA_WEB_SERVER, BADGE_OTA_WEB_PORT, MBEDTLS_NET_PROTO_TCP);
@@ -346,12 +346,12 @@ sha2017_ota_task(void *pvParameter)
 		task_fatal_error();
 	}
 
-	ESP_LOGI(TAG, "Connected.");
+	ESP_LOGW(TAG, "Connected.");
 
 	mbedtls_ssl_set_bio(&ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv,
 			NULL);
 
-	ESP_LOGI(TAG, "Performing the SSL/TLS handshake...");
+	ESP_LOGW(TAG, "Performing the SSL/TLS handshake...");
 
 	ret = mbedtls_ssl_handshake_(&ssl);
 	if (ret != 0) {
@@ -359,7 +359,7 @@ sha2017_ota_task(void *pvParameter)
 		task_fatal_error();
 	}
 
-	ESP_LOGI(TAG, "Verifying peer X.509 certificate...");
+	ESP_LOGW(TAG, "Verifying peer X.509 certificate...");
 
 	/* NOTE: Afaik, the mbedtls_ssl_get_verify_result() always returns 0 if
 	 *       MBEDTLS_SSL_VERIFY_REQUIRED is used.
@@ -371,21 +371,21 @@ sha2017_ota_task(void *pvParameter)
 		task_fatal_error();
 	}
 
-	ESP_LOGI(TAG, "Certificate verified.");
+	ESP_LOGW(TAG, "Certificate verified.");
 
-	ESP_LOGI(TAG, "Sending HTTP request for %s", BADGE_OTA_WEB_PATH);
+	ESP_LOGW(TAG, "Sending HTTP request for %s", BADGE_OTA_WEB_PATH);
 
 	ret = mbedtls_ssl_write_(&ssl, (const unsigned char *) REQUEST, strlen(REQUEST));
 	if (ret <= 0) {
 		ESP_LOGE(TAG, "mbedtls_ssl_write returned -0x%x", -ret);
 		task_fatal_error();
 	}
-	ESP_LOGI(TAG, "%d bytes written", strlen(REQUEST));
+	ESP_LOGW(TAG, "%d bytes written", strlen(REQUEST));
 
-	show_percentage("Starting OTA update", 0, false, true);
+	graphics_show("Starting OTA update", 0, false, true);
 
 	/* read until we have received the status line */
-	ESP_LOGI(TAG, "Reading HTTP response status line.");
+	ESP_LOGW(TAG, "Reading HTTP response status line.");
 	uint8_t *crlf;
 	/* while the buffer doesn't contain "\r\n": continue reading.
 	 * when the buffer contains "\r\n", store pointer to it in
@@ -428,7 +428,7 @@ sha2017_ota_task(void *pvParameter)
 	buffer_len -= line_len;
 
 	/* read until we have received all headers */
-	ESP_LOGI(TAG, "Reading HTTP response headers.");
+	ESP_LOGW(TAG, "Reading HTTP response headers.");
 	ssize_t content_length = -1;
 	/* loop while we haven't received an empty line */
 	while (buffer != crlf) {
@@ -490,9 +490,9 @@ sha2017_ota_task(void *pvParameter)
 		ESP_LOGE(TAG, "esp_ota_begin failed, error=%d", err);
 		task_fatal_error();
 	}
-	ESP_LOGI(TAG, "esp_ota_begin succeeded");
+	ESP_LOGW(TAG, "esp_ota_begin succeeded");
 
-	ESP_LOGI(TAG, "Reading HTTP response data.");
+	ESP_LOGW(TAG, "Reading HTTP response data.");
 
 	uint8_t percentage = 110;
 
@@ -526,13 +526,13 @@ sha2017_ota_task(void *pvParameter)
 		uint8_t newperc = (uint8_t) round(((float) content_pos * 100) / content_length);
 		if (newperc != percentage) {
 			percentage = newperc;
-			show_percentage("Updating", percentage, true, false);
+			graphics_show("Updating", percentage, true, false);
 		}
 	}
 
 	mbedtls_ssl_close_notify(&ssl);
 
-	ESP_LOGI(TAG, "Total Write binary data length : %d", content_pos);
+	ESP_LOGW(TAG, "Total Write binary data length : %d", content_pos);
 
 	err = esp_ota_end(update_handle);
 	if (err != ESP_OK) {
@@ -544,14 +544,14 @@ sha2017_ota_task(void *pvParameter)
 	 * new OTA partition.
 	 */
 
-	show_percentage("Rebooting the badge", 0, false, true);
+	graphics_show("Rebooting the badge", 0, false, true);
 
 	err = esp_ota_set_boot_partition(part_update);
 	if (err != ESP_OK) {
 		ESP_LOGE(TAG, "esp_ota_set_boot_partition failed! err=0x%x", err);
 		task_fatal_error();
 	}
-	ESP_LOGI(TAG, "Prepare to restart system!");
+	ESP_LOGW(TAG, "Prepare to restart system!");
 	esp_restart();
 	return;
 }
@@ -560,7 +560,7 @@ void sha2017_ota_update() {
 	esp_err_t err = nvs_flash_init();
 	// Init the badge
 	badge_init();
-	sha2017_ota_percentage_init();
+	graphics_init("OTA UPDATE");
 
 	if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
 		// OTA app partition table has a smaller NVS partition size than the non-OTA

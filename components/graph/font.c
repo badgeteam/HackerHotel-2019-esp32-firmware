@@ -7,26 +7,7 @@
 #include "font_16px.h"
 #include "font_8px.h"
 
-static inline void
-draw_pixel(uint8_t *buf, int x, int y, int c)
-{
-	if (x < 0 || x > 295 || y < 0 || y > 127)
-		return;
-	int pos = (x >> 3) + y * (296 / 8);
-	if (c < 128)
-		buf[pos] &= 0xff - (1 << (x&7));
-	else
-		buf[pos] |= (1 << (x&7));
-}
-
-static inline void
-draw_pixel_8b(uint8_t *buf, int x, int y, int c)
-{
-	if (x < 0 || x > 295 || y < 0 || y > 127)
-		return;
-	int pos = x + y * 296;
-	buf[pos] = c;
-}
+#include "badge_fb.h"
 
 int
 draw_font(uint8_t *buf, int x, int y, int x_len, const char *text, uint8_t flags) {
