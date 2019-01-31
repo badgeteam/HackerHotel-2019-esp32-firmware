@@ -4,25 +4,32 @@ choice SHA_BADGE_REV
     prompt "SHA Badge revision"
     default SHA_BADGE_V3
     help
-        This option sets the SHA badge revision.
-
-        - Rev1.0.0 Dev: Release candidate
+        This option sets the type of badge for which the firmware will be compiled
+        - Hackerhotel: The Hackerhotel 2019 badge
+        - Disobey: The disobey 2019 badge
+        - SHA2017 Rev1.0.0 Dev: Release candidate
           (may 2017)
-        - Rev1.0.0 Dev without the MPR121 chip.
-        - Rev0.1.0 Dev: Improved badge.
+        - SHA2017  Rev1.0.0 Dev without the MPR121 chip.
+        - SHA2017  Rev0.1.0 Dev: Improved badge.
           (february 2017)
-        - Rev0.0.1 Dev: The original development badge.
+        - SHA2017  Rev0.0.1 Dev: The original development badge.
           (december 2016)
         - Plain ESP32 hardware
 
+config DISOBEY
+    bool "Disobey badge"
+config HACKERHOTEL_BADGE_V1
+    bool "Hackerhotel badge"
+config HACKERHOTEL_BADGE_V0
+    bool "Hackerhotel badge (Prototype)"
 config SHA_BADGE_V3
-    bool "Rev1.0.*"
+    bool "SHA2017"
 config SHA_BADGE_V3_LITE
-    bool "Rev1.0.* (without mpr121)"
+    bool "SHA2017 badge without mpr121"
 config SHA_BADGE_V2
-    bool "Rev0.1.0 Dev"
+    bool "SHA2017 badge (Development rev. 0.1.0)"
 config SHA_BADGE_V1
-    bool "Rev0.0.1 Dev"
+    bool "SHA2017 badge (Development rev. 0.0.1)"
 config SHA_BADGE_NONE
     bool "Plain ESP32"
 endchoice
@@ -30,7 +37,7 @@ endchoice
 choice SHA_BADGE_EINK_DEFAULT_TYPE
     prompt "SHA Badge e-ink default display type"
     default SHA_BADGE_EINK_DEF_DEPG0290B1
-    depends on SHA_BADGE_V1 || SHA_BADGE_V2 || SHA_BADGE_V3 || SHA_BADGE_V3_LITE
+    depends on SHA_BADGE_V1 || SHA_BADGE_V2 || SHA_BADGE_V3 || SHA_BADGE_V3_LITE || HACKERHOTEL_BADGE_V0 || HACKERHOTEL_BADGE_V1
     help
         The DEPG0290B1 is the cheaper alternative.
         The GDEH029A1 was the original e-ink display.
@@ -43,7 +50,7 @@ endchoice
 
 config SHA_BADGE_LEDS_WS2812
     bool "Using WS2812 LEDS instead of SK6812"
-    depends on SHA_BADGE_V2 || SHA_BADGE_V3 || SHA_BADGE_V3_LITE
+    depends on SHA_BADGE_V2 || SHA_BADGE_V3 || SHA_BADGE_V3_LITE || HACKERHOTEL_BADGE_V0 || HACKERHOTEL_BADGE_V1
     default n
     help
         On earlier developer boards, WS2812 leds were used
@@ -72,14 +79,14 @@ config SHA_BADGE_CPT112S_DEBUG
 
 config SHA_BADGE_MPR121_DEBUG
     bool "Enable MPR121 debug messages"
-    depends on SHA_BADGE_V3
+    depends on SHA_BADGE_V3 || HACKERHOTEL_BADGE_V0 || HACKERHOTEL_BADGE_V1
     default n
     help
         Debugging
 
 config SHA_BADGE_MPR121_HARDCODE_BASELINE
     bool "Enable MPR121 hardcoded baseline values"
-    depends on SHA_BADGE_V3
+    depends on SHA_BADGE_V3 || HACKERHOTEL_BADGE_V0 || HACKERHOTEL_BADGE_V1
     default y
     help
         The baseline data was tested on one specific badge. Other badges
@@ -88,21 +95,21 @@ config SHA_BADGE_MPR121_HARDCODE_BASELINE
 
 config SHA_BADGE_EINK_DEBUG
     bool "Enable eink debug messages"
-    depends on SHA_BADGE_V1 || SHA_BADGE_V2 || SHA_BADGE_V3 || SHA_BADGE_V3_LITE
+    depends on SHA_BADGE_V1 || SHA_BADGE_V2 || SHA_BADGE_V3 || SHA_BADGE_V3_LITE || HACKERHOTEL_BADGE_V0 || HACKERHOTEL_BADGE_V1
     default n
     help
         Debugging
 
 config SHA_BADGE_EINK_LUT_DEBUG
     bool "Enable eink lookup-table debug messages"
-    depends on SHA_BADGE_V1 || SHA_BADGE_V2 || SHA_BADGE_V3 || SHA_BADGE_V3_LITE
+    depends on SHA_BADGE_V1 || SHA_BADGE_V2 || SHA_BADGE_V3 || SHA_BADGE_V3_LITE || HACKERHOTEL_BADGE_V0 || HACKERHOTEL_BADGE_V1
     default n
     help
         Debugging
 
 config SHA_BADGE_POWER_DEBUG
     bool "Enable power/charging debug messages"
-    depends on SHA_BADGE_V1 || SHA_BADGE_V2 || SHA_BADGE_V3 || SHA_BADGE_V3_LITE
+    depends on SHA_BADGE_V1 || SHA_BADGE_V2 || SHA_BADGE_V3 || SHA_BADGE_V3_LITE || HACKERHOTEL_BADGE_V0 || HACKERHOTEL_BADGE_V1
     default n
     help
         Debugging

@@ -7,10 +7,10 @@
 #include <badge_input.h>
 #include <badge_eink.h>
 #include <badge_eink_dev.h>
-#include <badge_eink_fb.h>
+#include <badge_fb.h>
 
 void demoGreyscale1(void) {
-  uint32_t *tmpbuf = (uint32_t *) badge_eink_fb;
+  uint32_t *tmpbuf = (uint32_t *) badge_fb;
 
   int i;
   for (i = 0; i < 2; i++) {

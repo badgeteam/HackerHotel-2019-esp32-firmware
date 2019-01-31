@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include <badge_eink.h>
-#include <badge_eink_fb.h>
+#include <badge_fb.h>
 #include <badge_input.h>
 #include <badge_pins.h>
 #include <badge_leds.h>
@@ -27,15 +27,15 @@
 void
 demo_leds(void)
 {
-	esp_err_t err = badge_eink_fb_init();
+	esp_err_t err = badge_fb_init();
 	assert( err == ESP_OK );
 
-	memset(badge_eink_fb, 0xff, BADGE_EINK_FB_LEN);
-	draw_font(badge_eink_fb, 6, 16, 284, "testing leds. colors should be:",
+	memset(badge_fb, 0xff, BADGE_FB_LEN);
+	draw_font(badge_fb, 6, 16, 284, "testing leds. colors should be:",
 		FONT_INVERT);
-	draw_font(badge_eink_fb, 6, 26, 284, "<red>,<green>,<blue>,<white>,<dimmed white>,<black>",
+	draw_font(badge_fb, 6, 26, 284, "<red>,<green>,<blue>,<white>,<dimmed white>,<black>",
 		FONT_INVERT);
-	badge_eink_display(badge_eink_fb, DISPLAY_FLAG_LUT(2));
+	badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(2));
 
 	{
 		uint8_t grbw[6*4] = {
@@ -54,10 +54,10 @@ demo_leds(void)
 		}
 	}
 
-	memset(badge_eink_fb, 0xff, BADGE_EINK_FB_LEN);
-	draw_font(badge_eink_fb, 6, 16, 264, "now doing random updates",
+	memset(badge_fb, 0xff, BADGE_FB_LEN);
+	draw_font(badge_fb, 6, 16, 264, "now doing random updates",
 		FONT_INVERT);
-	badge_eink_display(badge_eink_fb, DISPLAY_FLAG_LUT(2));
+	badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(2));
 
 	uint8_t grbw[6*4] = {
 		 L0,  L1,  L2, L3,
@@ -94,16 +94,16 @@ demo_leds(void)
 		}
 	}
 
-	memset(badge_eink_fb, 0xff, BADGE_EINK_FB_LEN);
-	draw_font(badge_eink_fb, 6, 16, 264, "key pressed. disabling leds",
+	memset(badge_fb, 0xff, BADGE_FB_LEN);
+	draw_font(badge_fb, 6, 16, 264, "key pressed. disabling leds",
 		FONT_INVERT);
-	badge_eink_display(badge_eink_fb, DISPLAY_FLAG_LUT(2));
+	badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(2));
 
 	badge_leds_disable();
 
-	memset(badge_eink_fb, 0xff, BADGE_EINK_FB_LEN);
-	draw_font(badge_eink_fb, 6, 16, 264, "leds are disabled.",
+	memset(badge_fb, 0xff, BADGE_FB_LEN);
+	draw_font(badge_fb, 6, 16, 264, "leds are disabled.",
 		FONT_INVERT);
-	badge_eink_display(badge_eink_fb, DISPLAY_FLAG_LUT(2));
+	badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(2));
 }
 #endif // PIN_NUM_LEDS

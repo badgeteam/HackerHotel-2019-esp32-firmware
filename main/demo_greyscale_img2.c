@@ -5,13 +5,13 @@
 #include <badge_input.h>
 #include <badge_eink_dev.h>
 #include <badge_eink_lut.h>
-#include <badge_eink_fb.h>
+#include <badge_fb.h>
 #include <badge_eink.h>
 
 #include "img_hacking.h"
 
 void demoGreyscaleImg2(void) {
-  uint32_t *tmpbuf = (uint32_t *) badge_eink_fb;
+  uint32_t *tmpbuf = (uint32_t *) badge_fb;
 
   // curved
   const uint8_t lvl_buf[64] = {

@@ -9,7 +9,7 @@
 #include <badge.h>
 #include <badge_input.h>
 #include <badge_eink.h>
-#include <badge_eink_fb.h>
+#include <badge_fb.h>
 #include <badge_pins.h>
 #include <badge_button.h>
 #include <badge_first_run.h>
@@ -89,18 +89,18 @@ displayMenu(const char *menu_title, const struct menu_item *itemlist) {
 		/* draw menu */
 		if (need_redraw) {
 			// init buffer
-			draw_font(badge_eink_fb, 0, 0, BADGE_EINK_WIDTH, menu_title,
+			draw_font(badge_fb, 0, 0, BADGE_EINK_WIDTH, menu_title,
 					FONT_16PX | FONT_INVERT | FONT_FULL_WIDTH | FONT_UNDERLINE_2);
 			int i;
 			for (i = 0; i < 7; i++) {
 				int pos = scroll_pos + i;
-				draw_font(badge_eink_fb, 0, 16+16*i, BADGE_EINK_WIDTH,
+				draw_font(badge_fb, 0, 16+16*i, BADGE_EINK_WIDTH,
 						(pos < num_items) ? itemlist[pos].title : "",
 						FONT_16PX | FONT_FULL_WIDTH |
 						((pos == item_pos) ? 0 : FONT_INVERT));
 			}
 
-			badge_eink_display(badge_eink_fb, DISPLAY_FLAG_LUT(BADGE_EINK_LUT_NORMAL) );
+			badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(BADGE_EINK_LUT_NORMAL) );
 			need_redraw = false;
 		}
 
@@ -119,8 +119,8 @@ displayMenu(const char *menu_title, const struct menu_item *itemlist) {
 					itemlist[item_pos].handler();
 
 				// reset screen
-				memset(badge_eink_fb, 0xff, BADGE_EINK_WIDTH * BADGE_EINK_HEIGHT / 8);
-				badge_eink_display(badge_eink_fb, DISPLAY_FLAG_LUT(BADGE_EINK_LUT_NORMAL) | DISPLAY_FLAG_FULL_UPDATE);
+				memset(badge_fb, 0xff, BADGE_EINK_WIDTH * BADGE_EINK_HEIGHT / 8);
+				badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(BADGE_EINK_LUT_NORMAL) | DISPLAY_FLAG_FULL_UPDATE);
 
 				need_redraw = true;
 				ets_printf("Button START handled\n");
@@ -163,15 +163,15 @@ const uint8_t *pictures[NUM_PICTURES] = {
 void
 display_picture(int picture_id, int selected_lut)
 {
-	memcpy(badge_eink_fb, pictures[picture_id], 296*128/8);
+	memcpy(badge_fb, pictures[picture_id], 296*128/8);
 	char str[30];
 	if (selected_lut == -1)
 		sprintf(str, "[ pic %d, full update ]", picture_id);
 	else
 		sprintf(str, "[ pic %d, lut %d ]", picture_id, selected_lut);
-	draw_font(badge_eink_fb, 8, 4, BADGE_EINK_WIDTH, str, FONT_INVERT);
+	draw_font(badge_fb, 8, 4, BADGE_EINK_WIDTH, str, FONT_INVERT);
 
-	badge_eink_display(badge_eink_fb, DISPLAY_FLAG_LUT(selected_lut));
+	badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(selected_lut));
 }
 
 void
@@ -179,7 +179,7 @@ app_main(void) {
 	badge_check_first_run();
 	badge_init();
 
-	esp_err_t err = badge_eink_fb_init();
+	esp_err_t err = badge_fb_init();
 	assert( err == ESP_OK );
 
   int picture_id = 0;

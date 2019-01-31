@@ -18,7 +18,7 @@
 
 #include <badge_nvs.h>
 #include <badge_eink.h>
-#include <badge_eink_fb.h>
+#include <badge_fb.h>
 
 // Set this to your frame buffer pixel format.
 #ifndef GDISP_LLD_PIXELFORMAT
@@ -40,7 +40,7 @@ uint8_t target_lut;
 		esp_err_t err = badge_eink_init(eink_type);
 		assert( err == ESP_OK );
 
-		err = badge_eink_fb_init();
+		err = badge_fb_init();
 		assert( err == ESP_OK );
 
 		g->g.Width = BADGE_EINK_WIDTH;
@@ -48,7 +48,7 @@ uint8_t target_lut;
 		g->g.Backlight = 100;
 		g->g.Contrast = 50;
 		fbi->linelen = g->g.Width;
-		fbi->pixels = badge_eink_fb;
+		fbi->pixels = badge_fb;
 		target_lut = 2;
 	}
 
@@ -65,15 +65,15 @@ uint8_t target_lut;
 			if (target_lut >= 0xf0)
 			{
 				// 0xf0 was used in some examples. support it for now..
-				badge_eink_display_greyscale(badge_eink_fb, flags, target_lut > 0xf0 ? target_lut - 0xf0 : BADGE_EINK_MAX_LAYERS);
+				badge_eink_display_greyscale(badge_fb, flags, target_lut > 0xf0 ? target_lut - 0xf0 : BADGE_EINK_MAX_LAYERS);
 			}
 			else if (target_lut > BADGE_EINK_LUT_MAX)
 			{
-				badge_eink_display(badge_eink_fb, flags);
+				badge_eink_display(badge_fb, flags);
 			}
 			else
 			{
-				badge_eink_display(badge_eink_fb, flags | DISPLAY_FLAG_LUT(target_lut));
+				badge_eink_display(badge_fb, flags | DISPLAY_FLAG_LUT(target_lut));
 			}
 		}
 	#endif
