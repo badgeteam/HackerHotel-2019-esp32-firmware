@@ -61,7 +61,7 @@ badge_i2c_init(void)
 	if (res != ESP_OK)
 		return res;
 
-	res = i2c_driver_install(I2C_MASTER_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
+	res = i2c_driver_install(I2C_MASTER_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0, 0);
 	if (res != ESP_OK)
 		return res;
 

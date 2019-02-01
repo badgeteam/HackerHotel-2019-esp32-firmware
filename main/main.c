@@ -51,7 +51,10 @@ struct menu_item {
 #include "demo_mpr121.h"
 #include "demo_sdcard_image.h"
 
+extern void micropython_entry(void);
+
 const struct menu_item demoMenu[] = {
+	{"MicroPython", &micropython_entry},
 #ifdef I2C_MPR121_ADDR
     {"mpr121 touch demo", &demoMpr121},
 #endif // I2C_MPR121_ADDR
@@ -299,6 +302,6 @@ app_main(void) {
 #endif
 }
 
-void vPortCleanUpTCB ( void *pxTCB ) {
+//void vPortCleanUpTCB ( void *pxTCB ) {
 	// place clean up code here
-}
+//}
