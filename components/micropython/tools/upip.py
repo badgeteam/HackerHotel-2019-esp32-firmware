@@ -18,9 +18,6 @@ file_buf = bytearray(512)
 class NotFoundError(Exception):
     pass
 
-class LatestInstalledError(Exception):
-    pass
-
 def op_split(path):
     if path == "":
         return ("", "")
@@ -104,7 +101,10 @@ def expandhome(s):
 
 import ussl
 import usocket
+warn_ussl = True
 def url_open(url):
+    global warn_ussl
+
     if debug:
         print(url)
 
@@ -114,8 +114,6 @@ def url_open(url):
     except OSError as e:
         fatal("Unable to resolve %s (no Internet?)" % host, e)
     #print("Address infos:", ai)
-    if len(ai) == 0:
-        fatal("Unable to resolve %s (no Internet?)" % host, errno.EHOSTUNREACH)
     addr = ai[0][4]
 
     s = usocket.socket(ai[0][0])
@@ -124,7 +122,10 @@ def url_open(url):
         s.connect(addr)
 
         if proto == "https:":
-            s = ussl.wrap_socket(s, server_hostname=host)
+            s = ussl.wrap_socket(s)
+            if warn_ussl:
+                print("Warning: %s SSL certificate is not validated" % host)
+                warn_ussl = False
 
         # MicroPython rawsocket module supports file interface directly
         s.write("GET /%s HTTP/1.0\r\nHost: %s\r\n\r\n" % (urlpath, host))
@@ -148,25 +149,12 @@ def url_open(url):
 
 
 def get_pkg_metadata(name):
-    f = url_open("https://badge.sha2017.org/eggs/get/%s/json" % name)
+    f = url_open("https://pypi.python.org/pypi/%s/json" % name)
     try:
         return json.load(f)
     finally:
         f.close()
 
-def get_pkg_list():
-    f = url_open("https://badge.sha2017.org/eggs/list/json")
-    try:
-        return json.load(f)
-    finally:
-        f.close()
-
-def search_pkg_list(query):
-    f = url_open("https://badge.sha2017.org/eggs/search/%s/json" % query)
-    try:
-        return json.load(f)
-    finally:
-        f.close()
 
 def fatal(msg, exc=None):
     print("Error:", msg)
@@ -174,67 +162,35 @@ def fatal(msg, exc=None):
         raise exc
     sys.exit(1)
 
-def install_pkg(pkg_spec, install_path, force_reinstall):
+def install_pkg(pkg_spec, install_path):
     data = get_pkg_metadata(pkg_spec)
-    already_installed = False
-    try:
-        os.stat("%s%s/" % (install_path, pkg_spec))
-    except OSError as e:
-        if e.args[0] == errno.EINVAL:
-            print("Package %s already installed" % (pkg_spec))
-            already_installed = True
-        else:
-            print("Package %s not yet installed" % (pkg_spec))
-    else:
-        # fallback for unix version
-        print("Package %s already installed" % (pkg_spec))
-        already_installed = True
+
     latest_ver = data["info"]["version"]
-    verf = "%s%s/version" % (install_path, pkg_spec)
-    if already_installed:
-        try:
-            with open(verf, "r") as fver:
-                old_ver = fver.read()
-        except:
-            print("No version file found")
-        else:
-            if old_ver == latest_ver:
-                if not force_reinstall:
-                    raise LatestInstalledError("Latest version installed")
-            else:
-                print("Removing previous rev. %s" % old_ver)
-                for rm_file in os.listdir("%s%s" % (install_path, pkg_spec)):
-                    os.remove("%s%s/%s" % (install_path, pkg_spec, rm_file))
     packages = data["releases"][latest_ver]
     del data
     gc.collect()
     assert len(packages) == 1
     package_url = packages[0]["url"]
-    print("Installing %s rev. %s from %s" % (pkg_spec, latest_ver, package_url))
+    print("Installing %s %s from %s" % (pkg_spec, latest_ver, package_url))
     package_fname = op_basename(package_url)
     f1 = url_open(package_url)
     try:
         f2 = uzlib.DecompIO(f1, gzdict_sz)
         f3 = tarfile.TarFile(fileobj=f2)
-        meta = install_tar(f3, "%s%s/" % (install_path, pkg_spec))
+        meta = install_tar(f3, install_path)
     finally:
         f1.close()
     del f3
     del f2
-    with open(verf, "w") as fver:
-        fver.write(latest_ver)
-    del fver
     gc.collect()
     return meta
 
-def install(to_install, install_path=None, force_reinstall=False):
+def install(to_install, install_path=None):
     # Calculate gzip dictionary size to use
     global gzdict_sz
     sz = gc.mem_free() + gc.mem_alloc()
     if sz <= 65536:
-        # this will probably give errors with some packages, but we
-        # just don't have enough memory.
-        gzdict_sz = 16 + 13
+        gzdict_sz = 16 + 12
 
     if install_path is None:
         install_path = get_install_path()
@@ -252,7 +208,7 @@ def install(to_install, install_path=None, force_reinstall=False):
             pkg_spec = to_install.pop(0)
             if pkg_spec in installed:
                 continue
-            meta = install_pkg(pkg_spec, install_path, force_reinstall)
+            meta = install_pkg(pkg_spec, install_path)
             installed.append(pkg_spec)
             if debug:
                 print(meta)
@@ -264,22 +220,6 @@ def install(to_install, install_path=None, force_reinstall=False):
         print("Error installing '{}': {}, packages may be partially installed".format(
                 pkg_spec, e),
             file=sys.stderr)
-        raise e
-
-def display_pkg(packages):
-    for package in packages:
-        print(package["name"])
-        print("  Slug:        " + package["slug"])
-        print("  Version:     " + package["revision"])
-        print("  Description: " + package["description"])
-
-
-def search(query="*"):
-    if query == "*":
-        packages = get_pkg_list()
-    else:
-        packages = search_pkg_list(query)
-    display_pkg(packages)
 
 def get_install_path():
     global install_path
@@ -298,12 +238,9 @@ def cleanup():
 
 def help():
     print("""\
-woezel - Clone of the Simple PyPI package manager for MicroPython
-Usage: micropython -m woezel install [-p <path>] <package>... | -r <requirements.txt>
-
-import woezel
-woezel.install(package_or_list, [<path>])
-woezel.search([query])
+upip - Simple PyPI package manager for MicroPython
+Usage: micropython -m upip install [-p <path>] <package>... | -r <requirements.txt>
+import upip; upip.install(package_or_list, [<path>])
 
 If <path> is not given, packages will be installed into sys.path[1]
 (can be set from MICROPYPATH environment variable, if current system
@@ -311,8 +248,8 @@ supports that).""")
     print("Current value of sys.path[1]:", sys.path[1])
     print("""\
 
-Note: only MicroPython packages are supported for installation,
-woezel, like upip does not support arbitrary code in setup.py.
+Note: only MicroPython packages (usually, named micropython-*) are supported
+for installation, upip does not support arbitrary code in setup.py.
 """)
 
 def main():

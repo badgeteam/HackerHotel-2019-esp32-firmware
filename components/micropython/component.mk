@@ -38,39 +38,37 @@ MICROPY_FATFS = 0
 
 FROZEN_DIR = $(COMPONENT_PATH)/esp32/scripts
 
-FROZEN_MPY_DIR =  $(COMPONENT_PATH)/esp32/modules
+ifdef CONFIG_SHA_BADGE_V1
+FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/sha2017
+endif
 
-#ifdef CONFIG_SHA_BADGE_V1
-#FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/sha2017
-#endif
+ifdef CONFIG_SHA_BADGE_V2
+FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/sha2017
+endif
 
-#ifdef CONFIG_SHA_BADGE_V2
-#FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/sha2017
-#endif
+ifdef CONFIG_SHA_BADGE_V3
+FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/sha2017
+endif
 
-#ifdef CONFIG_SHA_BADGE_V3
-#FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/sha2017
-#endif
+ifdef CONFIG_SHA_BADGE_V3_LITE
+FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/sha2017
+endif
 
-#ifdef CONFIG_SHA_BADGE_V3_LITE
-#FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/sha2017
-#endif
+ifdef CONFIG_DISOBEY
+FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/disobey2019
+endif
 
-#ifdef PROJECT_PATH
-#FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/disobey2019
-#endif
+ifdef CONFIG_HACKERHOTEL_BADGE_V1
+FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/hackerhotel2019
+endif
 
-#ifdef CONFIG_HACKERHOTEL_BADGE_V1
-#FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/hackerhotel2019
-#endif
+ifdef CONFIG_HACKERHOTEL_BADGE_V0
+FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/hackerhotel2019
+endif
 
-#ifdef CONFIG_HACKERHOTEL_BADGE_V0
-#FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/hackerhotel2019
-#endif
-
-#ifdef CONFIG_SHA_BADGE_NONE
-#FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/generic
-#endif
+ifdef CONFIG_SHA_BADGE_NONE
+FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/generic
+endif
 
 # Includes for Qstr&Frozen modules
 #---------------------------------

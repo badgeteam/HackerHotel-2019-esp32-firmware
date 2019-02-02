@@ -145,19 +145,22 @@ void mp_task(void *pvParameter)
 
     if (res == 0) {
     	// run boot-up script 'boot.py'
-        pyexec_file("boot.py");
+        //pyexec_file("boot.py");
+		pyexec_frozen_module("_boot.py");
         if (pyexec_mode_kind == PYEXEC_MODE_FRIENDLY_REPL) {
+			pyexec_frozen_module("boot.py");
         	// Check if 'main.py' exists and run it
-        	FILE *fd;
+        	/*FILE *fd;
         	fd = fopen(VFS_NATIVE_MOUNT_POINT"/main.py", "rb");
             if (fd) {
             	fclose(fd);
             	pyexec_file("main.py");
-            }
+            }*/
         }
     }
     else ESP_LOGE("MicroPython", "Error mounting Flash file system");
-
+	
+	
     gc_info_t info;
     gc_info(&info);
 	#ifdef CONFIG_MICROPY_GC_SET_THRESHOLD
@@ -233,9 +236,9 @@ void mp_task(void *pvParameter)
 void micropython_entry(void)
 {
 	ESP_LOGD("MicroPython","Entry");
-	vTaskDelay(1000);
-	// Configure UART for power management usage
-    uart_config_t uartcfg = {
+	//vTaskDelay(1000);
+	
+	uart_config_t uartcfg = {
         .baud_rate = 115200,
         .data_bits = UART_DATA_8_BITS,
         .parity = UART_PARITY_DISABLE,
@@ -399,11 +402,11 @@ void micropython_entry(void)
 
     // Workaround for possible bug in i2c driver !?
 	//ToDo: Is it still needed?
-    periph_module_disable(PERIPH_I2C0_MODULE);
-    periph_module_enable(PERIPH_I2C0_MODULE);
+    //periph_module_disable(PERIPH_I2C0_MODULE);
+    //periph_module_enable(PERIPH_I2C0_MODULE);
 
 	// === Set esp32 log levels while running MicroPython ===
-	if (CONFIG_MICRO_PY_LOG_LEVEL < CONFIG_LOG_DEFAULT_LEVEL) esp_log_level_set("*", CONFIG_MICRO_PY_LOG_LEVEL);
+	/*if (CONFIG_MICRO_PY_LOG_LEVEL < CONFIG_LOG_DEFAULT_LEVEL) esp_log_level_set("*", CONFIG_MICRO_PY_LOG_LEVEL);
 	if ((CONFIG_LOG_DEFAULT_LEVEL > ESP_LOG_WARN) && (CONFIG_MICRO_PY_LOG_LEVEL > ESP_LOG_WARN)){
 		esp_log_level_set("wifi", ESP_LOG_WARN);
 		esp_log_level_set("rmt", ESP_LOG_WARN);
@@ -433,6 +436,7 @@ void micropython_entry(void)
 	esp_log_level_set(FTP_TAG, CONFIG_FTPSERVER_LOG_LEVEL);
 	#endif
 	esp_log_level_set("MicroPython", CONFIG_LOG_DEFAULT_LEVEL);
+	*/
 
 	// ================================================
 	// ==== Create and start main MicroPython task ====

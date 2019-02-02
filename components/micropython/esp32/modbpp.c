@@ -3,7 +3,6 @@
 #include "esp_spi_flash.h"
 #include "wear_levelling.h"
 
-#include "drivers/dht/dht.h"
 #include "modesp.h"
 #include "py/mperrno.h"
 #include "py/mphal.h"
