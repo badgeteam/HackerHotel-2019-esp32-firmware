@@ -1,7 +1,3 @@
-[submodule "esp-idf"]
-	path = esp-idf
-	url = https://github.com/badgeteam/esp-idf.git
-	branch = master
 [submodule "micropython"]
 	path = micropython
 	url = https://github.com/badgeteam/micropython-esp32.git
