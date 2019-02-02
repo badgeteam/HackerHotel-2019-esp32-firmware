@@ -198,6 +198,8 @@ STATIC mp_obj_t mach_rtc_now (mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(mach_rtc_now_obj, mach_rtc_now);
 
+bool sntp_is_synced = false;
+
 //------------------------------------
 static void start_sntp(char *srv_name)
 {

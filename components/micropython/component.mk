@@ -174,12 +174,10 @@ SRC_C =  $(addprefix esp32/,\
 	modnetwork.c \
 	modsocket.c \
 	moduhashlib.c \
-	machine_hw_spi.c \
 	mpthreadport.c \
 	mpsleep.c \
 	machine_rtc.c \
 	modymodem.c \
-	machine_hw_i2c.c \
 	machine_neopixel.c \
 	machine_dht.c \
 	machine_ow.c \
