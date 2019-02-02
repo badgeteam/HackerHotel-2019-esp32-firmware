@@ -71,7 +71,7 @@ def list_apps(slug):
 	ugfx.flush(ugfx.LUT_FULL)
 
 	try:
-		f = urequests.get("https://badge.sha2017.org/eggs/category/%s/json" % slug, timeout=30)
+		f = urequests.get("https://badge.team/eggs/category/%s/json" % slug, timeout=30)
 		try:
 			packages = f.json()
 		finally:
@@ -167,7 +167,7 @@ def list_categories():
 		ugfx.input_init()
 		draw_msg('Getting categories')
 		try:
-			f = urequests.get("https://badge.sha2017.org/eggs/categories/json", timeout=30)
+			f = urequests.get("https://badge.team/eggs/categories/json", timeout=30)
 			categories = f.json()
 		except:
 			draw_msg('Failed!')
@@ -202,7 +202,7 @@ def list_categories():
 	ugfx.string_box(148,78,148,18, " A: Open category", "Roboto_Regular12", ugfx.BLACK, ugfx.justifyLeft)
 	ugfx.string_box(148,92,148,18, " B: Return to home", "Roboto_Regular12", ugfx.BLACK, ugfx.justifyLeft)
 	ugfx.line(148, 110, 296, 110, ugfx.BLACK)
-	ugfx.string_box(148,110,148,18, " badge.sha2017.org", "Roboto_Regular12", ugfx.BLACK, ugfx.justifyLeft)
+	ugfx.string_box(148,110,148,18, " badge.team", "Roboto_Regular12", ugfx.BLACK, ugfx.justifyLeft)
 	ugfx.flush(ugfx.LUT_FULL)
 	gc.collect()
 

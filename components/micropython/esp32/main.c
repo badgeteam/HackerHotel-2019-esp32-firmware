@@ -441,17 +441,17 @@ void micropython_entry(void)
 	// ================================================
 	// ==== Create and start main MicroPython task ====
 	// ================================================
-	#if CONFIG_FREERTOS_UNICORE
+	//#if CONFIG_FREERTOS_UNICORE
 		MainTaskCore = 0;
 		MainTaskHandle = xTaskCreateStaticPinnedToCore(&mp_task, "mp_task", mp_task_stack_len, NULL, CONFIG_MICROPY_TASK_PRIORITY, mp_task_stack, &mp_task_tcb, 0);
-	#else
+	/*#else
 		MainTaskCore = 1;
 		#if CONFIG_MICROPY_USE_BOTH_CORES
 			MainTaskHandle = xTaskCreateStatic(&mp_task, "mp_task", mp_task_stack_len, NULL, CONFIG_MICROPY_TASK_PRIORITY, mp_task_stack, &mp_task_tcb);
 		#else
 			MainTaskHandle = xTaskCreateStaticPinnedToCore(&mp_task, "mp_task", mp_task_stack_len, NULL, CONFIG_MICROPY_TASK_PRIORITY, mp_task_stack, &mp_task_tcb, 1);
 		#endif
-	#endif
+	#endif*/
 
 	if (!MainTaskHandle) {
     	ESP_LOGE("MicroPython", "Error creating MicroPython task, HALTED.");

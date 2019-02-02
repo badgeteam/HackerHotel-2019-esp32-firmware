@@ -10,9 +10,9 @@ import appglue, virtualtimers
 import easydraw, easywifi, easyrtc
 
 import tasks.powermanagement as pm
-import tasks.otacheck as otac
-import tasks.resourcescheck as resc
-import tasks.sponsorscheck as spoc
+#import tasks.otacheck as otac
+#import tasks.resourcescheck as resc
+#import tasks.sponsorscheck as spoc
 import tasks.services as services
 
 # Graphics
@@ -29,10 +29,11 @@ def draw(mode, goingToSleep=False):
 		info2 = 'Press any key to wake up'
 	else:
 		info1 = 'Press start to open the launcher'
-		if otac.available(False):
-			info2 = 'Press select to start OTA update'
-		else:
-			info2 = ''
+		info2 = ''
+		#if otac.available(False):
+		#	info2 = 'Press select to start OTA update'
+		#else:
+		#	info2 = ''
 
 	def disp_string_right(y, s):
 		l = ugfx.get_string_width(s,"Roboto_Regular12")
@@ -75,8 +76,8 @@ def splash_input_a(pressed):
 def splash_input_select(pressed):
 	print("Select", pressed)
 	if pressed:
-		if otac.available(False):
-			appglue.start_ota()
+		#if otac.available(False):
+		#	appglue.start_ota()
 		pm.feed()
 
 def splash_input_other(pressed):
@@ -120,15 +121,15 @@ setupState = badge.nvs_get_u8('badge', 'setup.state', 0)
 if setupState == 0: #First boot
 	print("[SPLASH] First boot (start setup)...")
 	appglue.start_app("setup")
-elif setupState == 1: # Second boot: Show sponsors
-	print("[SPLASH] Second boot (show sponsors)...")
-	badge.nvs_set_u8('badge', 'setup.state', 2)
-	spoc.show(True)
-elif setupState == 2: # Third boot: force OTA check
-	print("[SPLASH] Third boot (force ota check)...")
-	badge.nvs_set_u8('badge', 'setup.state', 3)
-	if not easywifi.failure():
-		otac.available(True)
+#elif setupState == 1: # Second boot: Show sponsors
+#	print("[SPLASH] Second boot (show sponsors)...")
+#	badge.nvs_set_u8('badge', 'setup.state', 2)
+#	spoc.show(True)
+#elif setupState == 2: # Third boot: force OTA check
+#	print("[SPLASH] Third boot (force ota check)...")
+#	badge.nvs_set_u8('badge', 'setup.state', 3)
+#	if not easywifi.failure():
+#		otac.available(True)
 #else: # Normal boot
 #    print("[SPLASH] Normal boot... ("+str(machine.reset_cause())+")")
 #    if (machine.reset_cause() != machine.DEEPSLEEP_RESET):
@@ -141,10 +142,10 @@ if time.time() < 1482192000:
 	easyrtc.configure()
 # =======
 		
-if not easywifi.failure():
-	resc.check()        # Check resources
-if not easywifi.failure():
-	spoc.show(False)    # Check sponsors
+#if not easywifi.failure():
+#	resc.check()        # Check resources
+#if not easywifi.failure():
+#	spoc.show(False)    # Check sponsors
 
 if badge.safe_mode():
 	draw(False)

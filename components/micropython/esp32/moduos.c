@@ -129,7 +129,7 @@ STATIC mp_obj_t os_umount_sdcard(void)
 	mp_obj_t sddir = mp_obj_new_str(VFS_NATIVE_EXTERNAL_MP, strlen(VFS_NATIVE_EXTERNAL_MP));
 	mp_call_function_1(MP_OBJ_FROM_PTR(&mp_vfs_umount_obj), sddir);
 
-	// Change directory to /flash
+	// Change directory to internal flash directory
 	sddir = mp_obj_new_str(VFS_NATIVE_INTERNAL_MP, strlen(VFS_NATIVE_INTERNAL_MP));
 	mp_call_function_1(MP_OBJ_FROM_PTR(&mp_vfs_chdir_obj), sddir);
 

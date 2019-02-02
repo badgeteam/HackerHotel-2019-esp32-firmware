@@ -46,7 +46,6 @@ def set_NTP_time():
 	tm = tm[0:3] + (0,) + tm[3:6] + (0,)
 
 	rtc = RTC()
-	rtc.init()
-	rtc.datetime(tm)
+	rtc.init(tm)
 
 	return True

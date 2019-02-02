@@ -872,7 +872,7 @@ STATIC mp_obj_t native_vfs_mount(mp_obj_t self_in, mp_obj_t readonly, mp_obj_t m
 			return mp_const_false;
 	   	}
 		native_vfs_mounted[self->device] = true;
-		checkBoot_py();
+		//checkBoot_py();
 		#elif CONFIG_MICROPY_FILESYSTEM_TYPE == 2
 	    fs_partition = (esp_partition_t *)esp_partition_find_first(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_FAT, VFS_NATIVE_INTERNAL_PART_LABEL);
 	    if (fs_partition == NULL) {
@@ -892,7 +892,7 @@ STATIC mp_obj_t native_vfs_mount(mp_obj_t self_in, mp_obj_t readonly, mp_obj_t m
 			return mp_const_false;
 	   	}
 		native_vfs_mounted[self->device] = true;
-		checkBoot_py();
+		//checkBoot_py();
 		#else
 	    fs_partition = (esp_partition_t *)esp_partition_find_first(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_FAT, VFS_NATIVE_INTERNAL_PART_LABEL);
 	    if (fs_partition == NULL) {
@@ -913,7 +913,7 @@ STATIC mp_obj_t native_vfs_mount(mp_obj_t self_in, mp_obj_t readonly, mp_obj_t m
 			return mp_const_none;
 		}
 		native_vfs_mounted[self->device] = true;
-		checkBoot_py();
+		//checkBoot_py();
 		#endif
 
 		#if MICROPY_SDMMC_SHOW_INFO

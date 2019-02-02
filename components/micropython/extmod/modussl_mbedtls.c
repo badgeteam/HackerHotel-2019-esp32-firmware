@@ -33,6 +33,8 @@
 #include <string.h>
 #include <errno.h> // needed because mp_is_nonblocking_error uses system error codes
 
+#include <esp_log.h>
+
 #include "py/runtime.h"
 #include "py/stream.h"
 
@@ -49,6 +51,10 @@
 #ifdef CONFIG_MBEDTLS_DEBUG
 #include "mbedtls/debug.h"
 #endif
+
+#include "letsencrypt.h"
+
+#define TAG "modussl_mbedtls.c"
 
 typedef struct _mp_obj_ssl_socket_t {
     mp_obj_base_t base;
@@ -195,7 +201,15 @@ STATIC mp_obj_ssl_socket_t *socket_new(mp_obj_t sock, struct ssl_args *args) {
 
         ret = mbedtls_ssl_conf_own_cert(&o->conf, &o->cert, &o->pkey);
         assert(ret == 0);
-    }
+    } else {
+		//Letsencrypt
+		printf("USING LETSENCRYPT\n");
+		ret = mbedtls_x509_crt_parse_der(&o->cacert, letsencrypt, LETSENCRYPT_LENGTH);
+        if(ret < 0) {
+			ESP_LOGE(TAG, "mbedtls_x509_crt_parse_der(): error %d!", -ret);
+            mp_raise_OSError(MP_EIO);
+		}
+	}
 
     while ((ret = mbedtls_ssl_handshake(&o->ssl)) != 0) {
         if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {

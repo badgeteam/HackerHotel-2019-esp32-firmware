@@ -148,21 +148,21 @@ def url_open(url):
 
 
 def get_pkg_metadata(name):
-    f = url_open("https://badge.sha2017.org/eggs/get/%s/json" % name)
+    f = url_open("https://badge.team/eggs/get/%s/json" % name)
     try:
         return json.load(f)
     finally:
         f.close()
 
 def get_pkg_list():
-    f = url_open("https://badge.sha2017.org/eggs/list/json")
+    f = url_open("https://badge.team/eggs/list/json")
     try:
         return json.load(f)
     finally:
         f.close()
 
 def search_pkg_list(query):
-    f = url_open("https://badge.sha2017.org/eggs/search/%s/json" % query)
+    f = url_open("https://badge.team/eggs/search/%s/json" % query)
     try:
         return json.load(f)
     finally:

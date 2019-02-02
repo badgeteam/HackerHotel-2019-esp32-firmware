@@ -6,6 +6,8 @@ try:
     import ussl as ssl
 except:
     import ssl
+    
+import easywifi
 
 
 def test_one(site, opts):
@@ -36,24 +38,25 @@ SITES = [
     "api.telegram.org",
 #    "w9rybpfril.execute-api.ap-southeast-2.amazonaws.com",
     {"host": "w9rybpfril.execute-api.ap-southeast-2.amazonaws.com", "sni": True},
-    {"host": "badge.sha2017.org", "sni": True},
+    {"host": "badge.team", "sni": True},
     {"host": "bewaar.me", "sni": True},
     {"host": "cipherli.st", "sni": True},
 ]
 
 
 def main():
-    for site in SITES:
-        opts = {}
-        if isinstance(site, dict):
-            opts = site
-            site = opts["host"]
+	easywifi.enable()
+	for site in SITES:
+		opts = {}
+		if isinstance(site, dict):
+			opts = site
+			site = opts["host"]
 
-        try:
-            test_one(site, opts)
-            print(site, "ok")
-        except Exception as e:
-            print(site, repr(e))
+		try:
+			test_one(site, opts)
+			print(site, "ok")
+		except Exception as e:
+			print(site, repr(e))
 
 
 main()

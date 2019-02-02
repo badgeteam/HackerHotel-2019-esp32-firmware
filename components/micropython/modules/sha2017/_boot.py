@@ -1,1 +1,1 @@
-print("Modules for the SHA2017 badge")
+../shared/_boot.py

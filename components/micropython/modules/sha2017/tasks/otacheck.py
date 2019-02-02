@@ -11,7 +11,7 @@ def download_info():
     easydraw.msg("Checking for updates...")
     result = False
     try:
-        data = requests.get("https://badge.sha2017.org/version")
+        data = requests.get("https://badge.team/version")
     except:
         easydraw.msg("Error: could not download JSON!")
         time.sleep(5)

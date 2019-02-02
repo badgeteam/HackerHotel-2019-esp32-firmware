@@ -46,7 +46,7 @@
 #endif
 #define VFS_NATIVE_SDCARD_MOUNT_POINT	"/_#!#_sdcard"
 #define VFS_NATIVE_INTERNAL_PART_LABEL	"locfd"
-#define VFS_NATIVE_INTERNAL_MP			"/flash"
+#define VFS_NATIVE_INTERNAL_MP			"/"
 #define VFS_NATIVE_EXTERNAL_MP			"/sd"
 #define VFS_NATIVE_TYPE_SPIFLASH		0
 #define VFS_NATIVE_TYPE_SDCARD			1
