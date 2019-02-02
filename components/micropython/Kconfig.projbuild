@@ -22,38 +22,6 @@ menu "MicroPython"
             For Zagreb, the zones.csv file contains :"Europe/Zagreb","CET-1CEST,M3.5.0,M10.5.0/3".
             You should put "CET-1CEST,M3.5.0,M10.5.0/3" or "CET-1CEST" as Time zone.
 
-    config MICROPY_USE_OTA
-        bool "Use OTA partition layout"
-        default n
-        help
-            Use OTA partition layout and include OTA module into build
-
-    config GPIO_INPUT_FORCE_FACTORY
-        bool "Use GPIO pin to force boot from Factory partition"
-        depends on MICROPY_USE_OTA
-        default no
-        help
-            If OTA layout is enabled and OTA update has been executed
-            the system will boot from one of the OTA partition
-            To force boot from Factory partition defined GPIO
-            must be on specified level for 3 seconds during boot
-
-    config GPIO_PIN_FORCE_FACTORY
-        int "GPIO to force boot from Factory partition"
-        depends on GPIO_INPUT_FORCE_FACTORY
-        range 0 39
-        default 0
-        help
-            Set GPIO pin to be used to force boot from Factory partition
-
-    config GPIO_LEVEL_FORCE_FACTORY
-        depends on GPIO_INPUT_FORCE_FACTORY
-        int "GPIO level to force boot from Factory partition"
-        range 0 1
-        default 0
-        help
-            Set GPIO pin level to force boot from Factory partition
-
     config BOOT_SET_LED
         int "Activate LED (GPIO) on boot"
         range -1 33

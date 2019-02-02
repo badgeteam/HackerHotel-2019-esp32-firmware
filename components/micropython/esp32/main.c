@@ -38,7 +38,6 @@
 #include "soc/cpu.h"
 #include "esp_log.h"
 #include "driver/periph_ctrl.h"
-#include "esp_ota_ops.h"
 #include "esp_pm.h"
 
 #include "py/stackctrl.h"
@@ -177,19 +176,6 @@ void mp_task(void *pvParameter)
             #else
                 printf("\nFreeRTOS running on BOTH CORES, MicroPython task started on App Core (1).\n");
             #endif
-        #endif
-
-        #ifdef CONFIG_MICROPY_USE_OTA
-        // Print partition info
-        const esp_partition_t *running_partition = esp_ota_get_running_partition();
-        if (running_partition != NULL) {
-            if (running_partition->subtype == ESP_PARTITION_SUBTYPE_APP_FACTORY) sprintf(sbuff, "Factory ");
-            else if (running_partition->subtype == ESP_PARTITION_SUBTYPE_APP_OTA_0) sprintf(sbuff, "OTA_0 ");
-            else if (running_partition->subtype == ESP_PARTITION_SUBTYPE_APP_OTA_1) sprintf(sbuff, "OTA_1 ");
-            else sbuff[0] = '\0';
-            printf("Running from %s%spartition starting at 0x%X, [%s].\n",
-                    ((running_partition->encrypted) ? "encrypted " : ""), sbuff, running_partition->address, running_partition->label);
-        }
         #endif
 
         mpsleep_get_reset_desc(sbuff);
@@ -439,10 +425,6 @@ void micropython_entry(void)
 	    //esp_log_level_set("TRANS_SSL", ESP_LOG_WARN);
         #endif
 	}
-	#ifdef CONFIG_MICROPY_USE_OTA
-	if (CONFIG_LOG_DEFAULT_LEVEL >= ESP_LOG_DEBUG) esp_log_level_set("OTA_UPDATE", ESP_LOG_DEBUG);
-	else esp_log_level_set("OTA_UPDATE", CONFIG_LOG_DEFAULT_LEVEL);
-	#endif
 
     #ifdef CONFIG_MICROPY_USE_MQTT
 	esp_log_level_set("MQTT_CLIENT", CONFIG_MQTT_LOG_LEVEL);

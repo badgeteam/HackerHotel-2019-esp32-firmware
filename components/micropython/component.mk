@@ -7,8 +7,7 @@
 COMPONENT_ADD_INCLUDEDIRS := .  genhdr py esp32 lib lib/utils lib/mp-readline extmod extmod/crypto-algorithms lib/netutils drivers/dht \
 							 lib/timeutils  lib/berkeley-db-1.xx/include lib/berkeley-db-1.xx/btree \
 							 lib/berkeley-db-1.xx/db lib/berkeley-db-1.xx/hash lib/berkeley-db-1.xx/man lib/berkeley-db-1.xx/mpool lib/berkeley-db-1.xx/recno \
-							 ../curl/include ../curl/lib ../zlib ../libssh2/include ../espmqtt/include ../espmqtt/lib/include ../littlefs
-
+							 ../curl/include ../curl/lib ../zlib ../libssh2/include ../espmqtt/include ../espmqtt/lib/include ../littlefs							 
 COMPONENT_PRIV_INCLUDEDIRS := .  genhdr py esp32 lib
 
 BUILD = $(BUILD_DIR_BASE)
@@ -38,7 +37,40 @@ endif
 MICROPY_FATFS = 0
 
 FROZEN_DIR = $(COMPONENT_PATH)/esp32/scripts
-FROZEN_MPY_DIR = $(COMPONENT_PATH)/esp32/modules
+
+FROZEN_MPY_DIR =  $(COMPONENT_PATH)/esp32/modules
+
+#ifdef CONFIG_SHA_BADGE_V1
+#FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/sha2017
+#endif
+
+#ifdef CONFIG_SHA_BADGE_V2
+#FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/sha2017
+#endif
+
+#ifdef CONFIG_SHA_BADGE_V3
+#FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/sha2017
+#endif
+
+#ifdef CONFIG_SHA_BADGE_V3_LITE
+#FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/sha2017
+#endif
+
+#ifdef PROJECT_PATH
+#FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/disobey2019
+#endif
+
+#ifdef CONFIG_HACKERHOTEL_BADGE_V1
+#FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/hackerhotel2019
+#endif
+
+#ifdef CONFIG_HACKERHOTEL_BADGE_V0
+#FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/hackerhotel2019
+#endif
+
+#ifdef CONFIG_SHA_BADGE_NONE
+#FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/generic
+#endif
 
 # Includes for Qstr&Frozen modules
 #---------------------------------
@@ -51,6 +83,12 @@ MP_EXTRA_INC += -I$(PROJECT_PATH)/components/zlib
 MP_EXTRA_INC += -I$(PROJECT_PATH)/components/espmqtt/include
 MP_EXTRA_INC += -I$(PROJECT_PATH)/components/espmqtt/lib/include
 MP_EXTRA_INC += -I$(PROJECT_PATH)/components/littlefs
+MP_EXTRA_INC += -I$(PROJECT_PATH)/components/badge
+MP_EXTRA_INC += -I$(PROJECT_PATH)/components/png
+MP_EXTRA_INC += -I$(PROJECT_PATH)/components/graph
+MP_EXTRA_INC += -I$(PROJECT_PATH)/components/badge-ota
+MP_EXTRA_INC += -I$(PROJECT_PATH)/components/ugfx-glue
+MP_EXTRA_INC += -I$(PROJECT_PATH)/components/bpp-if
 MP_EXTRA_INC += -I$(COMPONENT_PATH)/py
 MP_EXTRA_INC += -I$(COMPONENT_PATH)/lib/mp-readline
 MP_EXTRA_INC += -I$(COMPONENT_PATH)/lib/netutils
@@ -101,7 +139,11 @@ MP_EXTRA_INC += -I$(ESPCOMP)/heap/include
 MP_EXTRA_INC += -I$(ESPCOMP)/openssl/include
 MP_EXTRA_INC += -I$(ESPCOMP)/app_update/include
 MP_EXTRA_INC += -I$(ESPCOMP)/mdns/include
-MP_EXTRA_INC += -I$(ESPCOMP)/esp_https_ota/include
+MP_EXTRA_INC += -I$(UGFX_PATH)
+MP_EXTRA_INC += -I$(UGFX_PATH)/drivers/gdisp/framebuffer
+MP_EXTRA_INC += -I$(UGFX_PATH)/src/gdisp/mcufont
+MP_EXTRA_INC += -I$(IDF_PATH)/components/freertos/include/freertos
+
 
 ifdef CONFIG_MICROPY_USE_BLUETOOTH
 MP_EXTRA_INC += -I$(ESPCOMP)/bt/include
@@ -179,8 +221,17 @@ SRC_C =  $(addprefix esp32/,\
 	machine_rtc.c \
 	modymodem.c \
 	machine_neopixel.c \
-	machine_dht.c \
 	machine_ow.c \
+	modbadge.c \
+	modbpp.c \
+	modesp.c \
+	modfreedomgfx.c \
+	modfreedomgfx_eink.c \
+	modugfx.c \
+	esprtcmem.c \
+	ugfx_containers.c \
+	ugfx_styles.c \
+	ugfx_widgets.c \
 	)
 
 ifdef CONFIG_MICROPY_USE_DISPLAY
@@ -209,10 +260,6 @@ endif
 
 ifdef CONFIG_MICROPY_USE_GSM
 SRC_C += esp32/modgsm.c
-endif
-
-ifdef CONFIG_MICROPY_USE_OTA
-SRC_C += esp32/modota.c
 endif
 
 ifdef CONFIG_MICROPY_USE_MDNS
