@@ -4,3 +4,4 @@ makeenv
 custom_env.sh
 doxygen/
 .DS_Store
+*.generated.h
