@@ -1,5 +1,17 @@
 menu "Badge"
 
+config SHA_BADGE_FIRMWARE_NAME
+    string "Firmware version: name"
+    default "bleeding edge"
+    help
+        Name of the firmware
+        
+config SHA_BADGE_FIRMWARE_BUILD
+    int "Firmware version: build"
+    default 0
+    help
+        Build number of the firmware
+
 choice SHA_BADGE_REV
     prompt "Badge revision"
     default SHA_BADGE_V3

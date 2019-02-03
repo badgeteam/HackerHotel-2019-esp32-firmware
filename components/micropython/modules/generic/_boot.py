@@ -1,1 +1,1 @@
-print("Modules for generic boards")
+../shared/_boot.py

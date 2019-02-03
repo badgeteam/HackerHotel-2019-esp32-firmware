@@ -37,9 +37,19 @@ try:
 		if splash.startswith('bpp '):
 			splash = splash[4:len(splash)]
 			badge.mount_bpp()
+		elif splash.startswith('remfs '):
+			splash = splash[6:len(splash)]
+			badge.mount_remfs()
 		elif splash.startswith('sdcard '):
 			splash = splash[7:len(splash)]
 			badge.mount_sdcard()
+		
+		def back_button_default_action(pressed):
+			if pressed:
+				esp.rtcmem_write_string("")
+				machine.deepsleep(1)
+		ugfx.input_attach(ugfx.BTN_B, back_button_default_action)
+		
 		__import__(splash)
 	else:
 		ugfx.clear(ugfx.WHITE)
@@ -47,7 +57,7 @@ try:
 except BaseException as e:
 	sys.print_exception(e)
 	import easydraw
-	easydraw.msg("","Fatal error", True)
+	easydraw.msg("","Fatal exception", True)
 
 	# if we started the splash screen and it is not the default splash screen,
 	# then revert to original splash screen.

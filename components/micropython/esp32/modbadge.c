@@ -425,6 +425,17 @@ STATIC mp_obj_t badge_safe_mode() {
   return mp_obj_new_bool(in_safe_mode);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(badge_safe_mode_obj, badge_safe_mode);
+
+STATIC mp_obj_t badge_firmware_build() {
+  return mp_obj_new_int(CONFIG_SHA_BADGE_FIRMWARE_BUILD);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(badge_firmware_build_obj, badge_firmware_build);
+
+STATIC mp_obj_t badge_firmware_name() {
+  return mp_obj_new_str(CONFIG_SHA_BADGE_FIRMWARE_NAME, strlen(CONFIG_SHA_BADGE_FIRMWARE_NAME));
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(badge_firmware_name_obj, badge_firmware_name);
+
 // E-Ink (badge_eink.h)
 
 STATIC mp_obj_t badge_eink_init_() {
@@ -948,6 +959,31 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_0(badge_mount_bpp_obj, badge_mount_bpp);
 
 STATIC const mp_rom_map_elem_t badge_module_globals_table[] = {
     {MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_badge)},
+    
+    //Firmware configuration
+#ifdef CONFIG_HACKERHOTEL_BADGE_V1
+    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_hackerhotel2019)},
+#endif
+#ifdef CONFIG_HACKERHOTEL_BADGE_V0
+    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_hackerhotel2019proto)},
+#endif
+#ifdef CONFIG_DISOBEY
+    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_disobey2019)},
+#endif
+#ifdef CONFIG_SHA_BADGE_V3
+    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_sha2017v3)},
+#endif
+#ifdef CONFIG_SHA_BADGE_V3_LITE
+    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_sha2017v3lite)},
+#endif
+#ifdef CONFIG_SHA_BADGE_V2
+    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_sha2017proto2)},
+#endif
+#ifdef CONFIG_SHA_BADGE_V1
+    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_sha2017proto1)},
+#endif
+    {MP_ROM_QSTR(MP_QSTR_firmwareBuild), MP_ROM_PTR(&badge_firmware_build_obj)},
+    {MP_ROM_QSTR(MP_QSTR_firmwareName), MP_ROM_PTR(&badge_firmware_name_obj)},
 
     {MP_ROM_QSTR(MP_QSTR_init), MP_ROM_PTR(&badge_init_obj)},
     
