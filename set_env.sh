@@ -17,3 +17,5 @@ export PATH=$PATH:$(pwd)/xtensa-esp32-elf/bin
 # Some shells, like zsh, will cache path lookups, so after changing PATH we
 # need to refresh the hash:
 hash -r &>/dev/null || true
+
+bash mpy_cross.sh

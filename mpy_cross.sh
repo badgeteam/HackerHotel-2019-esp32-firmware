@@ -29,4 +29,3 @@ build_MPyCross() {
 }
 
 build_MPyCross
-export PATH="$PATH:$(pwd)/xtensa-esp32-elf/bin"
