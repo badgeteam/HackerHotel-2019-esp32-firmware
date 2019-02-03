@@ -171,7 +171,7 @@ void mp_task(void *pvParameter)
     if ((CONFIG_LOG_DEFAULT_LEVEL >= ESP_LOG_INFO) && (CONFIG_MICRO_PY_LOG_LEVEL > ESP_LOG_INFO)) {
         char sbuff[24] = { 0 };
 
-        #if CONFIG_FREERTOS_UNICORE
+        /*#if CONFIG_FREERTOS_UNICORE
             printf("\nFreeRTOS and MicroPython running only on FIRST CORE.\n");
         #else
             #if CONFIG_MICROPY_USE_BOTH_CORES
@@ -179,7 +179,7 @@ void mp_task(void *pvParameter)
             #else
                 printf("\nFreeRTOS running on BOTH CORES, MicroPython task started on App Core (1).\n");
             #endif
-        #endif
+        #endif*/
 
         mpsleep_get_reset_desc(sbuff);
         if (mpsleep_get_wake_reason() != MPSLEEP_NONE_WAKE) printf(" ");
