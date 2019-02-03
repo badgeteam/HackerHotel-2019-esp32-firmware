@@ -219,6 +219,7 @@ SRC_C =  $(addprefix esp32/,\
 	machine_rtc.c \
 	modymodem.c \
 	machine_neopixel.c \
+	machine_ulp.c \
 	machine_ow.c \
 	modbadge.c \
 	modbpp.c \

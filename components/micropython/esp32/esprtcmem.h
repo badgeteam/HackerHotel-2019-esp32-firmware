@@ -6,7 +6,7 @@
 #include <rom/rtc.h>
 #include <esp_attr.h>
 
-#define USER_RTC_MEM_SIZE 1024
+#define USER_RTC_MEM_SIZE 512
 
 /**
  * Read byte from rtcmem on offset location.
