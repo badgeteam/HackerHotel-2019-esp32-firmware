@@ -323,6 +323,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_3(badge_nvs_set_u16_obj, badge_nvs_set_u16_);
 
 
 // I2C (badge_i2c.h)
+#ifdef PIN_NUM_I2C_CLK
 STATIC mp_obj_t badge_i2c_read_reg_(mp_obj_t _addr, mp_obj_t _reg, mp_obj_t _len) {
 	int addr = mp_obj_get_int(_addr);
 	int reg  = mp_obj_get_int(_reg);
@@ -383,7 +384,7 @@ STATIC mp_obj_t badge_i2c_write_reg_(mp_obj_t _addr, mp_obj_t _reg, mp_obj_t _da
 	return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(badge_i2c_write_reg_obj, badge_i2c_write_reg_);
-
+#endif
 
 // Mpr121 (badge_mpr121.h)
 #ifdef I2C_MPR121_ADDR
@@ -955,8 +956,10 @@ STATIC const mp_rom_map_elem_t badge_module_globals_table[] = {
 #endif
 
     // I2C
+#ifdef PIN_NUM_I2C_CLK
     {MP_ROM_QSTR(MP_QSTR_i2c_read_reg), MP_ROM_PTR(&badge_i2c_read_reg_obj)},
     {MP_ROM_QSTR(MP_QSTR_i2c_write_reg), MP_ROM_PTR(&badge_i2c_write_reg_obj)},
+#endif
 
     // Mpr121
 #ifdef I2C_MPR121_ADDR
