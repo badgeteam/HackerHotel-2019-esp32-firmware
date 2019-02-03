@@ -4,4 +4,4 @@ source set_env.sh
 bash mpy_cross.sh
 rm build -rf
 make clean
-make
+make -j8
