@@ -294,7 +294,7 @@ menu "MicroPython"
         config MICROPY_USE_TFT
             depends on MICROPY_USE_DISPLAY
             bool "Enable support for SPI TFT displays"
-            default y
+            default n
             help
                 Include support for various SPI TFT displays
 
@@ -378,7 +378,7 @@ menu "MicroPython"
 
         config MICROPY_USE_GPS
             bool "Use GPS module"
-            default y
+            default n
             help
                 Include GPS module into build
 
@@ -418,13 +418,13 @@ menu "MicroPython"
 
         config MICROPY_USE_MDNS
             bool "Use mDNS module"
-            default y
+            default n
             help
                 Include mDNS module into build
 
         config MICROPY_USE_REQUESTS
             bool "Use requests module"
-            default y
+            default n
             help
                 Include requests module into build
                 The module ofers less features than curl, but uses far les resources
@@ -593,7 +593,7 @@ menu "MicroPython"
 
             choice
                 prompt "Set internal filesystem type"
-                default MICROPY_FS_TYPE0
+                default MICROPY_FS_TYPE1
                 help
                     Select internal file system type
 
@@ -643,7 +643,7 @@ menu "MicroPython"
 
             choice
                 prompt "SD Card mode"
-                default SDCARD_MODE3
+                default SDCARD_MODE1
                 help
                     Select SD Card operating mode
 
