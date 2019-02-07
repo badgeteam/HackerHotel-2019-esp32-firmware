@@ -124,7 +124,11 @@ sdcard_config_t sdcard_config = {
 		-1,
 		-1,
 #endif
+#if CONFIG_SDCARD_SPI_BUS == 1
+		HSPI_HOST
+#else
 		VSPI_HOST
+#endif
 };
 
 bool native_vfs_mounted[2] = {false, false};
@@ -779,7 +783,7 @@ static void _sdcard_mount()
 		sdspi_slot_config_t slot_config = SDSPI_SLOT_CONFIG_DEFAULT();
 		host.slot = sdcard_config.host;
 		host.max_freq_khz = sdcard_config.max_speed;
-		slot_config.dma_channel = 2;
+		slot_config.dma_channel = CONFIG_SDCARD_DMA_CHANNEL;
 		_setPins(sdcard_config.miso, sdcard_config.mosi, sdcard_config.clk, sdcard_config.cs, -1, -1);
 
 	    slot_config.gpio_miso = sdcard_config.miso;
