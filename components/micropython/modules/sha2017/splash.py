@@ -15,6 +15,8 @@ import tasks.powermanagement as pm
 #import tasks.sponsorscheck as spoc
 import tasks.services as services
 
+import shell
+
 # Graphics
 
 def draw(mode, goingToSleep=False):

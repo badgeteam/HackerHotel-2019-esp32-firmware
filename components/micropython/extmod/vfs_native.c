@@ -145,10 +145,10 @@ int physicalPath(const char *path, char *ph_path)
     if (path[0] == '/') {
     	// absolute path
     	if (strstr(path, VFS_NATIVE_INTERNAL_MP) == path) {
-			sprintf(ph_path, "%s%s", VFS_NATIVE_MOUNT_POINT, path+6);
+			sprintf(ph_path, "%s%s", VFS_NATIVE_MOUNT_POINT, path+strlen(VFS_NATIVE_INTERNAL_MP)-1);
     	}
     	else if (strstr(path, VFS_NATIVE_EXTERNAL_MP) == path) {
-			sprintf(ph_path, "%s%s", VFS_NATIVE_SDCARD_MOUNT_POINT, path+3);
+			sprintf(ph_path, "%s%s", VFS_NATIVE_SDCARD_MOUNT_POINT, path+strlen(VFS_NATIVE_EXTERNAL_MP)-1);
     	}
     	else return -3;
     }
