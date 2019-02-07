@@ -288,9 +288,9 @@ badge_eink_dev_init(enum badge_eink_dev_t dev_type)
 		//Specify pre-transfer callback to handle D/C line
 		.pre_cb = badge_spi_pre_transfer_callback,
 	};
-	res = spi_bus_initialize(VSPI_HOST, &buscfg, 2);
+	res = spi_bus_initialize(HSPI_HOST, &buscfg, 2);
 	assert(res == ESP_OK);
-	res = spi_bus_add_device(VSPI_HOST, &devcfg, &spi_bus);
+	res = spi_bus_add_device(HSPI_HOST, &devcfg, &spi_bus);
 	assert(res == ESP_OK);
 
 	badge_eink_dev_init_done = true;

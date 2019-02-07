@@ -614,7 +614,7 @@ badge_first_run(void)
 	disp_line(line, 0);
 	if (pwr_vusb < 4200 || pwr_vusb > 5700) {
 		disp_line("Error: Vusb should be approx. 5 volt",FONT_MONOSPACE);
-		return;
+//		return;
 	}
 
 	disp_line("power measurements ok",0);

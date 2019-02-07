@@ -2,6 +2,7 @@
 #ifndef BADGE_PINS_H
 #define BADGE_PINS_H
 
+
 	#include "sdkconfig.h"
 
 	#ifdef CONFIG_SHA_BADGE_V1 // Badge revision 0.0.2
@@ -149,7 +150,7 @@
 
 		#define ERC12864_FLIP            true
 
-	#elif defined(HACKERHOTEL_BADGE_V0) //Hackerhotel 2019 prototype
+	#elif defined(CONFIG_HACKERHOTEL_BADGE_V0) //Hackerhotel 2019 prototype
 		#define PIN_NUM_LEDS         32
 		#define PIN_NUM_BUTTON_FLASH  0
 		#define PIN_NUM_EPD_CLK      18
@@ -193,7 +194,7 @@
 		#define IIS_DSIN 2
 		#define IIS_DOUT -1
 
-	#elif defined(HACKERHOTEL_BADGE_V1) //Hackerhotel 2019
+	#elif defined(CONFIG_HACKERHOTEL_BADGE_V1) //Hackerhotel 2019
 		#define PIN_NUM_LEDS         32
 		#define PIN_NUM_BUTTON_FLASH  0
 		#define PIN_NUM_EPD_CLK      18
@@ -237,7 +238,11 @@
 		#define IIS_LCLK 15
 		#define IIS_DSIN 2
 		#define IIS_DOUT -1
-		
+	
+	#elif defined(CONFIG_SHA_BADGE_NONE) // Plain ESP32
+
+	#else 
+		#error
 	#endif
 
 #endif // BADGE_PINS_H
