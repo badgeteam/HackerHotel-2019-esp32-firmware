@@ -13,50 +13,91 @@
 #include <driver/gpio.h>
 
 #include "badge_pins.h"
+#include "badge_spi.h"
 #include "badge_power.h"
 
 #ifdef PIN_NUM_LEDS
 
 static const char *TAG = "badge_leds";
 
-spi_device_handle_t badge_leds_spi = NULL;
+static spi_device_handle_t badge_leds_spi = NULL;
 
-esp_err_t
-badge_leds_enable(void)
+// forward declarations
+static esp_err_t badge_leds_release_spi(void);
+
+static esp_err_t
+badge_leds_claim_spi(void)
 {
-	// return if we are already enabled and initialized
-	if (badge_leds_spi != NULL)
-		return ESP_OK;
+	// already claimed?
+	if (badge_leds_spi != NULL) return ESP_OK;
 
-	esp_err_t res = badge_power_leds_enable();
-	if (res != ESP_OK)
-		return res;
+	ESP_LOGI(TAG, "claiming VSPI bus");
+	badge_vspi_release_and_claim(badge_leds_release_spi);
 
 	// (re)initialize leds SPI
-	spi_bus_config_t buscfg = {
+	static const spi_bus_config_t buscfg = {
 		.mosi_io_num   = PIN_NUM_LEDS,
 		.miso_io_num   = -1,  // -1 = unused
 		.sclk_io_num   = -1,  // -1 = unused
 		.quadwp_io_num = -1,  // -1 = unused
 		.quadhd_io_num = -1,  // -1 = unused
 	};
-	res = spi_bus_initialize(HSPI_HOST, &buscfg, 1);
+	esp_err_t res = spi_bus_initialize(VSPI_HOST, &buscfg, 1);
 	if (res != ESP_OK)
-	{
-		//	FIXME: gives error after badge_leds_disable()
-		ESP_LOGW(TAG, "Failed to initialize HSPI bus. Error %d. Known issue.", res);
-		res = ESP_OK;
-	}
+		return res;
 
-	spi_device_interface_config_t devcfg = {
+	static const spi_device_interface_config_t devcfg = {
 		.clock_speed_hz = 3200000, // 3.2 Mhz
 		.mode           = 0,
 		.spics_io_num   = -1,
 		.queue_size     = 1,
 	};
-	res = spi_bus_add_device(HSPI_HOST, &devcfg, &badge_leds_spi);
+	res = spi_bus_add_device(VSPI_HOST, &devcfg, &badge_leds_spi);
 	if (res != ESP_OK)
 		return res;
+
+	ESP_LOGI(TAG, "claiming VSPI bus: done");
+	return ESP_OK;
+}
+
+static esp_err_t
+badge_leds_release_spi(void)
+{
+	ESP_LOGI(TAG, "releasing VSPI bus");
+	esp_err_t res = spi_bus_remove_device(badge_leds_spi);
+	if (res != ESP_OK)
+		return res;
+
+	badge_leds_spi = NULL;
+
+	res = spi_bus_free(VSPI_HOST);
+	if (res != ESP_OK)
+		return res;
+
+	badge_vspi_freed();
+
+	ESP_LOGI(TAG, "releasing VSPI bus: done");
+	return ESP_OK;
+}
+
+static bool badge_leds_active = false;
+
+esp_err_t
+badge_leds_enable(void)
+{
+	// return if we are already enabled and initialized
+	if (badge_leds_active)
+		return ESP_OK;
+
+	esp_err_t res = badge_power_leds_enable();
+	if (res != ESP_OK)
+		return res;
+
+	res = badge_leds_claim_spi();
+	if (res != ESP_OK)
+		return res;
+
+	badge_leds_active = true;
 
 	return ESP_OK;
 }
@@ -65,22 +106,16 @@ esp_err_t
 badge_leds_disable(void)
 {
 	// return if we are not enabled
-	if (badge_leds_spi == NULL)
+	if (!badge_leds_active)
 		return ESP_OK;
 
-	esp_err_t res = spi_bus_remove_device(badge_leds_spi);
-	if (res != ESP_OK)
-		return res;
+	if (badge_leds_spi != NULL) {
+		esp_err_t res = badge_vspi_release_and_claim(NULL);
+		if (res != ESP_OK)
+			return res;
+	}
 
-	badge_leds_spi = NULL;
-
-	// FIXME:
-	//   Freeing the HSPI seems to (de)configure the VSPI as well..
-	//   See issue #70 on github.
-	//   edit: fixed upstream.
-	res = spi_bus_free(HSPI_HOST);
-	if (res != ESP_OK)
-		return res;
+	badge_leds_active = false;
 
 	// configure PIN_NUM_LEDS as high-impedance
 	gpio_config_t io_conf = {
@@ -90,7 +125,7 @@ badge_leds_disable(void)
 		.pull_down_en = 0,
 		.pull_up_en   = 0,
 	};
-	res = gpio_config(&io_conf);
+	esp_err_t res = gpio_config(&io_conf);
 	if (res != ESP_OK)
 		return res;
 
@@ -159,6 +194,10 @@ badge_leds_send_data(uint8_t *data, int len)
 	t.length = pos*8;
 	t.tx_buffer = badge_leds_buf;
 
+	res = badge_leds_claim_spi();
+	if (res != ESP_OK)
+		return res;
+
 	res = spi_device_transmit(badge_leds_spi, &t);
 	if (res != ESP_OK)
 		return res;
@@ -175,6 +214,9 @@ badge_leds_init(void)
 		return ESP_OK;
 
 	ESP_LOGD(TAG, "init called");
+
+	// initialize VSPI sharing
+	badge_vspi_init();
 
 	// depending on badge_power
 	esp_err_t res = badge_power_init();
