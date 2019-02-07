@@ -220,14 +220,15 @@
 		#define ADC1_CHAN_VUSB_SENSE  6
 		#define ADC1_CHAN_VBAT_SENSE  7
 		#define I2C_MPR121_ADDR      0x5a
-		#define MPR121_PIN_NUM_A         0
-		#define MPR121_PIN_NUM_B         1
-		#define MPR121_PIN_NUM_START     2
-		#define MPR121_PIN_NUM_SELECT    3
-		#define MPR121_PIN_NUM_DOWN      4
-		#define MPR121_PIN_NUM_RIGHT     5
-		#define MPR121_PIN_NUM_UP        6
-		#define MPR121_PIN_NUM_LEFT      7
+		#define MPR121_PIN_NUM_A         2
+		#define MPR121_PIN_NUM_B         7
+		#define MPR121_PIN_NUM_START     1
+		#define MPR121_PIN_NUM_SELECT    0
+		#define MPR121_PIN_NUM_DOWN      5
+		#define MPR121_PIN_NUM_RIGHT     6
+		#define MPR121_PIN_NUM_UP        3
+		#define MPR121_PIN_NUM_LEFT      4
+		// TODO below
 		#define MPR121_PIN_NUM_VIBRATOR  8
 		#define MPR121_PIN_NUM_CHRGSTAT  9
 		#define MPR121_PIN_NUM_LEDS     10

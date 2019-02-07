@@ -83,7 +83,7 @@ CONFIG_MONITOR_BAUD=115200
 # Connectivity
 #
 CONFIG_WIFI_USE=y
-CONFIG_WIFI_SSID="SHA2017-insecure"
+CONFIG_WIFI_SSID="Hackerhotel-insecure"
 CONFIG_WIFI_PASSWORD=""
 
 #
@@ -157,7 +157,7 @@ CONFIG_ALLOW_BATTERY_FIRST_BOOT=
 #
 # OTA firmware update
 #
-CONFIG_OTA_SERVER_NAME="badge.sha2017.org"
+CONFIG_OTA_SERVER_NAME="badge.team"
 CONFIG_OTA_SERVER_PATH="/firmware"
 
 #
