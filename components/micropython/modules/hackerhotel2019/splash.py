@@ -151,7 +151,7 @@ if cfg_services:
 	try:
 		for app in cfg['apps']:
 			try:
-				new_app = __import__("/lib/"+app+"/srv.py")
+				new_app = __import__(badge.native_path("/lib/"+app+"/srv.py"))
 				new_app.init()
 				gui_apps.append(new_app)
 				gui_app_names.append(app)

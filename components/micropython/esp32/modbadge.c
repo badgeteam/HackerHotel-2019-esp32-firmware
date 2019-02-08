@@ -1110,7 +1110,7 @@ STATIC const mp_rom_map_elem_t badge_module_globals_table[] = {
     {MP_OBJ_NEW_QSTR(MP_QSTR_safe_mode), (mp_obj_t)&badge_safe_mode_obj},
     
     
-    {MP_OBJ_NEW_QSTR(MP_QSTR_native_path), (mp_obj_t)&badge_native_path_obj)},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_native_path), (mp_obj_t)&badge_native_path_obj},
 
 };
 

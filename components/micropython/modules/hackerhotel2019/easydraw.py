@@ -51,7 +51,7 @@ def msg(message, title = "Loading...", reset = False, wait = 0):
 		print(e)
 
 def nickname(y = 0, font = version.font_nickname_large, color = ugfx.BLACK, lineHeight=15):
-	nick = badge.nvs_get_str("owner", "name", 'WELCOME TO DISOBEY')
+	nick = badge.nvs_get_str("owner", "name", 'WELCOME TO HACKERHOTEL')
 	lines = lineSplit(nick, ugfx.width(), font)
 	for i in range(len(lines)):
 		line = lines[len(lines)-i-1]
