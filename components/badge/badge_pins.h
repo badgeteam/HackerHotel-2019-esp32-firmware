@@ -149,7 +149,7 @@
 
 		#define ERC12864_FLIP            true
 
-	#elif defined(HACKERHOTEL_BADGE_V0) //Hackerhotel 2019 prototype
+	#elif defined(CONFIG_HACKERHOTEL_BADGE_V0) //Hackerhotel 2019 prototype
 		#define PIN_NUM_LEDS         32
 		#define PIN_NUM_BUTTON_FLASH  0
 		#define PIN_NUM_EPD_CLK      18
@@ -193,7 +193,7 @@
 		#define IIS_DSIN 2
 		#define IIS_DOUT -1
 
-	#elif defined(HACKERHOTEL_BADGE_V1) //Hackerhotel 2019
+	#elif defined(CONFIG_HACKERHOTEL_BADGE_V1) //Hackerhotel 2019
 		#define PIN_NUM_LEDS         32
 		#define PIN_NUM_BUTTON_FLASH  0
 		#define PIN_NUM_EPD_CLK      18
@@ -237,6 +237,8 @@
 		#define IIS_DSIN 2
 		#define IIS_DOUT -1
 		
+	#else
+		#error unknown badge type
 	#endif
 
 #endif // BADGE_PINS_H
