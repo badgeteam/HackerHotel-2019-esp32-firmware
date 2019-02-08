@@ -514,11 +514,11 @@ STATIC mp_obj_t badge_eink_png(mp_obj_t obj_x, mp_obj_t obj_y, mp_obj_t obj_file
 	} else {
 		const char* filename = mp_obj_str_get_str(obj_filename);
 		char fullname[128] = {'\0'};
-	        int res = physicalPath(filename, fullname);
+		int res = physicalPath(filename, fullname);
  		if ((res != 0) || (strlen(fullname) == 0)) {
-        		mp_raise_ValueError("Error resolving file name");
+        	mp_raise_ValueError("Error resolving file name");
 			return mp_const_none;
-        	}
+		}
 		struct lib_file_reader *fr = lib_file_new(fullname, 1024);
 		if (fr == NULL)
 		{

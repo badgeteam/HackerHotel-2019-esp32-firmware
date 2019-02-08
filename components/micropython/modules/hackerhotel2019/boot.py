@@ -1,7 +1,11 @@
 # This file is executed on every boot (including wake-boot from deepsleep)
 import badge, machine, esp, ugfx, sys, time
+
+# Initialise badge hardware
 badge.init()
 ugfx.init()
+ugfx.orientation(0)
+ugfx.input_init()
 
 esp.rtcmem_write(0,0)
 esp.rtcmem_write(1,0)
@@ -17,6 +21,7 @@ else:
 
 if machine.wake_reason() == (7, 0):
 	print('[BOOT] Cold boot')
+	import post_ota
 else:
 	if machine.wake_reason() == (3, 4):
 		print("[BOOT] Wake from sleep (timer)")
@@ -56,21 +61,9 @@ try:
 		ugfx.flush(ugfx.LUT_FULL)
 except BaseException as e:
 	sys.print_exception(e)
-	import easydraw
-	easydraw.msg("","Fatal exception", True)
-
-	# if we started the splash screen and it is not the default splash screen,
-	# then revert to original splash screen.
 	if splash == badge.nvs_get_str('boot', 'splash', 'splash') and splash != 'splash':
-		easydraw.msg("Disabling custom splash screen.")
-		easydraw.msg("")
 		badge.nvs_erase_key('boot', 'splash')
+	import easydraw
+	ugfx.orientation(0)
+	easydraw.msg(str(e),"Fatal error", True)
 
-	easydraw.msg("Guru meditation:")
-	easydraw.msg(str(e))
-	easydraw.msg("")
-	easydraw.msg("Rebooting in 5 seconds...")
-	import time
-	time.sleep(5)
-	import appglue
-	appglue.home()

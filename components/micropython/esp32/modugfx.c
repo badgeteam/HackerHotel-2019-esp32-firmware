@@ -58,6 +58,8 @@ uint8_t target_lut;
 
 #include "ugfx_widgets.h"
 
+#include "extmod/vfs_native.h"
+
 #define EMU_EINK_SCREEN_DELAY_MS 500
 
 typedef struct _ugfx_obj_t { mp_obj_base_t base; } ugfx_obj_t;
@@ -765,7 +767,13 @@ STATIC mp_obj_t ugfx_display_image(mp_uint_t n_args, const mp_obj_t *args){
 	if (img_obj != mp_const_none) {
 		if (MP_OBJ_IS_STR(img_obj)){
 			const char *img_str = mp_obj_str_get_str(img_obj);
-			gdispImageError er = gdispImageOpenFile(&imo, img_str);
+			char fullname[128] = {'\0'};
+			int res = physicalPath(img_str, fullname);
+			if ((res != 0) || (strlen(fullname) == 0)) {
+				mp_raise_ValueError("Error resolving file name");
+				return mp_const_none;
+			}
+			gdispImageError er = gdispImageOpenFile(&imo, fullname);
 			if (er != 0){
 				nlr_raise(mp_obj_new_exception_msg(&mp_type_ValueError, "Error opening file"));
 				return mp_const_none;

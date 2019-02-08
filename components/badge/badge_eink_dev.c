@@ -24,6 +24,7 @@
 
 #include "badge_pins.h"
 #include "badge_base.h"
+#include "badge_spi.h"
 #include "badge_eink_dev.h"
 
 #ifndef LOW
@@ -41,13 +42,72 @@
 // this number should be a multiply of 4
 // to transfer complete dwords in one go
 #define SPI_TRANSFER_SIZE 128
-spi_device_handle_t spi_bus;
 
 static const char *TAG = "badge_eink_dev";
 
 enum badge_eink_dev_t badge_eink_dev_type = BADGE_EINK_DEFAULT;
 
 #ifdef PIN_NUM_EPD_RESET
+
+static spi_device_handle_t spi_bus = NULL;
+
+// forward declarations
+static esp_err_t badge_eink_dev_release_spi(void);
+static void badge_spi_pre_transfer_callback(spi_transaction_t *t);
+
+static esp_err_t
+badge_eink_dev_claim_spi(void)
+{
+	// already claimed?
+	if (spi_bus != NULL) return ESP_OK;
+
+	ESP_LOGI(TAG, "claiming VSPI bus");
+	badge_vspi_release_and_claim(badge_eink_dev_release_spi);
+
+	static const spi_bus_config_t buscfg = {
+		.mosi_io_num     = PIN_NUM_EPD_MOSI,
+		.miso_io_num     = -1, // MISO is not used, we are transferring to the slave only
+		.sclk_io_num     = PIN_NUM_EPD_CLK,
+		.quadwp_io_num   = -1,
+		.quadhd_io_num   = -1,
+		.max_transfer_sz = SPI_TRANSFER_SIZE,
+	};
+
+	esp_err_t res = spi_bus_initialize(VSPI_HOST, &buscfg, 2);
+	assert(res == ESP_OK);
+
+	static const spi_device_interface_config_t devcfg = {
+		.clock_speed_hz = 20 * 1000 * 1000,
+		.mode           = 0,  // SPI mode 0
+		.spics_io_num   = PIN_NUM_EPD_CS,
+		.queue_size     = 1,
+		.flags          = (SPI_DEVICE_HALFDUPLEX | SPI_DEVICE_3WIRE), // We are sending only in one direction (to the ePaper slave)
+		.pre_cb         = badge_spi_pre_transfer_callback,            // Specify pre-transfer callback to handle D/C line
+	};
+
+	res = spi_bus_add_device(VSPI_HOST, &devcfg, &spi_bus);
+	assert(res == ESP_OK);
+
+	ESP_LOGI(TAG, "claiming VSPI bus: done");
+	return res;
+}
+
+static esp_err_t
+badge_eink_dev_release_spi(void)
+{
+	ESP_LOGI(TAG, "releasing VSPI bus");
+	esp_err_t res = spi_bus_remove_device(spi_bus);
+	assert(res == ESP_OK);
+	spi_bus = NULL;
+
+	res = spi_bus_free(VSPI_HOST);
+	assert(res == ESP_OK);
+
+	badge_vspi_freed();
+
+	ESP_LOGI(TAG, "releasing VSPI bus: done");
+	return ESP_OK;
+}
 
 esp_err_t
 badge_eink_dev_reset(void) {
@@ -126,10 +186,13 @@ void badge_spi_pre_transfer_callback(spi_transaction_t *t)
 void
 badge_spi_send(const uint8_t *data, int len, const uint8_t dc_level)
 {
-	esp_err_t ret;
 	if (len == 0) {
 		return;
 	}
+
+	esp_err_t ret = badge_eink_dev_claim_spi();
+	assert(ret == ESP_OK);
+
 	spi_transaction_t t = {
 		.length = len * 8,  // transaction length is in bits
 		.tx_buffer = data,
@@ -221,6 +284,9 @@ badge_eink_dev_init(enum badge_eink_dev_t dev_type)
 
 	ESP_LOGD(TAG, "init called");
 
+	// initialize VSPI sharing
+	badge_vspi_init();
+
 	badge_eink_dev_type = dev_type;
 
 	esp_err_t res = badge_base_init();
@@ -269,29 +335,6 @@ badge_eink_dev_init(enum badge_eink_dev_t dev_type)
 	if (res != ESP_OK)
 		return res;
 
-	spi_bus_config_t buscfg = {
-		.mosi_io_num = PIN_NUM_EPD_MOSI,
-		// MISO is not used, we are transferring to the slave only
-		.miso_io_num = -1,
-		.sclk_io_num = PIN_NUM_EPD_CLK,
-		.quadwp_io_num = -1,
-		.quadhd_io_num = -1,
-		.max_transfer_sz = SPI_TRANSFER_SIZE,
-	};
-	spi_device_interface_config_t devcfg = {
-		.clock_speed_hz = 20 * 1000 * 1000,
-		.mode = 0,  // SPI mode 0
-		.spics_io_num = PIN_NUM_EPD_CS,
-		.queue_size = 1,
-		// We are sending only in one direction (to the ePaper slave)
-		.flags = (SPI_DEVICE_HALFDUPLEX | SPI_DEVICE_3WIRE),
-		//Specify pre-transfer callback to handle D/C line
-		.pre_cb = badge_spi_pre_transfer_callback,
-	};
-	res = spi_bus_initialize(VSPI_HOST, &buscfg, 2);
-	assert(res == ESP_OK);
-	res = spi_bus_add_device(VSPI_HOST, &devcfg, &spi_bus);
-	assert(res == ESP_OK);
 
 	badge_eink_dev_init_done = true;
 
