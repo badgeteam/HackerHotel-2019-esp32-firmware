@@ -655,7 +655,46 @@ menu "MicroPython"
                 config SDCARD_MODE3
                     bool "4-line SD Mode"
             endchoice
+            
+        config SDCARD_SPI_BUS
+            int
+            depends on SDCARD_MODE1
+            default 1 if SDCARD_BUS_HSPI
+            default 2 if SDCARD_BUS_VSPI
 
+            choice
+                prompt "SD Card SPI bus"
+                default SDCARD_BUS_HSPI
+                help
+                    Select SD Card SPI bus
+
+                config SDCARD_BUS_HSPI
+                    bool "HSPI"
+                config SDCARD_BUS_VSPI
+                    bool "VSPI"
+            endchoice
+
+        config SDCARD_DMA_CHANNEL
+            int
+            depends on SDCARD_MODE1
+            default 0 if SDCARD_DMA_NONE
+            default 1 if SDCARD_DMA_1
+            default 2 if SDCARD_DMA_2
+
+            choice
+                prompt "SD Card DMA channel"
+                default SDCARD_DMA_2
+                help
+                    Select SD Card DMA channel
+
+                config SDCARD_DMA_NONE
+                    bool "No DMA"
+                config SDCARD_DMA_1
+                    bool "DMA channel 1"
+                config SDCARD_DMA_2
+                    bool "DMA channel 2"
+            endchoice
+            
         config SDMMC_ALLOW_SPI_HIGHSPEED
             bool "Allow hispeed in SPI mode"
             default n
