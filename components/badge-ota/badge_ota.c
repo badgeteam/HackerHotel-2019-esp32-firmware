@@ -244,6 +244,7 @@ badge_ota_task(void *pvParameter)
 	ESP_LOGW(TAG, "Starting OTA update ...");
 
 	ESP_LOGW(TAG, "Server:" BADGE_OTA_WEB_SERVER);
+	ESP_LOGW(TAG, "Path:" BADGE_OTA_WEB_PATH);
 
 	/* determine partitions */
 	const esp_partition_t *part_running = esp_ota_get_running_partition();

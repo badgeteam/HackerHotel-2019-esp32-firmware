@@ -17,3 +17,6 @@
 	path = esp-idf
 	url = https://github.com/espressif/esp-idf.git
 	branch = release/v3.1
+[submodule "esp-adf"]
+	path = esp-adf
+	url = https://github.com/badgeteam/esp-adf.git
