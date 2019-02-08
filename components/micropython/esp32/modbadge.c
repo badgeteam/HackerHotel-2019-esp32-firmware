@@ -483,6 +483,20 @@ STATIC mp_obj_t badge_eink_busy_wait_() {
 
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(badge_eink_busy_wait_obj, badge_eink_busy_wait_);
 
+STATIC mp_obj_t badge_native_path(mp_obj_t obj_filename)
+{
+	const char* filename = mp_obj_str_get_str(obj_filename);
+	char fullname[128] = {'\0'};
+	int res = physicalPath(filename, fullname);
+ 	if ((res != 0) || (strlen(fullname) == 0)) {
+       	mp_raise_ValueError("Error resolving file name");
+		return mp_const_none;
+	}
+	return mp_obj_new_str(fullname, strlen(fullname));
+}
+
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(badge_native_path_obj, badge_native_path);
+
 STATIC mp_obj_t badge_eink_png(mp_obj_t obj_x, mp_obj_t obj_y, mp_obj_t obj_filename)
 {
 	int x = mp_obj_get_int(obj_x);
@@ -1094,6 +1108,9 @@ STATIC const mp_rom_map_elem_t badge_module_globals_table[] = {
     {MP_OBJ_NEW_QSTR(MP_QSTR_mount_bpp), (mp_obj_t)&badge_mount_bpp_obj},
 
     {MP_OBJ_NEW_QSTR(MP_QSTR_safe_mode), (mp_obj_t)&badge_safe_mode_obj},
+    
+    
+    {MP_OBJ_NEW_QSTR(MP_QSTR_native_path), (mp_obj_t)&badge_native_path_obj)},
 
 };
 

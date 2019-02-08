@@ -1,42 +1,35 @@
-# File: otacheck.py
-# Version: 1
-# Description: OTA check module
-# License: MIT
-# Authors: Renze Nicolai <renze@rnplus.nl>
-
-import easywifi, easydraw, badge, time, version
+import wifi, easydraw, badge, time, version
 
 def download_info():
-    import urequests as requests
-    easydraw.msg("Checking for firmware updates...")
-    result = False
-    try:
-        data = requests.get(version.otacheckurl)
-    except:
-        easydraw.msg("Error: can not fetch information.")
-        time.sleep(5)
-        return False
-    try:
-        result = data.json()
-    except:
-        data.close()
-        easydraw.msg("")
-        time.sleep(5)
-        return False
-    data.close()
-    return result
+	import urequests as requests
+	easydraw.msg("Checking for firmware updates...")
+	result = False
+	try:
+		data = requests.get(version.otacheckurl)
+	except:
+		easydraw.msg("Error: can not fetch information.")
+		time.sleep(5)
+		return False
+	try:
+		result = data.json()
+	except:
+		data.close()
+		easydraw.msg("")
+		time.sleep(5)
+		return False
+	data.close()
+	return result
 
 def available(update=False):
-    if update:
-        if not easywifi.status():
-            if not easywifi.enable():
-                return badge.nvs_get_u8('badge','OTA.ready',0)
+	if update:
+		if not wifi.status():
+			return badge.nvs_get_u8('badge','OTA.ready',0)
 
-        info = download_info()
-        if info:
-            if info["build"] > version.build:
-                badge.nvs_set_u8('badge','OTA.ready',1)
-                return True
+		info = download_info()
+		if info:
+			if info["build"] > version.build:
+				badge.nvs_set_u8('badge','OTA.ready',1)
+				return True
 
-        badge.nvs_set_u8('badge','OTA.ready',0)
-    return badge.nvs_get_u8('badge','OTA.ready',0)
+		badge.nvs_set_u8('badge','OTA.ready',0)
+	return badge.nvs_get_u8('badge','OTA.ready',0)

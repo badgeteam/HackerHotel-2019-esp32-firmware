@@ -1,8 +1,8 @@
-import ugfx
+import ugfx, badge
 
-build                  = 23
-name                   = "Very Bad Things"
-badge_name             = "Hackerhotel 2019"
+build                  = badge.firmwareBuild()
+name                   = badge.firmwareName()
+badge_name             = badge.deviceType
 dialog_title           = "Alert"
 default_orientation    = 90
 

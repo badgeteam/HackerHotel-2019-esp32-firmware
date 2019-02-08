@@ -1,4 +1,6 @@
-import tasks.otacheck as otacheck, easydraw, term, appglue, time, version, easywifi, badge, ugfx
+import tasks.otacheck as otacheck, easydraw, term, appglue, time, version, easywifi, badge, ugfx, orientation
+
+orientation.default()
 
 term.header(True, "Update check")
 print("Checking for updates...")

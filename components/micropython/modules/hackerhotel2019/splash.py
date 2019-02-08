@@ -1,4 +1,4 @@
-import ugfx, time, badge, machine, deepsleep, gc, appglue, virtualtimers, easydraw, wifi, rtc, term, term_menu, orientation, tasks.powermanagement as pm, uos, json, sys
+import ugfx, time, badge, machine, deepsleep, gc, appglue, virtualtimers, easydraw, wifi, rtc, term, term_menu, orientation, tasks.powermanagement as pm, uos, json, sys, tasks.otacheck as otacheck
 
 # Default values
 default_logo = '/media/hackerhotel.png'
@@ -67,9 +67,10 @@ pm.feed()
 # WiFi
 wifi_status_prev = False
 wifi_status_curr = False
+ota_available    = False
 
 def wifiTask():
-	global wifi_status_prev, wifi_status_curr, gui_redraw
+	global wifi_status_prev, wifi_status_curr, gui_redraw, ota_available
 	wifi_status_prev = wifi_status_curr
 	wifi_status_curr = wifi.status()
 	if wifi_status_curr:
@@ -78,6 +79,8 @@ def wifiTask():
 		pm.feed()
 		wifi_status_prev = wifi_status_curr
 		gui_redraw = True
+		if wifi.status_curr:
+			ota_available = otacheck.available()
 	return 1000
 
 virtualtimers.new(0, wifiTask, True)
@@ -148,7 +151,7 @@ if cfg_services:
 	try:
 		for app in cfg['apps']:
 			try:
-				new_app = __import__(app)
+				new_app = __import__("/lib/"+app+"/srv.py")
 				new_app.init()
 				gui_apps.append(new_app)
 				gui_app_names.append(app)
@@ -212,7 +215,7 @@ def drawPageIndicator(amount, position):
 		x+= size + offset
 
 def drawTask(onSleep=False):
-	global gui_redraw, cfg_nickname, gui_apps, gui_app_current
+	global gui_redraw, cfg_nickname, gui_apps, gui_app_current, ota_available
 	if gui_redraw or onSleep:
 		gui_redraw = False
 		ugfx.clear(ugfx.WHITE)
@@ -227,7 +230,10 @@ def drawTask(onSleep=False):
 			logoHeight = drawLogo(currHeight, app_height, True)
 		else:
 			display_app(currHeight)
-		info = 'Press START'
+		if ota_available:
+			info = "Update available!"
+		else:
+			info = 'Press START'
 		if onSleep:
 			info = 'Sleeping...'
 		elif badge.safe_mode():
