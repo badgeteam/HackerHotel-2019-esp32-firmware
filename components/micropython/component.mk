@@ -7,7 +7,7 @@
 COMPONENT_ADD_INCLUDEDIRS := .  genhdr py esp32 lib lib/utils lib/mp-readline extmod extmod/crypto-algorithms lib/netutils drivers/dht \
 							 lib/timeutils  lib/berkeley-db-1.xx/include lib/berkeley-db-1.xx/btree \
 							 lib/berkeley-db-1.xx/db lib/berkeley-db-1.xx/hash lib/berkeley-db-1.xx/man lib/berkeley-db-1.xx/mpool lib/berkeley-db-1.xx/recno \
-							 ../curl/include ../curl/lib ../zlib ../libssh2/include ../espmqtt/include ../espmqtt/lib/include ../littlefs							 
+							 ../curl/include ../curl/lib ../zlib ../libssh2/include ../espmqtt/include ../espmqtt/lib/include ../littlefs
 COMPONENT_PRIV_INCLUDEDIRS := .  genhdr py esp32 lib
 
 BUILD = $(BUILD_DIR_BASE)
@@ -141,6 +141,15 @@ MP_EXTRA_INC += -I$(UGFX_PATH)
 MP_EXTRA_INC += -I$(UGFX_PATH)/drivers/gdisp/framebuffer
 MP_EXTRA_INC += -I$(UGFX_PATH)/src/gdisp/mcufont
 MP_EXTRA_INC += -I$(IDF_PATH)/components/freertos/include/freertos
+MP_EXTRA_INC += -I$(PROJECT_PATH)/components/audio_pipeline/include
+MP_EXTRA_INC += -I$(PROJECT_PATH)/components/audio_hal/include
+MP_EXTRA_INC += -I$(PROJECT_PATH)/components/audio_hal/board
+MP_EXTRA_INC += -I$(PROJECT_PATH)/components/adf_utils/include
+MP_EXTRA_INC += -I$(PROJECT_PATH)/components/audio_sal/include
+MP_EXTRA_INC += -I$(PROJECT_PATH)/components/audio_service/include
+MP_EXTRA_INC += -I$(PROJECT_PATH)/components/audio_stream/include
+MP_EXTRA_INC += -I$(PROJECT_PATH)/components/esp-adf-libs/esp_codec/include/codec
+
 
 
 ifdef CONFIG_MICROPY_USE_BLUETOOTH
@@ -222,6 +231,7 @@ SRC_C =  $(addprefix esp32/,\
 	machine_ulp.c \
 	machine_ow.c \
 	modbadge.c \
+	modaudio.c \
 	modbpp.c \
 	modesp.c \
 	modfreedomgfx.c \
