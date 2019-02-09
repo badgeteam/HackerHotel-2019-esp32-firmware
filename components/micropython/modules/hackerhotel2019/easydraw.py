@@ -71,7 +71,7 @@ def lineSplit(message, width=None, font=version.font_default):
 	lines = []
 	line = ""
     
-	if width=None:
+	if width==None:
 		width=ugfx.width()
     
 	for word in words:
