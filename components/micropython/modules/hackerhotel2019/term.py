@@ -32,9 +32,10 @@ def draw_menu(title, items, selected=0, text=""):
 	for i in range(0, len(items)):
 		if (selected == i):
 			color(30, 47, 0)
+			print("> " + items[i])
 		else:
 			color()
-		print(items[i])
+			print("  " + items[i])
 	color()
 		
 def menu(title, items, selected = 0, text=""):
