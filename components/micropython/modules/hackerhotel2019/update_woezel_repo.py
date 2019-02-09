@@ -32,10 +32,10 @@ try:
 		f_file = open(woezel_repo+'/'+slug+'.json', 'w')
 		f_file.write(f.text)
 		f_file.close()
-	
+
 	easydraw.msg("Done!")
 	appglue.start_app('installer', False)
 except:
 	easydraw.msg("Failed!")
 	time.sleep(2)
-	appglue.start_app('home', False)
+	appglue.start_app('program_main', False)
