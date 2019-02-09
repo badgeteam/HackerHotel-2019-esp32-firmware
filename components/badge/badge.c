@@ -2,6 +2,7 @@
 
 #include <esp_log.h>
 #include <driver/gpio.h>
+#include <esp_system.h>
 
 #include "badge_pins.h"
 #include "badge_base.h"
@@ -21,6 +22,8 @@
 #include "badge_nvs.h"
 #include "badge_disobey_samd.h"
 #include "badge_erc12864.h"
+#include "font.h"
+#include <badge_fb.h>
 
 static const char *TAG = "badge";
 
@@ -179,6 +182,15 @@ badge_init(void)
 	}
 #endif // ! PIN_NUM_BUTTON_A
 
+	// configure eink display
+	uint8_t eink_type = BADGE_EINK_DEFAULT;
+	badge_nvs_get_u8("badge", "eink.dev.type", &eink_type);
+	err = badge_eink_init(eink_type);
+	if (err != ESP_OK)
+	{
+		ESP_LOGE(TAG, "badge_eink_init failed: %d", err);
+	}
+
 	// configure the i2c bus to the port-expander and touch-controller or to the mpr121
 #ifdef PIN_NUM_I2C_CLK
 	err = badge_i2c_init();
@@ -299,15 +311,6 @@ badge_init(void)
 	if (err != ESP_OK)
 	{
 		ESP_LOGE(TAG, "badge_sdcard_init failed: %d", err);
-	}
-
-	// configure eink display
-	uint8_t eink_type = BADGE_EINK_DEFAULT;
-	badge_nvs_get_u8("badge", "eink.dev.type", &eink_type);
-	err = badge_eink_init(eink_type);
-	if (err != ESP_OK)
-	{
-		ESP_LOGE(TAG, "badge_eink_init failed: %d", err);
 	}
 
 	badge_init_done = true;

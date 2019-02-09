@@ -25,6 +25,11 @@ except:
 if badge.safe_mode() or cfg_disabled:
 	appglue.start_app("launcher", False)
 
+try:
+	badge.i2c_read_reg(0x5a, 0x00, 0x01) # Test the i2c connection
+except:
+	appglue.start_app("bricked", False)
+
 # On first boot we show the user our awesome sponsors
 if not badge.nvs_get_u8('sponsors', 'shown', 0):
 	badge.nvs_set_u8('sponsors', 'shown', 1)
