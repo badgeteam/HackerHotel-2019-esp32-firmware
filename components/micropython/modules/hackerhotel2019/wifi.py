@@ -40,8 +40,8 @@ def wait(duration=timeout, showStatus=False):
 			if showStatus:
 				easydraw.msg("Failed!")
 			return False
-		if showStatus:
-			easydraw.msg("Connected!")
+	if showStatus:
+		easydraw.msg("Connected!")
 	return True
 
 def ntp(onlyIfNeeded=True):
