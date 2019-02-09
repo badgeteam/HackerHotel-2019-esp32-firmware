@@ -18,9 +18,11 @@ def focus(in_focus):
 	if in_focus:
 		if not task_active:
 			virtualtimers.new(0, counterTask, False)
+			task_active = True
 	else:
 		if task_active:
 			virtualtimers.delete(counterTask)
+			task_active = False
 		seconds = 0
 
 def counterTask():

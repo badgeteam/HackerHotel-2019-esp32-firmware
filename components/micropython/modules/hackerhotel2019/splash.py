@@ -199,7 +199,7 @@ def drawLogo(offset = 0, max_height = ugfx.height(), center = True):
 		#badge.png(x,y,cfg_logo)
 		ugfx.display_image(x,y,cfg_logo)
 		return height
-	exceptBaseException as e:
+	except BaseException as e:
 		sys.print_exception(e)
 	return 0
 
