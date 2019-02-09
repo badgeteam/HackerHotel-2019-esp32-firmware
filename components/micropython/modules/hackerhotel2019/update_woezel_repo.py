@@ -38,4 +38,4 @@ try:
 except:
 	easydraw.msg("Failed!")
 	time.sleep(2)
-	appglue.start_app('installer', False)
+	appglue.start_app('home', False)
