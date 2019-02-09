@@ -76,11 +76,13 @@ def wifiTask():
 	if wifi_status_curr:
 		wifi.ntp(True)
 	if wifi_status_curr != wifi_status_prev:
+		print("WiFi status changed", wifi_status_curr)
 		pm.feed()
 		wifi_status_prev = wifi_status_curr
 		gui_redraw = True
-		if wifi.status_curr:
-			ota_available = otacheck.available()
+		if wifi_status_curr:
+			ota_available = otacheck.available(True)
+			print("Check OTA",ota_available)
 	return 1000
 
 virtualtimers.new(0, wifiTask, True)
