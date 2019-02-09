@@ -151,7 +151,7 @@ if cfg_services:
 	try:
 		for app in cfg['apps']:
 			try:
-				new_app = __import__(badge.native_path("/lib/"+app+"/srv.py"))
+				new_app = __import__("/lib/"+app+"/srv")
 				new_app.init()
 				gui_apps.append(new_app)
 				gui_app_names.append(app)
@@ -199,8 +199,8 @@ def drawLogo(offset = 0, max_height = ugfx.height(), center = True):
 		#badge.png(x,y,cfg_logo)
 		ugfx.display_image(x,y,cfg_logo)
 		return height
-	except:
-		print("Image display error")
+	exceptBaseException as e:
+		sys.print_exception(e)
 	return 0
 
 def drawPageIndicator(amount, position):

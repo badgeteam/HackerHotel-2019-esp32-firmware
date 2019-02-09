@@ -990,25 +990,25 @@ STATIC const mp_rom_map_elem_t badge_module_globals_table[] = {
     
     //Firmware configuration
 #ifdef CONFIG_HACKERHOTEL_BADGE_V1
-    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_hackerhotel2019)},
+    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_Hackerhotel_2019)},
 #endif
 #ifdef CONFIG_HACKERHOTEL_BADGE_V0
-    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_hackerhotel2019proto)},
+    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_Hackerhotel_2019_prototype)},
 #endif
 #ifdef CONFIG_DISOBEY
-    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_disobey2019)},
+    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_Disobey_2019)},
 #endif
 #ifdef CONFIG_SHA_BADGE_V3
-    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_sha2017v3)},
+    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_SHA2017)},
 #endif
 #ifdef CONFIG_SHA_BADGE_V3_LITE
-    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_sha2017v3lite)},
+    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_SHA2017_lite)},
 #endif
 #ifdef CONFIG_SHA_BADGE_V2
-    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_sha2017proto2)},
+    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_SHA2017_prototype_2)},
 #endif
 #ifdef CONFIG_SHA_BADGE_V1
-    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_sha2017proto1)},
+    {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_SHA2017_prototype_1)},
 #endif
     {MP_ROM_QSTR(MP_QSTR_firmwareBuild), MP_ROM_PTR(&badge_firmware_build_obj)},
     {MP_ROM_QSTR(MP_QSTR_firmwareName), MP_ROM_PTR(&badge_firmware_name_obj)},
