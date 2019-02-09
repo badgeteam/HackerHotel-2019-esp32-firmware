@@ -20,4 +20,4 @@ btn_ok = ugfx.BTN_START
 btn_cancel = ugfx.BTN_B
 
 hatcheryurl             = "https://badge.team"
-otacheckurl             = "https://badge.team/firmware-hackerhotel2019"
+otacheckurl             = "https://badge.team/version-hackerhotel2019"

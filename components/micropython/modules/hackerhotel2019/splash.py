@@ -33,7 +33,7 @@ except:
 # On first boot we show the user our awesome sponsors
 if not badge.nvs_get_u8('sponsors', 'shown', 0):
 	badge.nvs_set_u8('sponsors', 'shown', 1)
-	appglue.start_app("sponsors")
+	appglue.start_app("sponsors_hacker_hotel_2019")
 
 # Drop directly into uPython shell if requested
 if cfg_shell:
