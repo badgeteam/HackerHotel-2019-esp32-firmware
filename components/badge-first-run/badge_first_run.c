@@ -21,6 +21,7 @@
 #include <badge_mpr121.h>
 #include <badge_eink.h>
 #include <badge_fb.h>
+#include <badge_leds.h>
 #include <badge_pins.h>
 #include <badge_button.h>
 #include <badge_power.h>
@@ -38,7 +39,18 @@
 
 #define TAG "badge_first_run"
 
+#ifdef I2C_MPR121_ADDR
 uint32_t baseline_def[8] = {
+#if defined(CONFIG_HACKERHOTEL_BADGE_V0) || defined(CONFIG_HACKERHOTEL_BADGE_V1)
+	350,
+	361,
+	343,
+	252,
+	267,
+	258,
+	232,
+	352,
+#else
 	0x0138,
 	0x0144,
 	0x0170,
@@ -47,18 +59,20 @@ uint32_t baseline_def[8] = {
 	0x0103,
 	0x00ff,
 	0x00ed,
+#endif
 };
 
 const char *touch_name[8] = {
-	"A",
-	"B",
-	"START",
-	"SELECT",
-	"DOWN",
-	"RIGHT",
-	"UP",
-	"LEFT",
+	[MPR121_PIN_NUM_A]      "A",
+	[MPR121_PIN_NUM_B]      "B",
+	[MPR121_PIN_NUM_START]  "START",
+	[MPR121_PIN_NUM_SELECT] "SELECT",
+	[MPR121_PIN_NUM_DOWN]   "DOWN",
+	[MPR121_PIN_NUM_RIGHT]  "RIGHT",
+	[MPR121_PIN_NUM_UP]     "UP",
+	[MPR121_PIN_NUM_LEFT]   "LEFT",
 };
+#endif // I2C_MPR121_ADDR
 
 bool
 load_png(int x, int y, const char *filename)
@@ -106,6 +120,7 @@ load_png(int x, int y, const char *filename)
 void
 disp_line(const char *line, int flags)
 {
+	ESP_LOGI(TAG, "# %s", line);
 	static int next_line = 0;
 	while (1)
 	{
@@ -403,7 +418,7 @@ wait_for_key_a(void)
 			disp_line("Error: failed to read touch info!", FONT_MONOSPACE);
 			return -1;
 		}
-		if ((ti.touch_state & 1) == 0)
+		if ((ti.touch_state & (1 << MPR121_PIN_NUM_A)) == 0)
 			break; // touched
 	}
 
@@ -415,7 +430,7 @@ wait_for_key_a(void)
 			disp_line("Error: failed to read touch info!", FONT_MONOSPACE);
 			return -1;
 		}
-		if ((ti.touch_state & 1) == 1)
+		if ((ti.touch_state & (1 << MPR121_PIN_NUM_A)) == 1)
 			break; // released
 	}
 
@@ -464,7 +479,6 @@ badge_first_run(void)
 	disp_line("Initializing and testing badge",0);
 
 	// do checks
-
 #ifdef PIN_NUM_BUTTON_FLASH
 	// flash button
 	int btn_flash = gpio_get_level(PIN_NUM_BUTTON_FLASH);
@@ -573,7 +587,24 @@ badge_first_run(void)
 	disp_line("MPR121 ok",0);
 #endif // I2C_MPR121_ADDR
 
-#ifndef CONFIG_DISOBEY
+#ifdef PIN_NUM_LEDS
+	disp_line("configuring leds",0);
+
+	err = badge_leds_init();
+	assert( err == ESP_OK );
+
+	err = badge_leds_enable();
+	assert( err == ESP_OK );
+
+	uint8_t leds_data[6*4] = {
+		1,1,1,1, 1,1,1,1, 1,1,1,1,
+		1,1,1,1, 1,1,1,1, 1,1,1,1,
+	};
+	err = badge_leds_send_data(leds_data, sizeof(leds_data));
+	assert( err == ESP_OK );
+#endif // PIN_NUM_LEDS
+
+#if !defined(CONFIG_DISOBEY) && !defined(CONFIG_HACKERHOTEL_BADGE_V0) && !defined(CONFIG_HACKERHOTEL_BADGE_V1)
 	// power measurements
 	disp_line("measure power",0);
 	err = badge_power_init();
@@ -777,7 +808,7 @@ badge_first_run(void)
 	nvs_close(my_handle);
 
 	// if we get here, the badge is ok.
-	badge_init();
+
 #ifndef CONFIG_DISOBEY
 	load_png(0,0, "/media/hacking.png");
 	load_png(2,2, "/media/badge_version.png");
@@ -793,11 +824,42 @@ badge_first_run(void)
 	badge_eink_display_greyscale(badge_fb, DISPLAY_FLAG_8BITPIXEL, BADGE_EINK_MAX_LAYERS);
 #endif
 
+#ifdef PIN_NUM_LEDS
+	int state = 0;
+	while (1)
+	{
+		memset(leds_data, 0, sizeof(leds_data));
+		if (state < 4) {
+			int i = state;
+			if (i < 2) i ^= 1; // swap r and g
+			int j;
+			for (j=0; j<6; j++) leds_data[i+j*4] = 2;
+		} else {
+			int i = (state-4)/6;
+			if (i < 2) i ^= 1; // swap r and g
+			int j = (state-4)%6;
+			leds_data[i+j*4] = 2;
+		}
+
+		err = badge_leds_send_data(leds_data, sizeof(leds_data));
+		assert( err == ESP_OK );
+
+		if (state < 4) {
+			vTaskDelay(1000 / portTICK_PERIOD_MS);
+		} else {
+			vTaskDelay(250 / portTICK_PERIOD_MS);
+		}
+
+		state++;
+		if (state >= 28) state = 0;
+	}
+#else // !PIN_NUM_LEDS
 	while (1)
 	{
 		// infinite deep sleep loop
 		esp_deep_sleep_start();
 	}
+#endif // !PIN_NUM_LEDS
 }
 
 void
