@@ -66,10 +66,14 @@ def disp_string_right_bottom(y, s):
 	l = ugfx.get_string_width(s,version.font_default)
 	ugfx.string(ugfx.width()-l, ugfx.height()-(y+1)*14, s, version.font_default,ugfx.BLACK)
 
-def lineSplit(message, width=ugfx.width(), font=version.font_default):
+def lineSplit(message, width=None, font=version.font_default):
 	words = message.split(" ")
 	lines = []
 	line = ""
+    
+    if width is None:
+        width=ugfx.width()
+    
 	for word in words:
 		wordLength = ugfx.get_string_width(word, font)
 		lineLength = ugfx.get_string_width(line, font)
