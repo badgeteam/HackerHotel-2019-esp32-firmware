@@ -3,6 +3,9 @@
 #include "py/mperrno.h"
 #include "py/mphal.h"
 #include "py/runtime.h"
+#include "lib/utils/pyexec.h"
+
+#include "extmod/vfs_native.h"
 
 #include "esp_log.h"
 #include "audio_element.h"
@@ -198,7 +201,18 @@ static void _init_i2s_stream(void) {
 }
 
 STATIC mp_obj_t audio_play_mp3_file(mp_obj_t _file) {
-    const char *file = mp_obj_str_get_str(_file);
+    const char *file_mp = mp_obj_str_get_str(_file);
+
+    if (*file_mp == 0) { // empty string; keep as hack to test audio
+        file_mp = "/sdcard/audio/ff-16b-2c-44100hz.mp3";
+    }
+
+    char file[128] = {'\0'};
+    int res = physicalPath(file_mp, file);
+    if ((res != 0) || (strlen(file) == 0)) {
+        mp_raise_ValueError("Error resolving file name");
+        return mp_const_none;
+    }
 
     if (audio_stream_active) {
         ESP_LOGE(TAG, "another audio stream is already playing");
@@ -224,11 +238,7 @@ STATIC mp_obj_t audio_play_mp3_file(mp_obj_t _file) {
     audio_pipeline_link(pipeline, (const char *[]) {"file", "mp3", "i2s"}, 3);
 
     // start stream
-    if (*file == 0) { // empty string; keep as hack to test audio
-        audio_element_set_uri(fatfs_stream_reader, "/sdcard/audio/ff-16b-2c-44100hz.mp3");
-    } else {
-        audio_element_set_uri(fatfs_stream_reader, file);
-    }
+    audio_element_set_uri(fatfs_stream_reader, file);
 
     _init_event();
 
