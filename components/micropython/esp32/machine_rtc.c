@@ -294,6 +294,33 @@ void tz_fromto_NVS(char *gettzs, char *settzs)
 	}
 }
 
+STATIC mp_obj_t mach_rtc_timezone(mp_uint_t n_args, const mp_obj_t *args) {
+	if (strlen(mpy_time_zone) == 0) {
+		// Try to get tz from NVS
+		tz_fromto_NVS(mpy_time_zone, NULL);
+		if (strlen(mpy_time_zone) == 0) {
+			#ifdef MICROPY_TIMEZONE
+			// ===== Set default time zone ======
+			snprintf(mpy_time_zone, sizeof(mpy_time_zone)-1, "%s", MICROPY_TIMEZONE);
+			#endif
+		}
+	}
+	if (n_args > 1) {
+		const char *tzs = mp_obj_str_get_str(args[1]);
+		if ((strlen(tzs) > 2) && (strlen(tzs) < 64)) {
+			sprintf(mpy_time_zone, "%s", tzs);
+			tz_fromto_NVS(NULL, mpy_time_zone);
+		} else {
+			mp_raise_ValueError("tz string length must be 3 - 63");
+		}
+		setenv("TZ", mpy_time_zone, 1);
+		tzset();
+	}
+	return mp_obj_new_str(mpy_time_zone, strlen(mpy_time_zone));
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mach_rtc_timezone_obj, 1, 2, mach_rtc_timezone);
+
+
 //---------------------------------------------------------------------------------------------
 STATIC mp_obj_t mach_rtc_ntp_sync(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     static const mp_arg_t allowed_args[] = {
@@ -653,6 +680,8 @@ STATIC const mp_map_elem_t mach_rtc_locals_dict_table[] = {
     { MP_OBJ_NEW_QSTR(MP_QSTR_clear),			(mp_obj_t)&esp_rtcmem_clear_obj},
     { MP_OBJ_NEW_QSTR(MP_QSTR_write_string),	(mp_obj_t)&esp_rtcmem_write_string_obj},
     { MP_OBJ_NEW_QSTR(MP_QSTR_read_string),		(mp_obj_t)&esp_rtcmem_read_string_obj},
+    
+    { MP_OBJ_NEW_QSTR(MP_QSTR_timezone),    (mp_obj_t)&mach_rtc_timezone_obj},
 
 	// Constants
 	{ MP_ROM_QSTR(MP_QSTR_EXT1_ANYHIGH),		MP_ROM_INT(ESP_EXT1_WAKEUP_ANY_HIGH) },

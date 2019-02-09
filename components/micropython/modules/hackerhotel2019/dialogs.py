@@ -8,14 +8,14 @@ import machine, ugfx, utime as time
 wait_for_interrupt = True
 button_pushed = ''
 
-def notice(text, title="SHA2017", close_text="Close", width = 296, height = 128, font="Roboto_Regular12"):
+def notice(text, title="SHA2017", close_text="Close", width = None, height = None, font="Roboto_Regular12"):
 	"""Show a notice which can be closed with button A.
 
 	The caller is responsible for flushing the display after the user has confirmed the notice.
 	"""
 	prompt_boolean(text, title = title, true_text = close_text, false_text = None, width = width, height = height, font=font)
 
-def prompt_boolean(text, title="SHA2017", true_text="Yes", false_text="No", width = 296, height = 128, font="Roboto_Regular12", cb=None):
+def prompt_boolean(text, title="SHA2017", true_text="Yes", false_text="No", width = None, height = None, font="Roboto_Regular12", cb=None):
 	"""A simple one and two-options dialog
 
 	if 'false_text' is set to None only one button is displayed.
@@ -27,7 +27,19 @@ def prompt_boolean(text, title="SHA2017", true_text="Yes", false_text="No", widt
 	"""
 	global wait_for_interrupt, button_pushed
 
-	window = ugfx.Container((ugfx.width() - width) // 2, (ugfx.height() - height) // 2,  width, height)
+	if width == None:
+		width = ugfx.width()
+	if height == None:
+		height = ugfx.height()
+
+	x = (ugfx.width() - width) // 2
+	y = (ugfx.height() - height) // 2
+	if (x < 0):
+		x = 0
+	if (y < 0):
+		y = 0
+	#print("Container", x, y, width, height)
+	window = ugfx.Container(x, y, width, height)
 	window.show()
 	ugfx.set_default_font(font)
 	window.text(5, 10, title, ugfx.BLACK)

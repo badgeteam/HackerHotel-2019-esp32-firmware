@@ -783,7 +783,11 @@ static void _sdcard_mount()
 		sdspi_slot_config_t slot_config = SDSPI_SLOT_CONFIG_DEFAULT();
 		host.slot = sdcard_config.host;
 		host.max_freq_khz = sdcard_config.max_speed;
+#ifdef CONFIG_SDCARD_DMA_CHANNEL
 		slot_config.dma_channel = CONFIG_SDCARD_DMA_CHANNEL;
+#else
+		slot_config.dma_channel = 2;
+#endif
 		_setPins(sdcard_config.miso, sdcard_config.mosi, sdcard_config.clk, sdcard_config.cs, -1, -1);
 
 	    slot_config.gpio_miso = sdcard_config.miso;

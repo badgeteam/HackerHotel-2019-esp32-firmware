@@ -31,7 +31,8 @@ def populate_apps():
 	add_app("installer",{"name":"Installer", "category":"system"})
 	add_app("nickname",{"name":"Set nickname", "category":"system"})
 	add_app("update",{"name":"Update apps", "category":"system"})
-	add_app("ota_update",{"name":"Update firmware", "category":"system"})
+	add_app("checkforupdates",{"name":"Firmware update", "category":"system"})
+	add_app("ota_update",{"name":"(Start OTA)", "category":"system"})
 
 # List as shown on screen
 currentListTitles = []

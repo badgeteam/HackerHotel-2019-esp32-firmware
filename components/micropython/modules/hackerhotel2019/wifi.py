@@ -47,9 +47,10 @@ def wait(duration=timeout, showStatus=False):
 def ntp(onlyIfNeeded=True):
 	if onlyIfNeeded and time.time() > 1482192000:
 		return True
-	import ntp
+	from machine import RTC
+	rtc = RTC()
 	if not status():
 		connect()
 	if not wait():
 		return False
-	return ntp.set_NTP_time()
+	return rtc.ntp_sync('pool.ntp.org')

@@ -232,18 +232,19 @@ def drawTask(onSleep=False):
 			logoHeight = drawLogo(currHeight, app_height, True)
 		else:
 			display_app(currHeight)
-		if ota_available:
-			info = "Update available!"
-		else:
-			info = 'Press START'
+
 		if onSleep:
 			info = 'Sleeping...'
-		elif badge.safe_mode():
-			info = "Recovery mode"
-		elif not rtc.isSet():
-			info = "Clock not set"
-		elif wifi_status_curr:
-			info = "WiFi connected"
+		#elif badge.safe_mode():
+		#	info = "Recovery mode"
+		#elif not rtc.isSet():
+		#	info = "Clock not set"
+		elif ota_available:
+			info = "Update available!"
+		#elif wifi_status_curr:
+		#	info = "WiFi connected"
+		else:
+			info = 'Press START'
 		ugfx.line(0, ugfx.height()-16, ugfx.width(), ugfx.height()-16, ugfx.BLACK)
 		easydraw.disp_string_right_bottom(0, info)
 		if len(gui_apps) > 0:
@@ -265,7 +266,7 @@ if cfg_led_animation != None:
 	badge.leds_init()
 	badge.leds_enable()
 	try:
-		led_app = __import__('/lib/'+cfg_led_animation+'/ledAnimation')
+		led_app = __import__('/lib/'+cfg_led_animation+'/ledsrv')
 		try:
 			led_app.init()
 		except:

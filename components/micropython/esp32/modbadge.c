@@ -61,6 +61,7 @@ STATIC mp_obj_t badge_init_() {
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(badge_init_obj, badge_init_);
 
 #ifndef CONFIG_SHA_BPP_ENABLE
+#ifdef CONFIG_DISOBEY
 
 #define PARTITIONS_16MB_BIN_LEN 192
 #define PARTITIONS_LOCATION 0x8000
@@ -163,6 +164,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_0(badge_init_obj, badge_init_);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(remove_bpp_partition_obj, remove_bpp_partition);
 
+#endif
 #endif
 
 /*** nvs access ***/
@@ -1016,7 +1018,9 @@ STATIC const mp_rom_map_elem_t badge_module_globals_table[] = {
     {MP_ROM_QSTR(MP_QSTR_init), MP_ROM_PTR(&badge_init_obj)},
     
 #ifndef CONFIG_SHA_BPP_ENABLE
+#ifdef CONFIG_DISOBEY
     {MP_ROM_QSTR(MP_QSTR_remove_bpp_partition), MP_ROM_PTR(&remove_bpp_partition_obj)},
+#endif
 #endif
 
     // I2C

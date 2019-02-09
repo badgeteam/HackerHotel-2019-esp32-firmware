@@ -11,8 +11,10 @@ esp.rtcmem_write(0,0)
 esp.rtcmem_write(1,0)
 
 # setup timezone
-#timezone = badge.nvs_get_str('system', 'timezone', 'CET-1CEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00')
-#time.settimezone(timezone)
+rtc = machine.RTC()
+if (rtc.timezone()==""):
+	rtc.timezone(badge.nvs_get_str('system', 'timezone', 'CET-1CEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00'))
+
 
 if badge.safe_mode():
 	splash = 'splash'
