@@ -203,7 +203,7 @@ STATIC mp_obj_ssl_socket_t *socket_new(mp_obj_t sock, struct ssl_args *args) {
         assert(ret == 0);
     } else {
 		//Letsencrypt
-		printf("USING LETSENCRYPT\n");
+		//printf("USING LETSENCRYPT\n");
 		ret = mbedtls_x509_crt_parse_der(&o->cacert, letsencrypt, LETSENCRYPT_LENGTH);
         if(ret < 0) {
 			ESP_LOGE(TAG, "mbedtls_x509_crt_parse_der(): error %d!", -ret);

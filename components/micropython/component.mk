@@ -51,7 +51,7 @@ FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/sha2017
 endif
 
 ifdef CONFIG_SHA_BADGE_V3_LITE
-FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/sha2017
+FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/sha2017lite
 endif
 
 ifdef CONFIG_DISOBEY
@@ -86,7 +86,6 @@ MP_EXTRA_INC += -I$(PROJECT_PATH)/components/png
 MP_EXTRA_INC += -I$(PROJECT_PATH)/components/graph
 MP_EXTRA_INC += -I$(PROJECT_PATH)/components/badge-ota
 MP_EXTRA_INC += -I$(PROJECT_PATH)/components/ugfx-glue
-MP_EXTRA_INC += -I$(PROJECT_PATH)/components/bpp-if
 MP_EXTRA_INC += -I$(COMPONENT_PATH)/py
 MP_EXTRA_INC += -I$(COMPONENT_PATH)/lib/mp-readline
 MP_EXTRA_INC += -I$(COMPONENT_PATH)/lib/netutils
@@ -213,6 +212,7 @@ SRC_C =  $(addprefix esp32/,\
 	modutime.c \
 	moduos.c \
 	machine_timer.c \
+	machine_i2c.c \
 	machine_pin.c \
 	machine_touchpad.c \
 	machine_adc.c \
@@ -232,7 +232,6 @@ SRC_C =  $(addprefix esp32/,\
 	machine_ow.c \
 	modbadge.c \
 	modaudio.c \
-	modbpp.c \
 	modesp.c \
 	modfreedomgfx.c \
 	modfreedomgfx_eink.c \

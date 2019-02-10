@@ -1,2 +1,2 @@
-import appglue
-appglue.start_app("shell")
+import system
+system.shell(True)

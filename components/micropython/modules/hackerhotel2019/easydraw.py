@@ -1,9 +1,9 @@
 import ugfx, badge, version, time, orientation
 
-if orientation.landscape():
-	NUM_LINES = 5
+if orientation.isLandscape():
+	NUM_LINES = 9
 else:
-	NUM_LINES = 10
+	NUM_LINES = 21
 
 # Functions
 def msg_nosplit(message, title = 'Loading...', reset = False):

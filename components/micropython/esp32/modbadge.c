@@ -36,8 +36,6 @@
 #include "esp_vfs.h"
 #include "esp_vfs_fat.h"
 
-#include "bpp_init.h"
-
 #include "badge_i2c.h"
 #include "badge_mpr121.h"
 #include "badge_disobey_samd.h"
@@ -51,14 +49,6 @@
 #include "extmod/vfs_native.h"
 
 #define TAG "esp32/modbadge"
-
-// INIT
-
-STATIC mp_obj_t badge_init_() {
-  badge_init();
-  return mp_const_none;
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(badge_init_obj, badge_init_);
 
 #ifndef CONFIG_SHA_BPP_ENABLE
 #ifdef CONFIG_DISOBEY
@@ -109,8 +99,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_0(badge_init_obj, badge_init_);
 		ESP_LOGE(TAG, " - Leave your badge connected to a computer while running this function");
 		ESP_LOGE(TAG, " - This function updates the partition table, it might result in a brick");
 		ESP_LOGE(TAG, "");
-		ESP_LOGE(TAG, "The key? What was the name of the CCC event between christmas 2019 and the start of 2019?");
-		ESP_LOGE(TAG, "Hint: 4 characters, as hex value. remove_bpp_partition(0x....)");
+		ESP_LOGE(TAG, "Correct key: 0x35C3");
 		return mp_obj_new_bool(false);
 	}
 	ESP_LOGE(TAG, "WARNING: Updating partitions table! Do NOT power off!");
@@ -866,125 +855,6 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_0(badge_read_state_obj, badge_read_state);
 
 #endif
 
-
-// Mounts
-static bool root_mounted = false;
-static wl_handle_t s_wl_handle = WL_INVALID_HANDLE;
-STATIC mp_obj_t badge_mount_root() {
-	// already mounted?
-	if (root_mounted)
-	{
-		return mp_const_none;
-	}
-
-	// mount the block device
-	const esp_vfs_fat_mount_config_t mount_config = {
-		.max_files              = 3,
-		.format_if_mount_failed = true,
-	};
-
-	ESP_LOGI(TAG, "mounting locfd on /");
-	esp_err_t err = esp_vfs_fat_spiflash_mount("", "locfd", &mount_config, &s_wl_handle);
-
-	if (err != ESP_OK) {
-		ESP_LOGE(TAG, "Failed to mount FATFS (0x%x)", err);
-		mp_raise_OSError(MP_EIO);
-	}
-
-	root_mounted = true;
-
-	return mp_const_none;
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(badge_mount_root_obj, badge_mount_root);
-
-static bool sdcard_mounted = false;
-STATIC mp_obj_t badge_mount_sdcard() {
-	// already mounted?
-	if (sdcard_mounted)
-	{
-		return mp_const_none;
-	}
-
-	badge_power_sdcard_enable();
-
-	sdmmc_host_t host = SDMMC_HOST_DEFAULT();
-
-	// To use 1-line SD mode, uncomment the following line:
-	host.flags = SDMMC_HOST_FLAG_1BIT;
-
-	// This initializes the slot without card detect (CD) and write protect (WP) signals.
-	// Modify slot_config.gpio_cd and slot_config.gpio_wp if your board has these signals.
-	sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
-
-	// Options for mounting the filesystem.
-	// If format_if_mount_failed is set to true, SD card will be partitioned and formatted
-	// in case when mounting fails.
-	esp_vfs_fat_sdmmc_mount_config_t mount_config = {
-		.max_files              = 3,
-		.format_if_mount_failed = false,
-	};
-
-	// Use settings defined above to initialize SD card and mount FAT filesystem.
-	// Note: esp_vfs_fat_sdmmc_mount is an all-in-one convenience function.
-	// Please check its source code and implement error recovery when developing
-	// production applications.
-	sdmmc_card_t* card;
-	esp_err_t ret = esp_vfs_fat_sdmmc_mount("/sdcard", &host, &slot_config, &mount_config, &card);
-	if (ret != ESP_OK) {
-		if (ret == ESP_FAIL) {
-			ESP_LOGE(TAG, "Failed to mount filesystem. If you want the card to be formatted, set format_if_mount_failed = true.");
-		} else {
-			ESP_LOGE(TAG, "Failed to initialize the card (%d). Make sure SD card lines have pull-up resistors in place.", ret);
-		}
-		mp_raise_OSError(MP_EIO);
-		return mp_const_none;
-	}
-
-	sdcard_mounted = true;
-
-	return mp_const_none;
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(badge_mount_sdcard_obj, badge_mount_sdcard);
-
-STATIC mp_obj_t badge_unmount_sdcard() {
-	// not mounted?
-	if (!sdcard_mounted)
-	{
-		return mp_const_none;
-	}
-
-/*
-	sdcard_mounted = false;
-
-    // All done, unmount partition and disable SDMMC host peripheral
-    esp_vfs_fat_sdmmc_unmount();
-    ESP_LOGI(TAG, "Card unmounted");
-
-	badge_power_sdcard_disable();
-*/
-	printf("Unmounting the sdcard is not yet supported.\n");
-
-	return mp_const_none;
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(badge_unmount_sdcard_obj, badge_unmount_sdcard);
-
-static bool bpp_mounted = false;
-STATIC mp_obj_t badge_mount_bpp() {
-	// already mounted?
-	if (bpp_mounted)
-	{
-		return mp_const_none;
-	}
-
-	bpp_mount_ropart();
-
-	bpp_mounted = true;
-
-	return mp_const_none;
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(badge_mount_bpp_obj, badge_mount_bpp);
-
-
 // Module globals
 
 STATIC const mp_rom_map_elem_t badge_module_globals_table[] = {
@@ -1015,8 +885,6 @@ STATIC const mp_rom_map_elem_t badge_module_globals_table[] = {
     {MP_ROM_QSTR(MP_QSTR_firmwareBuild), MP_ROM_PTR(&badge_firmware_build_obj)},
     {MP_ROM_QSTR(MP_QSTR_firmwareName), MP_ROM_PTR(&badge_firmware_name_obj)},
 
-    {MP_ROM_QSTR(MP_QSTR_init), MP_ROM_PTR(&badge_init_obj)},
-    
 #ifndef CONFIG_SHA_BPP_ENABLE
 #ifdef CONFIG_DISOBEY
     {MP_ROM_QSTR(MP_QSTR_remove_bpp_partition), MP_ROM_PTR(&remove_bpp_partition_obj)},
@@ -1035,7 +903,7 @@ STATIC const mp_rom_map_elem_t badge_module_globals_table[] = {
 #endif // I2C_MPR121_ADDR
 
     // E-Ink
-    {MP_ROM_QSTR(MP_QSTR_eink_init), MP_ROM_PTR(&badge_eink_init_obj)},
+    //{MP_ROM_QSTR(MP_QSTR_eink_init), MP_ROM_PTR(&badge_eink_init_obj)},
     {MP_ROM_QSTR(MP_QSTR_eink_deep_sleep), MP_ROM_PTR(&badge_eink_deep_sleep_obj)},
     {MP_ROM_QSTR(MP_QSTR_eink_wakeup), MP_ROM_PTR(&badge_eink_wakeup_obj)},
     {MP_ROM_QSTR(MP_QSTR_eink_png), MP_ROM_PTR(&badge_eink_png_obj)},
@@ -1043,14 +911,14 @@ STATIC const mp_rom_map_elem_t badge_module_globals_table[] = {
     {MP_ROM_QSTR(MP_QSTR_png), MP_ROM_PTR(&badge_eink_png_obj)},
     {MP_ROM_QSTR(MP_QSTR_png_info), MP_ROM_PTR(&badge_eink_png_info_obj)},
 #ifdef PIN_NUM_EPD_RESET
-    {MP_ROM_QSTR(MP_QSTR_eink_display_raw), MP_ROM_PTR(&badge_eink_display_raw_obj)},
+    //{MP_ROM_QSTR(MP_QSTR_eink_display_raw), MP_ROM_PTR(&badge_eink_display_raw_obj)},
     {MP_ROM_QSTR(MP_QSTR_display_raw), MP_ROM_PTR(&badge_eink_display_raw_obj)},
 #endif
     {MP_ROM_QSTR(MP_QSTR_eink_busy), MP_ROM_PTR(&badge_eink_busy_obj)},
     {MP_ROM_QSTR(MP_QSTR_eink_busy_wait), MP_ROM_PTR(&badge_eink_busy_wait_obj)},
 
 #ifdef I2C_ERC12864_ADDR
-    {MP_ROM_QSTR(MP_QSTR_lcd_display_raw), MP_ROM_PTR(&badge_lcd_display_raw_obj)},
+    //{MP_ROM_QSTR(MP_QSTR_lcd_display_raw), MP_ROM_PTR(&badge_lcd_display_raw_obj)},
     {MP_ROM_QSTR(MP_QSTR_display_raw), MP_ROM_PTR(&badge_lcd_display_raw_obj)},
     {MP_ROM_QSTR(MP_QSTR_lcd_set_rotation), MP_ROM_PTR(&badge_lcd_set_rotation_obj)},
 #endif
@@ -1101,18 +969,7 @@ STATIC const mp_rom_map_elem_t badge_module_globals_table[] = {
 
 	{MP_OBJ_NEW_QSTR(MP_QSTR_rawrepl), (mp_obj_t)&rawrepl_obj},
 
-/*
-    {MP_ROM_QSTR(MP_QSTR_display_picture), MP_ROM_PTR(&badge_display_picture_obj)},
-*/
-
-	// Mounts
-    {MP_OBJ_NEW_QSTR(MP_QSTR_mount_root), (mp_obj_t)&badge_mount_root_obj},
-    {MP_OBJ_NEW_QSTR(MP_QSTR_mount_sdcard), (mp_obj_t)&badge_mount_sdcard_obj},
-    {MP_OBJ_NEW_QSTR(MP_QSTR_unmount_sdcard), (mp_obj_t)&badge_unmount_sdcard_obj},
-    {MP_OBJ_NEW_QSTR(MP_QSTR_mount_bpp), (mp_obj_t)&badge_mount_bpp_obj},
-
     {MP_OBJ_NEW_QSTR(MP_QSTR_safe_mode), (mp_obj_t)&badge_safe_mode_obj},
-    
     
     {MP_OBJ_NEW_QSTR(MP_QSTR_native_path), (mp_obj_t)&badge_native_path_obj},
 

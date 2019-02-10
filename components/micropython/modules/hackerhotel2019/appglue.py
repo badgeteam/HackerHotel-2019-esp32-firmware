@@ -1,17 +1,13 @@
-import ugfx, esp, badge, deepsleep, term, easydraw
+#Deprecated API, will be removed in the future
 
 def start_app(app, display = True):
-	if display:
-		easydraw.msg(app, "Loading...", True)
-		term.header(True, "Loading application "+app+"...")
-	esp.rtcmem_write_string(app)
-	deepsleep.reboot()
+	import system
+	system.start(app, display)
 
 def home():
-	start_app("")
+	import system
+	system.home(True)
 
 def start_ota():
-	term.header(True, "Starting OTA...")
-	esp.rtcmem_write(0,1)
-	esp.rtcmem_write(1,254)
-	deepsleep.reboot()
+	import system
+	system.ota(True)

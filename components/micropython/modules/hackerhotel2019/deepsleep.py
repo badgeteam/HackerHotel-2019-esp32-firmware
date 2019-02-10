@@ -1,18 +1,9 @@
-import machine, badge, term, time
+#Deprecated API, will be removed in the future
 
 def start_sleeping(sleepTime=0):
-	machine.RTC().wake_on_ext0(pin = machine.Pin(25), level = 0)
-	
-	term.header(True, "Going to sleep...")
-	if (sleepTime >= 86400000): #One day
-		sleepTime = 0
-	if (sleepTime < 1):
-		print("Sleeping until touchbutton is pressed...")
-	else:
-		print("Sleeping for "+str(sleepTime)+"ms...")
-	time.sleep(0.05)
-	badge.eink_busy_wait()
-	machine.deepsleep(sleepTime)
+	import system
+	system.sleep(sleepTime, True)
 
 def reboot():
-    machine.deepsleep(2)
+	import system
+	system.reboot()

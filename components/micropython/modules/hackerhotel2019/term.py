@@ -1,4 +1,4 @@
-import sys, version
+import sys, version, badge
 
 def goto(x,y):
 	sys.stdout.write(u"\u001b["+str(y)+";"+str(x)+"H")
@@ -21,7 +21,7 @@ def header(cls = False, text = ""):
 	if text:
 		text = "- "+text
 	color(37, 44, 1)
-	print(version.badge_name+" "+text+u"\r\n")
+	print(badge.deviceType.replace("_"," ")+" "+text+u"\r\n")
 	color()
 	
 def draw_menu(title, items, selected=0, text=""):

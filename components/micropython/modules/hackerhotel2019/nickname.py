@@ -1,10 +1,2 @@
-import ugfx, badge, appglue, dialogs, easydraw, time
-
-def asked_nickname(value):
-    if value:
-        badge.nvs_set_str("owner", "name", value)
-    appglue.home()
-
-ugfx.init()
-nickname = badge.nvs_get_str("owner", "name", "")
-dialogs.prompt_text("Nickname", nickname, cb=asked_nickname)
+print("deprecation warning: nickname.py will be removed soon: use dashboard.settings.nickname instead")
+import dashboard.settings.nickname
