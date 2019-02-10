@@ -37,25 +37,51 @@ STATIC mp_obj_t audio_volume(mp_uint_t n_args, const mp_obj_t *args) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(audio_volume_obj, 0, 1, audio_volume);
 
-STATIC mp_obj_t audio_fixup_word_0(mp_uint_t n_args, const mp_obj_t *args) {
-    if (n_args > 0){
+STATIC mp_obj_t audio_mixer_ctl_0(mp_uint_t n_args, const mp_obj_t *args) {
+    if (n_args == 1) {
         int v = mp_obj_get_int(args[0]);
-        i2s_fixup_word_0 = v;
+        i2s_mixer_ctl_0 = v;
+    } else if (n_args == 2) {
+        int v1 = mp_obj_get_int(args[0]);
+        int v2 = mp_obj_get_int(args[1]);
+		if (v1 < -128) v1 = -128;
+		if (v1 >  128) v1 =  128;
+		if (v2 < -128) v2 = -128;
+		if (v2 >  128) v2 =  128;
+		uint32_t v = 0;
+		if (v1 < 0) v |= (1 << 8) | (-v1);
+		else v |= v1;
+		if (v2 < 0) v |= (1 << 24) | ((-v2) << 16);
+		else v |= v2 << 16;
+		i2s_mixer_ctl_0 = v;
+	}
+
+    return mp_obj_new_int(i2s_mixer_ctl_0);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(audio_mixer_ctl_0_obj, 0, 2, audio_mixer_ctl_0);
+
+STATIC mp_obj_t audio_mixer_ctl_1(mp_uint_t n_args, const mp_obj_t *args) {
+    if (n_args == 1) {
+        int v = mp_obj_get_int(args[0]);
+        i2s_mixer_ctl_1 = v;
+    } else if (n_args == 2) {
+        int v1 = mp_obj_get_int(args[0]);
+        int v2 = mp_obj_get_int(args[1]);
+		if (v1 < -128) v1 = -128;
+		if (v1 >  128) v1 =  128;
+		if (v2 < -128) v2 = -128;
+		if (v2 >  128) v2 =  128;
+		uint32_t v = 0;
+		if (v1 < 0) v |= (1 << 8) | (-v1);
+		else v |= v1;
+		if (v2 < 0) v |= (1 << 24) | ((-v2) << 16);
+		else v |= v2 << 16;
+		i2s_mixer_ctl_1 = v;
     }
 
-    return mp_obj_new_int(i2s_fixup_word_0);
+    return mp_obj_new_int(i2s_mixer_ctl_1);
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(audio_fixup_word_0_obj, 0, 1, audio_fixup_word_0);
-
-STATIC mp_obj_t audio_fixup_word_1(mp_uint_t n_args, const mp_obj_t *args) {
-    if (n_args > 0){
-        int v = mp_obj_get_int(args[0]);
-        i2s_fixup_word_1 = v;
-    }
-
-    return mp_obj_new_int(i2s_fixup_word_1);
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(audio_fixup_word_1_obj, 0, 1, audio_fixup_word_1);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(audio_mixer_ctl_1_obj, 0, 2, audio_mixer_ctl_1);
 
 /* current active stream */
 static bool audio_stream_active = false;
@@ -405,8 +431,8 @@ STATIC const mp_rom_map_elem_t audio_module_globals_table[] = {
 
 #ifdef IIS_SCLK
     {MP_OBJ_NEW_QSTR(MP_QSTR_volume), (mp_obj_t)&audio_volume_obj},
-    {MP_OBJ_NEW_QSTR(MP_QSTR_fixup_word_0), (mp_obj_t)&audio_fixup_word_0_obj},
-    {MP_OBJ_NEW_QSTR(MP_QSTR_fixup_word_1), (mp_obj_t)&audio_fixup_word_1_obj},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_mixer_ctl_0), (mp_obj_t)&audio_mixer_ctl_0_obj},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_mixer_ctl_1), (mp_obj_t)&audio_mixer_ctl_1_obj},
 
     {MP_OBJ_NEW_QSTR(MP_QSTR_is_playing), (mp_obj_t)&audio_is_playing_obj},
 
