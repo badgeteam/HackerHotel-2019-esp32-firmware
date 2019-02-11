@@ -50,6 +50,43 @@ def msg(message, title = "Loading...", reset = False, wait = 0):
 		print("!!! Exception in easydraw.msg !!!")
 		print(e)
 
+def messageCentered(message, firstLineTitle=True, png=None):
+	font1 = "Roboto_Regular18"
+	font2 = "Roboto_Regular12"
+	color = ugfx.BLACK
+	ugfx.clear(ugfx.WHITE)
+	parts = message.split("\n")
+	lines = []
+	font = font1
+	for part in parts:
+		if len(part) < 1:
+			lines.append("")
+		else:
+			lines.extend(lineSplit(part, ugfx.width(), font))
+		if firstLineTitle:
+			font = font2
+	offset_y = int((ugfx.height()/2) - len(lines)*8)
+	if png != None:
+		try:
+			img_info = badge.png_info(png)
+			offset_y += int(img_info[1] / 2) - 5
+			img_x = int((ugfx.width() - img_info[0]) / 2)
+			ugfx.display_image(img_x, offset_y, png)
+			offset_y += img_info[1] + 10
+		except:
+			pass
+	
+	if firstLineTitle:
+		font = font2
+	for i in range(len(lines)):
+		if firstLineTitle and i == len(lines) - 1:
+			font = font1
+		line = lines[len(lines)-i-1]
+		pos_x = int((ugfx.width()-ugfx.get_string_width(line, font)) / 2)
+		pos_y = offset_y+16*(len(lines)-i-1)
+		ugfx.string(pos_x, pos_y, line, font, color)
+	ugfx.flush()
+
 def nickname(y = 0, font = version.font_nickname_large, color = ugfx.BLACK, lineHeight=15):
 	nick = badge.nvs_get_str("owner", "name", 'WELCOME TO HACKERHOTEL')
 	lines = lineSplit(nick, ugfx.width(), font)

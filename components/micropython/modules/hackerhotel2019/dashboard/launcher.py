@@ -114,7 +114,7 @@ def run():
 	selected = options.selected_index()
 	options.destroy()
 	global currentListTargets
-	system.start(currentListTargets[selected]["file"])
+	system.start(currentListTargets[selected]["file"], True)
 
 # Path
 

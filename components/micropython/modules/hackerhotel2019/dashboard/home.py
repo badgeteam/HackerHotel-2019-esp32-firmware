@@ -17,7 +17,7 @@ cfg_led_animation    = badge.nvs_get_str('splash', 'ledApp', None)
 
 # Drop directly into uPython shell if requested
 if cfg_shell:
-	system.shell()
+	system.shell(True)
 
 # Small hack to install logo if needed
 try:
@@ -25,17 +25,26 @@ try:
 	if not "hackerhotel.png" in media:
 		raise(BaseException("Logo not available"))
 except:
-	import install_hh_logo
+	import dashboard.resources.png_hackerhotel
+
+try:
+	media = uos.listdir("/media")
+	icons = ["alert", "bell", "bug", "busy", "charge", "crown", "earth", "flag", "music", "ok", "wifi"]
+	for icon in icons:
+		if not icon+".png" in media:
+			raise(BaseException(""))
+except:
+	import dashboard.resources.png_icons
 
 try:
 	badge.i2c_read_reg(0x5a, 0x00, 0x01) # Test the i2c connection
 except:
-	system.start("bricked", False)
+	system.start("bricked", True)
 
 # Initialise the default button actions
 def btn_start(pressed):
 	if pressed:
-		system.launcher()
+		system.launcher(True)
 
 def btn_unhandled(pressed):
 	pm.feed()

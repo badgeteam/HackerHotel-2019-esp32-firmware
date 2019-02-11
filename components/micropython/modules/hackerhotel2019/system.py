@@ -1,6 +1,11 @@
 # Power management
 
 def reboot():
+	try:
+		import badge
+		badge.eink_busy_wait()
+	except:
+		pass
 	import machine
 	machine.deepsleep(2)
 
@@ -45,10 +50,10 @@ def start(app, status=False):
 		import term, easydraw
 		if app == "" or app == "launcher":
 			term.header(True, "Loading menu...")
-			easydraw.msg("Loading menu...", "Please wait", True)
+			easydraw.messageCentered("PLEASE WAIT\nStarting the menu...", True, "/media/busy.png")
 		else:
 			term.header(True, "Loading application "+app+"...")
-			easydraw.msg("Starting '"+app+"'...", "Please wait", True)
+			easydraw.messageCentered("PLEASE WAIT\nStarting '"+app+"'...", True, "/media/busy.png")
 	esp.rtcmem_write_string(app)
 	reboot()
 
@@ -67,9 +72,12 @@ def ota(status=False):
 	import esp, deepsleep
 	if status:
 		import term, easydraw
-		term.header(True, "Starting OTA...")
-		easydraw.msg("Starting update...", "Please wait", True)
+		term.header(True, "Starting update...")
+		easydraw.messageCentered("PLEASE WAIT\nStarting update...", True, "/media/busy.png")
 	esp.rtcmem_write(0,1)
 	esp.rtcmem_write(1,254)
 	reboot()
 
+def serialWarning():
+	import easydraw
+	easydraw.messageCentered("NOTICE\n\nThis app can only be controlled using the USB-serial connection.", True, "/media/crown.png")

@@ -1,4 +1,6 @@
-import network, term, appglue, sys, badge
+import network, term, sys, badge, system
+
+system.serialWarning()
 
 def main():
 	term.empty_lines()
@@ -7,7 +9,7 @@ def main():
 	callbacks[term.menu("WiFi setup", items)]()
 
 def home():
-	appglue.home()
+	system.home(True)
 
 def scan():
 	term.header(True, "WiFi setup")
@@ -69,7 +71,7 @@ def confirm(ssid, password):
 	print("")
 	print("Press any key to return to the homescreen")
 	sys.stdin.read(1)
-	appglue.home()
+	system.home(True)
 
 while True:
 	main()

@@ -1,6 +1,6 @@
 import term, system, sys, badge, uos as os, ujson, easydraw
 
-easydraw.msg("This app can only be controlled using the USB-serial connection.", "Notice", True)
+system.serialWarning()
 
 apps = []
 

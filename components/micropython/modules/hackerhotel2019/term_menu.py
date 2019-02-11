@@ -35,33 +35,30 @@ class UartMenu():
 		app.start_app("nickname_term")
 		
 	def opt_installer(self):
-		app.start_app("installer_term")
+		app.start_app("dashboard.terminal.installer")
 	
 	def opt_launcher(self):
-		app.start_app("launcher_term")
+		app.start_app("dashboard.terminal.launcher")
 	
 	def opt_configure_wifi(self):
-		app.start_app("wifi_setup_term")
+		app.start_app("dashboard.terminal.wifi")
 		
 	def opt_configure_orientation(self):
-		app.start_app("term_orientation")
+		app.start_app("dashboard.terminal.orientation")
 		
 	def opt_ota(self):
 		app.start_ota()
 		
 	def opt_ota_check(self):
 		app.start_app("checkforupdates")
-			
-	def opt_downloadmorerom(self):
-		app.start_app("downloadmorerom")
-			
+	
 	def opt_about(self):
 		app.start_app("about")
 		
 	
 	def menu_settings(self):
-		items = ["Change nickname", "Configure WiFi", "Set default orientation", "Update firmware", "(Reclaim unused flash space)", "< Return to main menu"]
-		callbacks = [self.opt_change_nickname, self.opt_configure_wifi, self.opt_configure_orientation, self.opt_ota, self.opt_downloadmorerom, self.menu_main, self.menu_main]
+		items = ["Change nickname", "Configure WiFi", "Set default orientation", "Update firmware", "< Return to main menu"]
+		callbacks = [self.opt_change_nickname, self.opt_configure_wifi, self.opt_configure_orientation, self.opt_ota, self.menu_main, self.menu_main]
 		cb = term.menu("Settings", items)
 		self.menu = callbacks[cb]
 	

@@ -1,5 +1,7 @@
 import term, orientation, appglue, time
 
+system.serialWarning()
+
 def getOrientationString(currentValue):
 	orientationString = str(currentValue)
 	if currentValue == 0:
