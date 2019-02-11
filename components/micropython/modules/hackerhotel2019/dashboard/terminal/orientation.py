@@ -1,4 +1,4 @@
-import term, orientation, appglue, time
+import term, orientation, system, time
 
 system.serialWarning()
 
@@ -21,11 +21,11 @@ orientationString = getOrientationString(currentValue)
 message = "Current orientation: "+orientationString+"\n"
 newValue = options[term.menu("Configure orientation", items, 0, message)]
 if newValue < 0:
-	appglue.home()
+	system.home(True)
 term.header(True, "Configure orientation")
 if orientation.setDefault(newValue):
 	print("Default orientation changed to "+getOrientationString(newValue))
 else:
 	print("Default orientation could not be changed to "+getOrientationString(newValue))
 time.sleep(1)
-appglue.home()
+system.home(True)
