@@ -49,6 +49,7 @@ class Repository():
 			self.lastUpdate = int(time.time())
 			f = open(self.path+"/lastUpdate", 'w')
 			f.write(str(self.lastUpdate))
+			f.close()
 			self._showProgress("Done!")
 			gc.collect()
 			return True
@@ -62,8 +63,9 @@ class Repository():
 		try:
 			f = open(self.path+"/lastUpdate", 'r')
 			data = f.read()
-			self.lastUpdate = int(data)
 			f.close()
+			#print("Last update at",data)
+			self.lastUpdate = int(data)
 			f = open(self.path+"/categories.json")
 			self.categories = json.loads(f.read())
 			f.close()

@@ -66,6 +66,12 @@ def onSleep(idleTime=None):
 		idleTime = virtualtimers.idle_time()
 	gui_redraw = True
 	drawTask(True)
+	if (idleTime >= 86400000): #One day
+		idleTime = 0
+	if duration < 1:
+		term.header(True, "Sleeping until touchbutton is pressed...")
+	else:
+		term.header(True, "Sleeping for "+str(idleTime)+"ms...")
 	system.sleep(idleTime)
 
 pm.callback(onSleep)
