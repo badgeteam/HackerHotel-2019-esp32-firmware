@@ -22,11 +22,6 @@ To build the basic firmware:
  * make menuconfig
  * make
 
-To build the Micropython firmware:
- * Build the basic firmware 
- * cd micropython/esp32
- * make
-
 ## Debian prerequisites
 
 ```
@@ -46,21 +41,6 @@ make -j5
 
 ```
 make menuconfig
-```
-
-## Compiling MicroPython
-
-```
-make -j5 -C micropython/mpy-cross
-make -j5 -C micropython/esp32/
-```
-
-## Flashing MicroPython
-
-```
-cd auto-flasher
-cp ../micropython/esp32/build/application.bin firmware/sha2017-badge.bin
-./auto_flash.pl /dev/ttyUSB0
 ```
 
 # Interacting via serial
@@ -102,12 +82,5 @@ ugfx.line(140 + len, 52, 140 + len, 70, badge.WHITE)
 ugfx.string(140,75,"Anyway","Roboto_BlackItalic24",badge.WHITE)
 ugfx.flush()
 ```
-More info on the [MicroPython badge features](https://wiki.sha2017.org/w/Projects:Badge/MicroPython)
+More info on the [MicroPython badge features](https://wiki.badge.team/MicroPython)
 
-# Badge Emulator
-
-```
-make -C micropython/unix
-cd micropython/unix
-./micropython ../../examples/Game\ of\ Life/game_of_life.py
-```
