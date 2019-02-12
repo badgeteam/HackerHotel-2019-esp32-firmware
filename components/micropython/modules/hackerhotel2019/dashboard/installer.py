@@ -24,6 +24,11 @@ def btn_exit(pressed):
 	if pressed:
 		system.launcher()
 
+def btn_update(pressed):
+	if pressed:
+		repo.update()
+		system.start("installer", True)
+
 # Categories list
 
 categories_list = ugfx.List(0,0,ugfx.width(),ugfx.height()-48)
@@ -40,7 +45,7 @@ def show_categories(pressed=True):
 	categories_list.enabled(True)
 	#Input handling
 	ugfx.input_attach(ugfx.BTN_START, btn_exit)
-	ugfx.input_attach(ugfx.BTN_SELECT, btn_unhandled)
+	ugfx.input_attach(ugfx.BTN_SELECT, btn_update)
 	ugfx.input_attach(ugfx.BTN_A, show_category)
 	ugfx.input_attach(ugfx.BTN_B, btn_unhandled)
 	ugfx.input_attach(ugfx.JOY_UP, btn_unhandled)
@@ -48,9 +53,9 @@ def show_categories(pressed=True):
 	ugfx.input_attach(ugfx.JOY_LEFT, btn_unhandled)
 	ugfx.input_attach(ugfx.JOY_RIGHT, btn_unhandled)
 	#Hint
-	easydraw.disp_string_right_bottom(0, "START: Return to launcher")
+	easydraw.disp_string_right_bottom(0, "START: Exit app")
 	easydraw.disp_string_right_bottom(1, "A: Open category")
-	easydraw.disp_string_right_bottom(2, "")
+	easydraw.disp_string_right_bottom(2, "SELECT: Update repo")
 	#Flush screen
 	ugfx.flush()
 
