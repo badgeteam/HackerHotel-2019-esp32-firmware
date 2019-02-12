@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 cd esp-idf
 export IDF_PATH=$(pwd)
 export ESPIDF=$(pwd)

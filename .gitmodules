@@ -1,11 +1,3 @@
-[submodule "esp-idf"]
-	path = esp-idf
-	url = https://github.com/badgeteam/esp-idf.git
-	branch = master
-[submodule "micropython"]
-	path = micropython
-	url = https://github.com/badgeteam/micropython-esp32.git
-	branch = master
 [submodule "ugfx"]
 	path = ugfx
 	url = https://github.com/badgeteam/ugfx.git
@@ -21,9 +13,10 @@
 [submodule "auto-flasher"]
 	path = auto-flasher
 	url = https://github.com/badgeteam/ESP32-auto-flasher.git
-[submodule "xtensa-esp32-elf"]
-	path = xtensa-esp32-elf
-	url = https://github.com/badgeteam/xtensa-esp32-elf.git
+[submodule "esp-idf"]
+	path = esp-idf
+	url = https://github.com/espressif/esp-idf.git
+	branch = release/v3.1
 [submodule "esp-adf"]
 	path = esp-adf
 	url = https://github.com/badgeteam/esp-adf.git

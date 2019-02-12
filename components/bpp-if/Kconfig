@@ -1,9 +1,0 @@
-menu "BPP"
-
-config SHA_BPP_ENABLE
-    bool "Enable BPP"
-    default n
-    help
-        Enable passive firmware and read-only filesystem updates
-
-endmenu
