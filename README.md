@@ -82,5 +82,5 @@ ugfx.line(140 + len, 52, 140 + len, 70, badge.WHITE)
 ugfx.string(140,75,"Anyway","Roboto_BlackItalic24",badge.WHITE)
 ugfx.flush()
 ```
-More info on the [MicroPython badge features](https://wiki.sha2017.org/w/Projects:Badge/MicroPython)
+More info on the [MicroPython badge features](https://wiki.badge.team/MicroPython)
 
