@@ -17,6 +17,7 @@
 #include "i2s_stream.h"
 #include "mp3_decoder.h"
 #include "badge_pins.h"
+#include "badge_nvs.h"
 #include "badge_power.h"
 
 #include "modaudio.h"
@@ -24,6 +25,44 @@
 #ifdef IIS_SCLK
 
 #define TAG "esp32/modaudio"
+
+void
+modaudio_init(void)
+{
+    // initialize volume preference
+    uint16_t value = 0;
+    esp_err_t res = badge_nvs_get_u16("modaudio", "volume", &value);
+    if ( res == ESP_OK ) {
+        i2s_stream_volume = (value <= 1024) ? value : 1024;
+    }
+
+    // initialize mixer preferences
+    value = 0;
+    res = badge_nvs_get_u16("modaudio", "mixer_ctl_0", &value);
+    if ( res == ESP_OK ) {
+        int16_t v_0_0 = value & 0x7f;
+        if (v_0_0 > 32) v_0_0 = 32;
+        if (value & 0x80) v_0_0 = -v_0_0;
+        int16_t v_0_1 = (value >> 8) & 0x7f;
+        if (v_0_1 > 32) v_0_1 = 32;
+        if (value & 0x8000) v_0_1 = -v_0_1;
+        i2s_mixer_ctl_0_0 = v_0_0;
+        i2s_mixer_ctl_0_1 = v_0_1;
+    }
+
+    value = 0;
+    res = badge_nvs_get_u16("modaudio", "mixer_ctl_1", &value);
+    if ( res == ESP_OK ) {
+        int16_t v_1_0 = value & 0x7f;
+        if (v_1_0 > 32) v_1_0 = 32;
+        if (value & 0x80) v_1_0 = -v_1_0;
+        int16_t v_1_1 = (value >> 8) & 0x7f;
+        if (v_1_1 > 32) v_1_1 = 32;
+        if (value & 0x8000) v_1_1 = -v_1_1;
+        i2s_mixer_ctl_1_0 = v_1_0;
+        i2s_mixer_ctl_1_1 = v_1_1;
+    }
+}
 
 STATIC mp_obj_t audio_volume(mp_uint_t n_args, const mp_obj_t *args) {
     if (n_args > 0){
@@ -426,6 +465,12 @@ STATIC mp_obj_t audio_stop(void) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(audio_stop_obj, audio_stop);
 
+#else
+void
+modaudio_init(void)
+{
+    // dummy method; nothing to initialize
+}
 #endif // IIS_SCLK
 
 
