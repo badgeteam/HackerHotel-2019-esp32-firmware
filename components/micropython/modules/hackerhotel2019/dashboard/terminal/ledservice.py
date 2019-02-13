@@ -1,4 +1,4 @@
-import term, orientation, system, time, uos, json
+import term, orientation, system, time, uos, json, badge
 
 system.serialWarning()
 term.header(True, "Services")

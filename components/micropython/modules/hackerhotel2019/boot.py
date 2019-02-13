@@ -59,6 +59,5 @@ except BaseException as e:
 	if splash == badge.nvs_get_str('boot', 'splash', 'dashboard.home') and splash != 'dashboard.home':
 		badge.nvs_erase_key('boot', 'splash')
 	import easydraw
-	ugfx.orientation(0)
-	easydraw.msg(str(e),"Fatal error", True)
+	easydraw.messageCentered("Fatal error\n"+str(e), True, "/media/bug.png")
 
