@@ -1,4 +1,4 @@
-import term, badge, deepsleep as ds, appglue as app, version
+import term, badge, deepsleep as ds, system, version
 
 class UartMenu():
 	def __init__(self, gts, pm, safe = False, pol="Power off"):
@@ -32,33 +32,38 @@ class UartMenu():
 		self.gts()
 		
 	def opt_change_nickname(self):
-		app.start_app("nickname_term")
+		system.start("nickname_term", True)
 		
 	def opt_installer(self):
-		app.start_app("dashboard.terminal.installer")
+		system.start("dashboard.terminal.installer", True)
 	
 	def opt_launcher(self):
-		app.start_app("dashboard.terminal.launcher")
+		system.start("dashboard.terminal.launcher", True)
 	
 	def opt_configure_wifi(self):
-		app.start_app("dashboard.terminal.wifi")
+		system.start("dashboard.terminal.wifi", True)
 		
 	def opt_configure_orientation(self):
-		app.start_app("dashboard.terminal.orientation")
+		system.start("dashboard.terminal.orientation", True)
 		
 	def opt_ota(self):
-		app.start_ota()
+		system.ota(True)
 		
 	def opt_ota_check(self):
-		app.start_app("checkforupdates")
+		system.start("checkforupdates", True)
 	
 	def opt_about(self):
-		app.start_app("about")
-		
+		system.start("about", True)
 	
+	def opt_configure_services(self):
+		system.start("dashboard.terminal.services", True)
+		
+	def opt_configure_led(self):
+		system.start("dashboard.terminal.ledservice", True)
+		
 	def menu_settings(self):
-		items = ["Change nickname", "Configure WiFi", "Set default orientation", "Update firmware", "< Return to main menu"]
-		callbacks = [self.opt_change_nickname, self.opt_configure_wifi, self.opt_configure_orientation, self.opt_ota, self.menu_main, self.menu_main]
+		items = ["Change nickname", "Configure WiFi", "Set default orientation", "Homescreen services (beta)", "Homescreen LED animation", "Update firmware", "< Return to main menu"]
+		callbacks = [self.opt_change_nickname, self.opt_configure_wifi, self.opt_configure_orientation, self.opt_configure_services, self.opt_configure_led, self.opt_ota, self.menu_main, self.menu_main]
 		cb = term.menu("Settings", items)
 		self.menu = callbacks[cb]
 	

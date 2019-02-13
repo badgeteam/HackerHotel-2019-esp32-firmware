@@ -18,40 +18,47 @@ def show_categories():
 	for category in repo.categories:
 		opt.append(category["name"])
 	opt.append("< Back to launcher")
-	sel = term.menu("Installer - Categories", opt)
-	if sel == len(repo.categories):
-		system.launcher(True)
-	show_category(sel)
+	while True:
+		sel = term.menu("Installer - Categories", opt)
+		if sel == len(repo.categories):
+			system.launcher(True)
+		show_category(sel)
 
 # Category browsing
 
-def show_category(i):
+def show_category(i = None):
 	system.serialWarning()
 	global category
-	slug = repo.categories[i]["slug"]
-	name = repo.categories[i]["name"]
-	showMessage("Loading "+slug+"...")
-	try:
+	if i != None:
+		slug = repo.categories[i]["slug"]
+		name = repo.categories[i]["name"]
+		showMessage("Loading "+slug+"...")
 		try:
 			category = repo.getCategory(slug)
 		except:
 			showMessage("Failed to open category "+slug+"!", True)
 			time.sleep(1)
-			show_categories()
+			return
 		gc.collect()
+	else:
+		if category == None:
+			print("Internal error.")
+			return
+	try:
 		opt = []
 		for package in category:
 			opt.append("%s rev. %s" % (package["name"], package["revision"]))
 		opt.append("< Back to categories")
-		sel = term.menu("Installer - "+name, opt)
-		if sel == len(category):
-			show_categories()
-		install_app(sel)
+		while True:
+			sel = term.menu("Installer - "+name, opt)
+			if sel == len(category):
+				return
+			install_app(sel)
 	except BaseException as e:
 		sys.print_exception(e)
 		showMessage(e, True)
 		time.sleep(1)
-		show_categories()
+		return
 
 # Install application
 
@@ -67,20 +74,20 @@ def install_app(i):
 		if not wifi.status():
 			showMessage("Unable to connect to WiFi.")
 			time.sleep(2)
-			show_category()
+			return
 	showMessage("Installing "+slug+"...")
 	try:
 		woezel.install(slug)
 	except woezel.LatestInstalledError:
 		showMessage("Latest version is already installed.")
 		time.sleep(2)
-		show_category()
+		return
 	except:
 		showMessage("Failed to install "+slug+"!")
 		time.sleep(2)
-		show_category()
+		return
 	showMessage(slug+" has been installed!")
-	show_category()
+	return
 
 #Main application
 

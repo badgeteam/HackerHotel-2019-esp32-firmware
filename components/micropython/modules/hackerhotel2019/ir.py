@@ -137,7 +137,7 @@ class NecIR(BadgeIr):
 	def decoder(self):
 		decoded=0
 		i=0
-	while True and self.bufpos-i>0:
+		while True and self.bufpos-i>0:
 			(val,time)=self.buffer[i]
 			i+=1
 			if val==0 and time==9:
@@ -149,26 +149,26 @@ class NecIR(BadgeIr):
 					(val,time)=self.buffer[i]
 					i+=1
 					if time>0:
-					if p1==None:
-						p1=(val,time)
-						if bits==32 and p1[1]==1:
-							self.cleanbuffer(i)
-							if (decoded >> 24 & 0xFF) == (0xFF ^ (decoded >> 16 & 0xFF)) and (decoded >> 8 & 0xFF) == (0xFF ^ (decoded >> 0 & 0xFF)) and self.command:
-								self.command(decoded >> 24 & 0xFF,decoded >> 8 & 0xFF)
-							return(0)
-					else:
-						p2=(val,time)
-						if p1[1]==1 and p2[1]==3:
-							decoded=decoded<<1 | 1
-							bits+=1
-						elif p1[1]==1 and p2[1]==1:
-							decoded=decoded<<1
-							bits+=1
-						if bits==32 and p2==None:
-							self.cleanbuffer(i)
-							return(0)
-						p1=None
-						p2=None
+						if p1==None:
+							p1=(val,time)
+							if bits==32 and p1[1]==1:
+								self.cleanbuffer(i)
+								if (decoded >> 24 & 0xFF) == (0xFF ^ (decoded >> 16 & 0xFF)) and (decoded >> 8 & 0xFF) == (0xFF ^ (decoded >> 0 & 0xFF)) and self.command:
+									self.command(decoded >> 24 & 0xFF,decoded >> 8 & 0xFF)
+								return(0)
+						else:
+							p2=(val,time)
+							if p1[1]==1 and p2[1]==3:
+								decoded=decoded<<1 | 1
+								bits+=1
+							elif p1[1]==1 and p2[1]==1:
+								decoded=decoded<<1
+								bits+=1
+							if bits==32 and p2==None:
+								self.cleanbuffer(i)
+								return(0)
+							p1=None
+							p2=None
 					elif time<0:
 						self.cleanbuffer(i)
 						return(0)

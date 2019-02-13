@@ -24,24 +24,27 @@ def header(cls = False, text = ""):
 	print(badge.deviceType.replace("_"," ")+" "+text+u"\r\n")
 	color()
 	
-def draw_menu(title, items, selected=0, text=""):
+def draw_menu(title, items, selected=0, text="", width=32):
 	header(False, title)
 	if len(text)>0:
 		print(text)
 		print("")
 	for i in range(0, len(items)):
+		space = ""
+		if width-len(items[i]) > 0:
+			space = " "*(width-len(items[i]))
 		if (selected == i):
 			color(30, 47, 0)
-			print("> " + items[i])
+			print("> " + items[i]+space)
 		else:
 			color()
-			print("  " + items[i])
+			print("  " + items[i]+space)
 	color()
 		
-def menu(title, items, selected = 0, text=""):
+def menu(title, items, selected = 0, text="", width=32):
 	clear()
 	while True:
-		draw_menu(title, items, selected, text)
+		draw_menu(title, items, selected, text, width)
 		key = sys.stdin.read(1)
 		feedPm()
 		if (ord(key)==0x1b):

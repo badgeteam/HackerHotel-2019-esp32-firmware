@@ -50,42 +50,57 @@ def msg(message, title = "Loading...", reset = False, wait = 0):
 		print("!!! Exception in easydraw.msg !!!")
 		print(e)
 
+def lineCentered(pos_y, line, font, color):
+	pos_x = int((ugfx.width()-ugfx.get_string_width(line, font)) / 2)
+	ugfx.string(pos_x, pos_y, line, font, color)
+
 def messageCentered(message, firstLineTitle=True, png=None):
-	font1 = "Roboto_Regular18"
-	font2 = "Roboto_Regular12"
-	color = ugfx.BLACK
-	ugfx.clear(ugfx.WHITE)
-	parts = message.split("\n")
-	lines = []
-	font = font1
-	for part in parts:
-		if len(part) < 1:
-			lines.append("")
-		else:
-			lines.extend(lineSplit(part, ugfx.width(), font))
+	try:
+		font1 = "Roboto_Regular18"
+		font2 = "Roboto_Regular12"
+		color = ugfx.BLACK
+		ugfx.clear(ugfx.WHITE)
+		parts = message.split("\n")
+		lines = []
+		font = font1
+		for part in parts:
+			if len(part) < 1:
+				lines.append("")
+			else:
+				lines.extend(lineSplit(part, ugfx.width(), font))
+			if firstLineTitle:
+				font = font2
+		
+		offset_y = int(ugfx.height()/2) #Half of the screen height
+		offset_y -= 9 #Height of the first line divided by 2
 		if firstLineTitle:
-			font = font2
-	offset_y = int((ugfx.height()/2) - len(lines)*8)
-	if png != None:
-		try:
-			img_info = badge.png_info(png)
-			offset_y += int(img_info[1] / 2) - 5
-			img_x = int((ugfx.width() - img_info[0]) / 2)
-			ugfx.display_image(img_x, offset_y, png)
-			offset_y += img_info[1] + 10
-		except:
-			pass
-	
-	if firstLineTitle:
-		font = font2
-	for i in range(len(lines)):
-		if firstLineTitle and i == len(lines) - 1:
-			font = font1
-		line = lines[len(lines)-i-1]
-		pos_x = int((ugfx.width()-ugfx.get_string_width(line, font)) / 2)
-		pos_y = offset_y+16*(len(lines)-i-1)
-		ugfx.string(pos_x, pos_y, line, font, color)
-	ugfx.flush()
+			offset_y -= 6*len(lines)-1 #Height of font1 divided by 2
+		else:
+			offset_y -= 9*len(lines)-1 #Height of font2 divided by 2
+
+		if png != None:
+			try:
+				img_info = badge.png_info(png)
+				offset_y -= int(img_info[1] / 2) + 4
+				img_x = int((ugfx.width() - img_info[0]) / 2)
+				ugfx.display_image(img_x, offset_y, png)
+				offset_y += img_info[1] + 8 
+			except:
+				pass
+		
+		lineCentered(offset_y, lines[0], font1, color)
+		offset_y += 18
+		
+		for i in range(len(lines)-1):
+			if not firstLineTitle:
+				lineCentered(offset_y, lines[i+1], font1, color)
+				offset_y += 18
+			else:
+				lineCentered(offset_y, lines[i+1], font2, color)
+				offset_y += 12
+		ugfx.flush()
+	except:
+		print("!!! Exception in easydraw.messageCentered !!!")
 
 def nickname(y = 0, font = version.font_nickname_large, color = ugfx.BLACK, lineHeight=15):
 	nick = badge.nvs_get_str("owner", "name", 'WELCOME TO HACKERHOTEL')

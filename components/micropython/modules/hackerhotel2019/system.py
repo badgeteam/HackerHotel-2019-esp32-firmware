@@ -12,6 +12,7 @@ def reboot():
 def sleep(duration=0, status=False):
 	import machine, time
 	machine.RTC().wake_on_ext0(pin = machine.Pin(25), level = 0)
+	machine.RTC().wake_on_ext1([machine.Pin(12, machine.Pin.IN, machine.Pin.PULL_UP)], 0)
 	if (duration >= 86400000): #One day
 		duration = 0
 	if status:
@@ -34,11 +35,15 @@ def isColdBoot():
 		return True
 	return False
 
-def isWakeup(fromTimer=True,fromButton=True):
+def isWakeup(fromTimer=True,fromButton=True, fromIr=True, fromUlp=True):
 	import machine
-	if fromButton and machine.wake_reason() == (3, 4):
+	if fromButton and machine.wake_reason() == (3, 1):
 		return True
-	if fromTimer and machine.wake_reason() == (3, 1):
+	if fromIr     and machine.wake_reason() == (3, 2):
+		return True
+	if fromTimer  and machine.wake_reason() == (3, 4):
+		return True
+	if fromUlp    and machine.wake_reason() == (3, 5):
 		return True
 	return False
 

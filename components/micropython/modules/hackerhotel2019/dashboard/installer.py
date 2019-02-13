@@ -112,12 +112,10 @@ def show_category(pressed=True):
 # Install application
 
 def install_app(pressed=True):
-	global category
-	slug = category[category_list.selected_index()]["slug"]
-	category = None
-	gc.collect()
-	
+	global category	
 	if pressed:
+		slug = category[category_list.selected_index()]["slug"]
+		gc.collect()
 		category_list.visible(False)
 		category_list.enabled(False)
 		#Input handling
