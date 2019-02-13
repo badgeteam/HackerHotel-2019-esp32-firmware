@@ -1,4 +1,4 @@
-import tasks.otacheck as otacheck, easydraw, term, appglue, time, version, easywifi, badge, ugfx, orientation
+import tasks.otacheck as otacheck, easydraw, term, system, time, version, easywifi, badge, ugfx, orientation
 
 orientation.default()
 
@@ -14,9 +14,13 @@ available = 0
 
 badge.nvs_set_u8('badge','OTA.ready',0)
 
+def cancel(pressed):
+	if pressed:
+		system.home()
+
 def start(pressed):
 	if pressed:
-		appglue.start_ota()
+		system.ota()
 
 if not easywifi.status():
 	if not easywifi.enable():
@@ -33,9 +37,7 @@ if easywifi.status():
 				badge.nvs_set_u8('badge','OTA.ready',0)
 				print("Update available!")
 				badge.nvs_set_u8('badge','OTA.ready',1)
-				easydraw.msg("Update available!")
-				easydraw.msg_nosplit(str(info["build"])+") "+info["name"])
-				easydraw.msg("Update now?")
+				easydraw.messageCentered("Update?\nA new version is available!\n\nPress A to start.\nPress B to cancel.\n\nCurrent version:\n"+version.name+" ("+str(version.build)+")\n\nAvailable version:\n"+info["name"]+" ("+str(info["build"])+")")
 				title = "Firmware update available"
 				message  = "A new firmware version is available. Update?\n"
 				message += "Currently installed: "+version.name+" (Build "+str(version.build)+")\n"
@@ -44,39 +46,34 @@ if easywifi.status():
 				badge.nvs_set_u8('badge','OTA.ready',0)
 				print("Server has an older version.")
 				badge.nvs_set_u8('badge','OTA.ready',1)
-				easydraw.msg("Downgrade available!")
-				easydraw.msg_nosplit(str(info["build"])+") "+info["name"])
-				easydraw.msg("Downgrade now?")
+				easydraw.messageCentered("Downgrade?\nAn older version is available!\n\nPress A to start.\nPress B to cancel.\n\nCurrent version:\n"+version.name+" ("+str(version.build)+")\n\nAvailable version:\n"+info["name"]+" ("+str(info["build"])+")")
 				title = "Firmware downgrade available"
 				message  = "An older firmware version is available. Update?\n"
 				message += "Currently installed: "+version.name+" (Build "+str(version.build)+")\n"
 				message += "Available          : "+info["name"]+" (Build "+str(info["build"])+")"
 			else:
 				print("You are up-to-date!")
-				easydraw.msg("Up-to-date!")
-				easydraw.msg_nosplit(str(version.build)+") "+version.name)
-				easydraw.msg("Update anyway?")
+				easydraw.messageCentered("Up-to-date\nYou are up-to-date.\n\nPress A to update anyway.\nPress B to cancel.\n\nCurrent version:\n"+version.name+" ("+str(version.build)+")\n\nAvailable version:\n"+info["name"]+" ("+str(info["build"])+")")
 				title = "Up-to-date"
 				message = "You are up-to-date.\n"
 				message += "Currently installed: "+version.name+" (Build "+str(version.build)+")\n"
 				message += "Available          : "+info["name"]+" (Build "+str(info["build"])+")"
 	else:
 		print("An error occured!")
-		easydraw.msg("Check failed.")
-		easydraw.msg_nosplit(str(version.build)+") "+version.name)
-		easydraw.msg("Update anyway?")
+		easydraw.messageCentered("Unknown status\nAn error occured while fetching information. You can still choose to start the OTA procedure.\n\nPress A to update anyway.\nPress B to cancel.\n\nCurrent version:\n"+version.name+" ("+str(version.build)+")")
 		title = "Update check"
 		message = "An error occured while fetching information. You can still choose to start the OTA procedure."
 else:
-	easydraw.msg("No WiFi!")
-	easydraw.msg_nosplit(str(version.build)+") "+version.name)
-	easydraw.msg("Update anyway?")
+	easydraw.messageCentered("Unknown status\nNo WiFi available. You can still choose to start the OTA procedure.\n\nPress A to update anyway.\nPress B to cancel.\n\nCurrent version:\n"+version.name+" ("+str(version.build)+")")
 	title = "Update check"
 	message = "Could not connect to the WiFi network. You can still choose to start the OTA procedure."
 
+ugfx.input_attach(ugfx.BTN_SELECT, cancel)
+ugfx.input_attach(ugfx.BTN_B, cancel)
 ugfx.input_attach(ugfx.BTN_START, start)
+ugfx.input_attach(ugfx.BTN_A, start)
 
 
 items = ["Cancel", "Start OTA update"]
-callbacks = [appglue.home, appglue.start_ota]
-callbacks[term.menu(title, items, 0, message)]()
+callbacks = [system.home, system.ota]
+callbacks[term.menu(title, items, 0, message)](True)
