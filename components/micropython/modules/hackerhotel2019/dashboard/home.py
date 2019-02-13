@@ -147,6 +147,10 @@ def display_app(position):
 		ugfx.string(5, position, "("+gui_app_names[gui_app_current]+")", "Roboto_Regular18", ugfx.BLACK)
 	
 
+def redraw_cb():
+	global gui_redraw
+	gui_redraw = True
+
 if cfg_services:
 	try:
 		f = open('/services.json', 'r')
@@ -167,7 +171,10 @@ if cfg_services:
 		for app in cfg['apps']:
 			try:
 				new_app = __import__("/lib/"+app+"/srv")
-				new_app.init()
+				try:
+					new_app.init(redraw_cb)
+				except:
+					new_app.init()
 				gui_apps.append(new_app)
 				gui_app_names.append(app)
 			except BaseException as e:

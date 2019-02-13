@@ -1,21 +1,49 @@
-import term, orientation, system, time
+import term, orientation, system, time, uos, json
 
 system.serialWarning()
+term.header(True, "Services")
+print("Loading...")
+apps = uos.listdir('/lib')
+services = []
+for app in apps:
+	if "srv.py" in uos.listdir('/lib/'+app):
+		services.append(app)
 
+def load():
+	global data
+	f = open("/services.json", "r")
+	data = json.loads(f.read())
+	f.close()
 
+def save():
+	global data
+	f = open("/services.json", "w")
+	f.write(json.dumps(data))
+	f.close()
 
-items = ["Landscape", "Portrait", "Landscape inverted", "Portrait inverted", "< Back"]
-options = [0, 90, 180, 270, -1, -1]
-currentValue = orientation.getDefault()
-orientationString = getOrientationString(currentValue)
-message = "Current orientation: "+orientationString+"\n"
-newValue = options[term.menu("Configure orientation", items, 0, message)]
-if newValue < 0:
-	system.home(True)
-term.header(True, "Configure orientation")
-if orientation.setDefault(newValue):
-	print("Default orientation changed to "+getOrientationString(newValue))
-else:
-	print("Default orientation could not be changed to "+getOrientationString(newValue))
-time.sleep(1)
-system.home(True)
+load()
+
+while True:
+	options = []
+	for service in services:
+		title = service
+		if service in data['apps']:
+			title += " [Enabled]"
+		options.append(title)
+	options.append("< Exit")
+
+	selected = term.menu("Services", options, 0, "")
+	print("Selected", selected)
+	if selected == len(services):
+		system.home(True)
+	if services[selected] in data['apps']:
+		data['apps'].remove(services[selected])
+		term.header(True, "Services")
+		print(services[selected]+" has been disabled.")
+		save()
+		time.sleep(1)
+	else:
+		data['apps'].append(services[selected])
+		print(services[selected]+" has been enabled.")
+		save()
+		time.sleep(1)

@@ -1,9 +1,11 @@
-import ugfx, splash, virtualtimers
+import ugfx, virtualtimers
 
 seconds = 0
 task_active = False
 
-def init():
+def init(cb):
+	global redraw
+	redraw = cb
 	print("This is the service init function.")
 
 def draw(position):
@@ -26,7 +28,8 @@ def focus(in_focus):
 		seconds = 0
 
 def counterTask():
-	global seconds
+	global seconds, redraw
 	seconds += 1
-	splash.gui_redraw = True
+	print("CounterTask", seconds)
+	redraw()
 	return 1000
