@@ -60,6 +60,7 @@
 #include "libs/ftp.h"
 #endif
 
+#include "modaudio.h"
 #include "driver/uart.h"
 #include "rom/uart.h"
 #include "sdkconfig.h"
@@ -139,6 +140,8 @@ void mp_task(void *pvParameter)
     machine_pins_init();
 
     ESP_LOGI("MicroPython", "[=== MicroPython FreeRTOS task started (sp=%08x) ===]\n", sp);
+
+    modaudio_init();
 
     // === Mount internal flash file system ===
     int res = mount_vfs(VFS_NATIVE_TYPE_SPIFLASH, VFS_NATIVE_INTERNAL_MP);
