@@ -68,7 +68,7 @@ def onSleep(idleTime=None):
 	drawTask(True)
 	if (idleTime >= 86400000): #One day
 		idleTime = 0
-	if duration < 1:
+	if idleTime < 1:
 		term.header(True, "Sleeping until touchbutton is pressed...")
 	else:
 		term.header(True, "Sleeping for "+str(idleTime)+"ms...")
