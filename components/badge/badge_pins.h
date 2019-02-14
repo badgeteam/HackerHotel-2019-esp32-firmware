@@ -228,7 +228,7 @@
 		#define MPR121_PIN_NUM_UP        3
 		#define MPR121_PIN_NUM_LEFT      4
 		// TODO below
-		#define MPR121_PIN_NUM_VIBRATOR  8
+		#define PIN_NUM_VIBRATOR  8
 		#define MPR121_PIN_NUM_CHRGSTAT  9
 		#define MPR121_PIN_NUM_LEDS     10
 		#define IIS_SCLK 13

@@ -291,13 +291,13 @@ badge_init(void)
 	}
 #endif // PIN_NUM_LEDS
 
-#if defined(FXL6408_PIN_NUM_VIBRATOR) || defined(MPR121_PIN_NUM_VIBRATOR)
+#if defined(FXL6408_PIN_NUM_VIBRATOR) || defined(MPR121_PIN_NUM_VIBRATOR) || defined(PIN_NUM_VIBRATOR)
 	err = badge_vibrator_init();
 	if (err != ESP_OK)
 	{
 		ESP_LOGE(TAG, "badge_vibrator_init failed: %d", err);
 	}
-#endif // defined(FXL6408_PIN_NUM_VIBRATOR) || defined(MPR121_PIN_NUM_VIBRATOR)
+#endif // defined(FXL6408_PIN_NUM_VIBRATOR) || defined(MPR121_PIN_NUM_VIBRATOR) || defined(PIN_NUM_VIBRATOR)
 
 #ifdef I2C_ERC12864_ADDR
 	err = badge_erc12864_init();

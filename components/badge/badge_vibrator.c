@@ -10,6 +10,7 @@
 #include <freertos/task.h>
 #include <esp_log.h>
 #include <driver/spi_master.h>
+#include <driver/gpio.h>
 
 #include "badge_pins.h"
 #include "badge_i2c.h"
@@ -19,7 +20,7 @@
 
 static const char *TAG = "badge_vibrator";
 
-#if defined(FXL6408_PIN_NUM_VIBRATOR) || defined(MPR121_PIN_NUM_VIBRATOR)
+#if defined(FXL6408_PIN_NUM_VIBRATOR) || defined(MPR121_PIN_NUM_VIBRATOR) || defined(PIN_NUM_VIBRATOR)
 
 static int
 badge_vibrator_on(void)
@@ -28,6 +29,8 @@ badge_vibrator_on(void)
 	return badge_fxl6408_set_output_state(FXL6408_PIN_NUM_VIBRATOR, 1);
 #elif defined(MPR121_PIN_NUM_VIBRATOR)
 	return badge_mpr121_set_gpio_level(MPR121_PIN_NUM_VIBRATOR, 1);
+#elif defined(PIN_NUM_VIBRATOR)
+        return gpio_set_level(PIN_NUM_VIBRATOR,1);
 #endif
 }
 
@@ -38,6 +41,8 @@ badge_vibrator_off(void)
 	return badge_fxl6408_set_output_state(FXL6408_PIN_NUM_VIBRATOR, 0);
 #elif defined(MPR121_PIN_NUM_VIBRATOR)
 	return badge_mpr121_set_gpio_level(MPR121_PIN_NUM_VIBRATOR, 0);
+#elif defined(PIN_NUM_VIBRATOR)
+        return gpio_set_level(PIN_NUM_VIBRATOR,0);
 #endif
 }
 
@@ -88,6 +93,16 @@ badge_vibrator_init(void)
 	res = badge_mpr121_configure_gpio(MPR121_PIN_NUM_VIBRATOR, MPR121_OUTPUT);
 	if (res != ESP_OK)
 		return res;
+#elif defined(PIN_NUM_VIBRATOR)
+        gpio_config_t io_conf = {
+                .mode         = GPIO_MODE_OUTPUT,
+                .pin_bit_mask = 1LL << PIN_NUM_VIBRATOR,
+                .pull_down_en = 0,
+                .pull_up_en   = 0,
+        };
+        res = gpio_config(&io_conf);
+        if (res != ESP_OK)
+                return res;
 #endif
 
 	badge_vibrator_init_done = true;
