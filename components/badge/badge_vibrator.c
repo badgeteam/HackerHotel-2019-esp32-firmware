@@ -19,30 +19,31 @@
 
 static const char *TAG = "badge_vibrator";
 
-#if defined(FXL6408_PIN_NUM_VIBRATOR) || defined(MPR121_PIN_NUM_VIBRATOR)
+#if defined(FXL6408_PIN_NUM_VIBRATOR) || defined(MPR121_PIN_NUM_VIBRATOR) || defined(PIN_NUM_VIBRATOR)
 
-static int
-badge_vibrator_on(void)
+static int badge_vibrator_on(void)
 {
 #ifdef FXL6408_PIN_NUM_VIBRATOR
 	return badge_fxl6408_set_output_state(FXL6408_PIN_NUM_VIBRATOR, 1);
 #elif defined(MPR121_PIN_NUM_VIBRATOR)
 	return badge_mpr121_set_gpio_level(MPR121_PIN_NUM_VIBRATOR, 1);
+#elif defined(PIN_NUM_VIBRATOR)
+	return gpio_set_level(PIN_NUM_VIBRATOR, 1);
 #endif
 }
 
-static int
-badge_vibrator_off(void)
+static int badge_vibrator_off(void)
 {
 #ifdef FXL6408_PIN_NUM_VIBRATOR
 	return badge_fxl6408_set_output_state(FXL6408_PIN_NUM_VIBRATOR, 0);
 #elif defined(MPR121_PIN_NUM_VIBRATOR)
 	return badge_mpr121_set_gpio_level(MPR121_PIN_NUM_VIBRATOR, 0);
+#elif defined(PIN_NUM_VIBRATOR)
+	return gpio_set_level(PIN_NUM_VIBRATOR, 0);
 #endif
 }
 
-void
-badge_vibrator_activate(uint32_t pattern)
+void badge_vibrator_activate(uint32_t pattern)
 {
 	while (pattern != 0)
 	{
@@ -56,8 +57,15 @@ badge_vibrator_activate(uint32_t pattern)
 	badge_vibrator_off();
 }
 
-esp_err_t
-badge_vibrator_init(void)
+void badge_vibrator_set(bool state) {
+	if (state) {
+		badge_vibrator_on();
+	} else {
+		badge_vibrator_off();
+	}
+}
+
+esp_err_t badge_vibrator_init(void)
 {
 	static bool badge_vibrator_init_done = false;
 	esp_err_t res;
@@ -88,6 +96,10 @@ badge_vibrator_init(void)
 	res = badge_mpr121_configure_gpio(MPR121_PIN_NUM_VIBRATOR, MPR121_OUTPUT);
 	if (res != ESP_OK)
 		return res;
+#elif defined(PIN_NUM_VIBRATOR)
+	gpio_pad_select_gpio(PIN_NUM_VIBRATOR);
+	gpio_set_direction(PIN_NUM_VIBRATOR, GPIO_MODE_OUTPUT);
+	gpio_set_level(PIN_NUM_VIBRATOR, 0);
 #endif
 
 	badge_vibrator_init_done = true;
@@ -97,4 +109,4 @@ badge_vibrator_init(void)
 	return ESP_OK;
 }
 
-#endif // defined(FXL6408_PIN_NUM_VIBRATOR) || defined(MPR121_PIN_NUM_VIBRATOR)
+#endif // defined(FXL6408_PIN_NUM_VIBRATOR) || defined(MPR121_PIN_NUM_VIBRATOR) || defined(PIN_NUM_VIBRATOR)

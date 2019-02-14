@@ -793,7 +793,7 @@ STATIC mp_obj_t badge_leds_send_data_(mp_uint_t n_args, const mp_obj_t *args) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(badge_leds_send_data_obj, 1,2 ,badge_leds_send_data_);
 #endif
 
-#if defined(PORTEXP_PIN_NUM_VIBRATOR) || defined(MPR121_PIN_NUM_VIBRATOR)
+#if defined(PORTEXP_PIN_NUM_VIBRATOR) || defined(MPR121_PIN_NUM_VIBRATOR) || defined(PIN_NUM_VIBRATOR)
 STATIC mp_obj_t badge_vibrator_init_() {
   badge_vibrator_init();
   return mp_const_none;
@@ -805,6 +805,12 @@ STATIC mp_obj_t badge_vibrator_activate_(mp_uint_t n_args, const mp_obj_t *args)
   return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(badge_vibrator_activate_obj, 1,1 ,badge_vibrator_activate_);
+
+STATIC mp_obj_t badge_vibrator_set_(mp_uint_t n_args, const mp_obj_t *args) {
+  badge_vibrator_set(mp_obj_get_int(args[0]));
+  return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(badge_vibrator_set_obj, 1,1 ,badge_vibrator_set_);
 #endif
 
 #if defined(I2C_DISOBEY_SAMD_ADDR)
@@ -951,9 +957,10 @@ STATIC const mp_rom_map_elem_t badge_module_globals_table[] = {
     {MP_OBJ_NEW_QSTR(MP_QSTR_leds_send_data), (mp_obj_t)&badge_leds_send_data_obj},
 #endif
 
-#if defined(PORTEXP_PIN_NUM_VIBRATOR) || defined(MPR121_PIN_NUM_VIBRATOR)
+#if defined(PORTEXP_PIN_NUM_VIBRATOR) || defined(MPR121_PIN_NUM_VIBRATOR) || defined(PIN_NUM_VIBRATOR)
     {MP_OBJ_NEW_QSTR(MP_QSTR_vibrator_init), (mp_obj_t)&badge_vibrator_init_obj},
     {MP_OBJ_NEW_QSTR(MP_QSTR_vibrator_activate), (mp_obj_t)&badge_vibrator_activate_obj},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_vibrator_set), (mp_obj_t)&badge_vibrator_set_obj},
 #endif
 
 #if defined(I2C_DISOBEY_SAMD_ADDR)
