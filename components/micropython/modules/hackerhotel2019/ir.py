@@ -82,7 +82,7 @@ class BadgeIr():
     def tx_disable(self):
         self.pwm_tx.duty(0)
     def tx_setduty(self,duty):
-        self.pwm_tx.duty(512 * duty)
+        self.pwm_tx.duty(50 * duty)
     def txBit(self,bit):
         for (onoff,tijd) in self.bitform[bit]:
             self.tx_setduty(onoff)
