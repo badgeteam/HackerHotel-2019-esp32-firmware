@@ -46,6 +46,7 @@ class BadgeIr():
 	def decoder(self):
 		return 1
 	def real_decoder(self,timer):
+		print("Real decoder called.")
 		self.rxtimer.deinit()
 		self.rxtimer = None
 		if self.decoder():
@@ -71,6 +72,7 @@ class BadgeIr():
 				if self.bufpos == len(self.buffer):
 					return 1
 	def callback(self,pin):
+		print("Callback.")
 		irqs = machine.disable_irq()
 		hasdata = self.mr()
 		machine.enable_irq(irqs)
@@ -80,13 +82,12 @@ class BadgeIr():
 	def rx_enable(self):
 		if self.rxenablepin >= 0:
 			self.pin_rx_enable = machine.Pin(self.rxenablepin, machine.Pin.OUT)
-		self.pin_rx        = machine.Pin(self.rxpin, machine.Pin.IN, machine.Pin.PULL_UP)
+		self.pin_rx = machine.Pin(self.rxpin, machine.Pin.IN, machine.Pin.PULL_UP, trigger=machine.Pin.IRQ_FALLING, handler=self.callback)
 		self.initbuffer()
 		if self.rxenablepin >= 0:
 			self.pin_rx_enable.value(True)
-		self.pin_rx.irq(trigger=machine.Pin.IRQ_FALLING, handler=self.callback)
 	def rx_disable(self):
-		self.pin_rx.irq(trigger=0, handler=self.callback)
+		self.pin_rx = None
 		if self.rxenablepin >= 0:
 			self.pin_rx_enable.value(False)
 	def tx_enable(self):
@@ -179,3 +180,6 @@ class NecIR(BadgeIr):
 					return(0)
 		self.cleanbuffer(i)
 		return(0)
+
+ir = NecIR()
+ir.rx_enable()
