@@ -42,7 +42,7 @@ class Repository():
 				gc.collect()
 				slug = category["slug"]
 				self._showProgress("Downloading '"+category["name"]+"'...")
-				f = urequests.get("https://badge.team/eggs/category/%s/json" % slug, timeout=30)
+				f = urequests.get("https://badge.team/basket/hackerhotel2019/category/%s/json" % slug, timeout=30)
 				f_file = open(self.path+'/'+slug+'.json', 'w')
 				f_file.write(f.text)
 				f_file.close()
@@ -58,7 +58,7 @@ class Repository():
 			self._showProgress("Failed!", True)
 			gc.collect()
 		return False
-	
+
 	def load(self):
 		try:
 			f = open(self.path+"/lastUpdate", 'r')
@@ -79,7 +79,7 @@ class Repository():
 			sys.print_exception(e)
 			time.sleep(2)
 			return False
-		
+
 	def getCategory(self, slug):
 		f = open(self.path+"/"+slug+".json")
 		data = json.loads(f.read())
