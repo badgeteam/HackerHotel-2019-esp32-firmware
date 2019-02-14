@@ -67,7 +67,7 @@ class BadgeIr():
         if self.rxenablepin:
             self.pin_rx_enable = machine.Pin(self.rxenablepin, machine.Pin.OUT)
             self.pin_rx_enable.value(True)
-        self.pin_rx        = machine.Pin(self.rxpin, machine.Pin.IN, Pin.PULL_UP if self.rxpullup else None)
+        self.pin_rx        = machine.Pin(self.rxpin, machine.Pin.IN, machine.Pin.PULL_UP if self.rxpullup else None)
         self.initbuffer()
         self.pin_rx.irq(trigger=machine.Pin.IRQ_FALLING, handler=self.callback)
     def rx_disable(self):
