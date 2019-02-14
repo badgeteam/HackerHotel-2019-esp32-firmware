@@ -82,7 +82,7 @@ class BadgeIr():
     def tx_disable(self):
         self.pwm_tx.duty(0)
     def tx_setduty(self,duty):
-        self.pwm_tx.duty(512 * duty)
+        self.pwm_tx.duty(50 * duty)
     def txBit(self,bit):
         for (onoff,tijd) in self.bitform[bit]:
             self.tx_setduty(onoff)
@@ -183,11 +183,11 @@ class SamsungIR(BadgeIr):
     bitform = { 0: [[1,560],[0,560]], 1: [[1,560],[0,1600]], 's': [[1,4500],[0,4500]], 'e': [[1,562],[0,100]], 'r': [[1,4500],[0,2250],[1,562],[0,100]] }
     ticks = 250
 
-    def tx(self,data):
+    def tx(self,data,bits):
         self.tx_enable()
         self.txBit('s')
-        for mask in range(1,bits):
-            self.txBit((a >> bits-i-1) & 1)
+        for mask in range(0,bits):
+            self.txBit((data >> (bits-mask)) & 1)
         self.txBit('e')
         self.tx_disable()
 
@@ -233,6 +233,63 @@ class SamsungIR(BadgeIr):
                             p1=None
                             p2=None
                     elif time<0:
+                        self.cleanbuffer(i)
+                        return(0)
+        self.cleanbuffer(i)
+        return(0)
+
+class NokiaIR(BadgeIr):
+    # Implements Nokia Infrared
+    # Example:
+    #    IR=NokiaIR()
+    #    NokiaIR.command= <function (command,address,subcode)>
+    #    NokiaIR.rx_enable()
+    #  To stop receiving:
+    #    NokiaIR.rx_disable()
+    #  To send:
+    #    NokiaIR.tx(command,address,subcode)
+    #    NokiaIR.tx_repeat()
+    command = None
+    repeat = None
+    bitform = { 0: [[0,500],[1,500]], 1: [[1,500],[0,500]], 's': [[1,500],[0,2500]], 'e': [[1,500],[0,100]] }
+    ticks = 250
+
+    def tx(self,command,address,subcode):
+        self.tx_enable()
+        self.txBit('s')
+        for mask in range(0,8):
+            self.txBit((command >> (bits-mask)) & 1)
+        for mask in range(0,4):
+            self.txBit((address >> (bits-mask)) & 1)
+        for mask in range(0,4):
+            self.txBit((subcode >> (bits-mask)) & 1)
+        self.txBit('e')
+        self.tx_disable()
+
+    def decoder(self):
+        decoded=0
+        i=0
+        while True and self.bufpos-i>0:
+            (val,time)=self.buffer[i]
+            i+=1
+            if val==0 and time==9:
+                bitstream=""
+                while True and self.bufpos-i>0:
+                    (val,time)=self.buffer[i]
+                    i+=1
+                    if time<3 and time>0:
+                        bitstream+=str(val) * time
+                    elif time<0:
+                        self.cleanbuffer(i)
+                        return(0)
+                    if len(bitstream)==34:
+                        break;
+                if len(bitstream)==34:
+                    if bitstream[0:2]=="10":
+                        bits = 0x0
+                        for x in [bitstream[x:x+2] for x in range(2,len(bitstream),2)]:
+                            bits = (bits << 1 ) + (0 if x=="01" else 1)
+                        self.command(bits >> 8 & 0xFF, bits >> 4 & 0xF, bits & 0xF)
                         self.cleanbuffer(i)
                         return(0)
         self.cleanbuffer(i)
