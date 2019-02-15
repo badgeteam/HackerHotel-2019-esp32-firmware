@@ -23,7 +23,7 @@ except:
 
 try:
 	media = uos.listdir("/media")
-	icons = ["alert", "bell", "bug", "busy", "charge", "crown", "earth", "flag", "music", "ok", "wifi"]
+	icons = ["alert", "bell", "bug", "busy", "charge", "crown", "earth", "flag", "music", "ok", "wifi", "usb"]
 	for icon in icons:
 		if not icon+".png" in media:
 			raise(BaseException(""))

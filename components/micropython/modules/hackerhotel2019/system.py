@@ -86,3 +86,8 @@ def ota(status=False):
 def serialWarning():
 	import easydraw
 	easydraw.messageCentered("NOTICE\n\nThis app can only be controlled using the USB-serial connection.", True, "/media/crown.png")
+
+__current_app__ = None
+
+def currentApp():
+	return __current_app__
