@@ -1,4 +1,4 @@
-import tasks.otacheck as otacheck, easydraw, term, system, time, version, easywifi, badge, ugfx, orientation
+import tasks.otacheck as otacheck, easydraw, term, system, time, version, wifi, badge, ugfx, orientation
 
 orientation.default()
 
@@ -22,14 +22,12 @@ def start(pressed):
 	if pressed:
 		system.ota()
 
-if not easywifi.status():
-	if not easywifi.enable():
-		easydraw.msg("Error: could not connect to WiFi!")
+wifi.connect()
 
 title = "Update check"
 message = "?? Unknown state ??"
 		
-if easywifi.status():
+if wifi.wait(showStatus=True):
 	info = otacheck.download_info()
 	if info:
 			print("Server has: ",info['name']," (Build "+str(info['build'])+")")
