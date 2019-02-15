@@ -24,27 +24,44 @@ def header(cls = False, text = ""):
 	print(badge.deviceType.replace("_"," ")+" "+text+u"\r\n")
 	color()
 	
+def draw_menu_item(text, selected, width=32):
+	space = ""
+	if width-len(text) > 0:
+		space = " "*(width-len(text))
+	if (selected):
+		color(30, 47, 0)
+		print("> " + text+space)
+	else:
+		color()
+		print("  " + text+space)
+
 def draw_menu(title, items, selected=0, text="", width=32):
 	header(False, title)
 	if len(text)>0:
 		print(text)
 		print("")
 	for i in range(0, len(items)):
-		space = ""
-		if width-len(items[i]) > 0:
-			space = " "*(width-len(items[i]))
-		if (selected == i):
-			color(30, 47, 0)
-			print("> " + items[i]+space)
-		else:
-			color()
-			print("  " + items[i]+space)
+		draw_menu_item(items[i], selected==i, width)
 	color()
+	
+def draw_menu_partial(title, items, selected=0, text="", width=32,lastSelected=0):
+	if selected != lastSelected:
+		goto(1,3+lastSelected)
+		draw_menu_item(items[lastSelected], False, width)
+		goto(1,3+selected)
+		draw_menu_item(items[selected], True, width)
+		color()
 		
 def menu(title, items, selected = 0, text="", width=32):
 	clear()
+	lastSelected = selected
+	needFullDraw = True
 	while True:
-		draw_menu(title, items, selected, text, width)
+		if needFullDraw:
+			draw_menu(title, items, selected, text, width)
+		else:
+			draw_menu_partial(title, items, selected, text, width, lastSelected)
+		lastSelected = selected
 		key = sys.stdin.read(1)
 		feedPm()
 		if (ord(key)==0x1b):
@@ -54,9 +71,11 @@ def menu(title, items, selected = 0, text="", width=32):
 				if (key=="A"):
 					if (selected>0):
 						selected -= 1
+						needFullDraw = False
 				if (key=="B"):
 					if (selected<len(items)-1):
 						selected += 1
+						needFullDraw = False
 		if (ord(key)==0x01):
 			import tasks.powermanagement as pm, badge
 			pm.disable()

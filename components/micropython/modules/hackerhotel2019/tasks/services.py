@@ -6,7 +6,7 @@
 # Authors: Renze Nicolai <renze@rnplus.nl>
 #          Thomas Roos   <?>
 
-import uos, ujson, easywifi, easyrtc, time, appglue, deepsleep, ugfx, badge, machine, sys, virtualtimers
+import uos, ujson, easyrtc, time, appglue, deepsleep, ugfx, badge, machine, sys, virtualtimers
 
 services = [] #List containing all the service objects
 drawCallbacks = [] #List containing draw functions
@@ -124,15 +124,11 @@ def setup(drawCb=None):
 			continue #Skip the app
 		
 		if wifiInSetup or wifiInLoop:
-			easywifi.enable_background(wifiCallback)
-			#if wifiFailed:
-			#	print("[SERVICES] Service of app "+app+" requires wifi and wifi failed so the service has been #disabled.")
-			#	continue
-			#if not easywifi.status():
-			#	if not easywifi.enable():
-			#		wifiFailed = True
-			#		print("[SERVICES] Could not connect to wifi!")
-			#		continue # Skip the app
+			wifi.connect()
+			wifiFailed = not wifi.wait(showStatus=True)
+			if wifiFailed:
+				print("[SERVICES] Service of app "+app+" requires wifi and wifi failed so the service has been #disabled.")
+				continue
 			if not srv.onWifi != None:
 				tasks_wifi.append(srv.onWifi)
 			
