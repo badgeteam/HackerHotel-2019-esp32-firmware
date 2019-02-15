@@ -662,7 +662,7 @@ STATIC mp_obj_t ymodem_recv(mp_obj_t fname_in)
     char err_msg[128] = {'\0'};
     char orig_name[128] = {'\0'};
 
-    if (physicalPath(fname, fullname) != 0) {
+    if (physicalPathN(fname, fullname, sizeof(fullname)) != 0) {
     	sprintf(err_msg, "File name cannot be resolved");
 		goto exit;
     }
@@ -722,7 +722,7 @@ STATIC mp_obj_t ymodem_send(mp_obj_t fname_in)
     char fullname[128] = {'\0'};
     char err_msg[128] = {'\0'};
 
-    if (physicalPath(fname, fullname) != 0) {
+    if (physicalPathN(fname, fullname, sizeof(fullname)) != 0) {
     	sprintf(err_msg, "File name cannot be resolved");
 		goto exit;
     }

@@ -169,7 +169,7 @@ STATIC mp_obj_t curl_GET(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_a
     	// GET to file
 		fname = (char *)mp_obj_str_get_str(args[ARG_file].u_obj);
 		if (strcmp(fname, "simulate") != 0) {
-			res = physicalPath(fname, fullname);
+			res = physicalPathN(fname, fullname, sizeof(fullname));
 			if ((res != 0) || (strlen(fullname) == 0)) {
 				nlr_raise(mp_obj_new_exception_msg(&mp_type_OSError, "Error resolving file name"));
 			}
@@ -241,7 +241,7 @@ STATIC mp_obj_t curl_GET_MAIL(size_t n_args, const mp_obj_t *pos_args, mp_map_t 
         // GET to file
         fname = (char *)mp_obj_str_get_str(args[ARG_file].u_obj);
         if (strcmp(fname, "simulate") != 0) {
-            res = physicalPath(fname, fullname);
+            res = physicalPathN(fname, fullname, sizeof(fullname));
             if ((res != 0) || (strlen(fullname) == 0)) {
                 nlr_raise(mp_obj_new_exception_msg(&mp_type_OSError, "Error resolving file name"));
             }
@@ -323,7 +323,7 @@ STATIC mp_obj_t curl_POST(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_
                 value = mp_obj_str_get_str(next->value);
                 uint8_t  fadded = 0;
                 if (strlen(value) < 128) {
-                    res = physicalPath(value, fullname);
+                    res = physicalPathN(value, fullname, sizeof(fullname));
                     if ((res == 0) && (strlen(fullname) > 0)) {
                         if (check_file(fullname)) {
                             curl_formadd(&formpost, &lastptr, CURLFORM_COPYNAME, key, CURLFORM_FILE, fullname, CURLFORM_END);
@@ -486,7 +486,7 @@ STATIC mp_obj_t curl_sendmail(size_t n_args, const mp_obj_t *pos_args, mp_map_t 
     if (MP_OBJ_IS_STR(args[ARG_attach].u_obj)) {
 		char *fname = (char *)mp_obj_str_get_str(args[ARG_attach].u_obj);
 		char fullname[128] = {'\0'};
-		int res = physicalPath(fname, fullname);
+		int res = physicalPathN(fname, fullname, sizeof(fullname));
 	    if ((res == 0) && (strlen(fullname) > 0)) {
 	    	int exists = check_file(fullname);
 	    	if (exists) curlmail_add_attachment_file(mailobj, fullname, NULL);
@@ -505,7 +505,7 @@ STATIC mp_obj_t curl_sendmail(size_t n_args, const mp_obj_t *pos_args, mp_map_t 
 		char fullname[128] = {'\0'};
         for (int i = 0; i < len; i++) {
         	fname = (char *)mp_obj_str_get_str(items[i]);
-    		int res = physicalPath(fname, fullname);
+    		int res = physicalPathN(fname, fullname, sizeof(fullname));
     	    if ((res == 0) && (strlen(fullname) > 0)) {
     	    	int exists = check_file(fullname);
     	    	if (exists) curlmail_add_attachment_file(mailobj, fullname, NULL);
@@ -576,7 +576,7 @@ STATIC mp_obj_t curl_FTP_helper(size_t n_args, const mp_obj_t *pos_args, mp_map_
 			// GET to file
 			fname = (char *)mp_obj_str_get_str(args[ARG_file].u_obj);
 			if (strcmp(fname, "simulate") != 0) {
-				res = physicalPath(fname, fullname);
+				res = physicalPathN(fname, fullname, sizeof(fullname));
 				if ((res != 0) || (strlen(fullname) == 0)) {
 					nlr_raise(mp_obj_new_exception_msg(&mp_type_OSError, "Error resolving file name"));
 				}

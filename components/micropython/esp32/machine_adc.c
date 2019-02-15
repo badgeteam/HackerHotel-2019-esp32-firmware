@@ -857,7 +857,7 @@ STATIC mp_obj_t madc_read_timed(mp_uint_t n_args, const mp_obj_t *pos_args, mp_m
         char fullname[128] = {'\0'};
 
         dac_file = mp_obj_str_get_str(args[0].u_obj);
-        int res = physicalPath(dac_file, fullname);
+        int res = physicalPathN(dac_file, fullname, sizeof(fullname));
         if ((res != 0) || (strlen(fullname) == 0)) {
             mp_raise_ValueError("Error resolving file name");
         }
