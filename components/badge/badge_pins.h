@@ -193,32 +193,34 @@
 		#define IIS_DOUT -1
 
 	#elif defined(CONFIG_HACKERHOTEL_BADGE_V1) //Hackerhotel 2019
-		#define PIN_NUM_LEDS         32
-		#define PIN_NUM_BUTTON_FLASH  0
-		#define PIN_NUM_EPD_CLK      18
-		#define PIN_NUM_EPD_MOSI      5
-		#define PIN_NUM_EPD_CS       19
-		#define PIN_NUM_EPD_DATA     21
-		#define PIN_NUM_EPD_RESET    23
-		#define PIN_NUM_EPD_BUSY     22
-		#define EPD_ROTATED_180
-		#define PIN_NUM_I2C_CLK      27
-		#define PIN_NUM_I2C_DATA     26
-		#define PIN_NUM_MPR121_INT   25
-		#define PIN_NUM_EXT_IO_0     33
-		#define PIN_NUM_EXT_IO_1     16
-		#define PIN_NUM_EXT_IO_2     17
-		#define PIN_NUM_EXT_IO_3      4
-		#define PIN_NUM_EXT_IO_4     12
-		#define PIN_NUM_SD_CLK       14
-		#define PIN_NUM_SD_CMD       15
-		#define PIN_NUM_SD_DATA_0     2
-		#define PIN_NUM_SD_DATA_3    13
-		#define PIN_NUM_VUSB_SENSE   34
-		#define PIN_NUM_VBAT_SENSE   35
-		#define ADC1_CHAN_VUSB_SENSE  6
-		#define ADC1_CHAN_VBAT_SENSE  7
-		#define I2C_MPR121_ADDR      0x5a
+		#define PIN_NUM_BUTTON_FLASH     0
+		#define IIS_DSIN                 2
+		//(3 is not in schematic)
+		#define PIN_NUM_VIBRATOR         4
+		#define PIN_NUM_EPD_MOSI         5
+		//(6 - 11 are not in schematic)
+		#define PIN_NUM_IR_RX           12
+		#define IIS_SCLK                13
+		#define PIN_NUM_IR_TX           14
+		#define IIS_LCLK                15
+		//(16 - 17 are in use by ram)
+		#define PIN_NUM_EPD_CLK         18
+		#define PIN_NUM_EPD_CS          19
+		#define PIN_NUM_EPD_DATA        21
+		#define PIN_NUM_EPD_BUSY        22
+		#define PIN_NUM_EPD_RESET       23
+		//(24 is not in schematic)
+		#define PIN_NUM_MPR121_INT      25
+		#define PIN_NUM_I2C_DATA        26
+		#define PIN_NUM_I2C_CLK         27
+		//(28 - 31 are not in schematic)
+		#define PIN_NUM_LEDS            32
+		#define PIN_NUM_EXT_IO_0        33 //Not connected
+		#define PIN_NUM_VUSB_SENSE      34
+		#define PIN_NUM_VBAT_SENSE      35
+		
+		#define IIS_DOUT                -1
+		
 		#define MPR121_PIN_NUM_A         2
 		#define MPR121_PIN_NUM_B         7
 		#define MPR121_PIN_NUM_START     1
@@ -227,15 +229,15 @@
 		#define MPR121_PIN_NUM_RIGHT     6
 		#define MPR121_PIN_NUM_UP        3
 		#define MPR121_PIN_NUM_LEFT      4
-		// TODO below
-		#define MPR121_PIN_NUM_VIBRATOR  8
 		#define MPR121_PIN_NUM_CHRGSTAT  9
 		#define MPR121_PIN_NUM_LEDS     10
-		#define IIS_SCLK 13
-		#define IIS_LCLK 15
-		#define IIS_DSIN 2
-		#define IIS_DOUT -1
 		
+		#define ADC1_CHAN_VUSB_SENSE     6
+		#define ADC1_CHAN_VBAT_SENSE     7
+		
+		#define I2C_MPR121_ADDR       0x5a
+		
+		#define EPD_ROTATED_180
 	#else
 		#error unknown badge type
 	#endif

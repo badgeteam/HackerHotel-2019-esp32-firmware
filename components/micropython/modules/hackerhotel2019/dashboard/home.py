@@ -6,18 +6,12 @@ import ugfx, time, badge, machine, gc, system, virtualtimers, easydraw, wifi, rt
 default_logo = '/media/hackerhotel.png'
 
 # Read splashscreen configuration from NVS
-cfg_disabled         = badge.nvs_get_u8('splash', 'disabled', False)
 cfg_term_menu        = badge.nvs_get_u8('splash', 'term_menu', True)
 cfg_wifi             = badge.nvs_get_u8('splash', 'wifi', True)
-cfg_shell            = badge.nvs_get_u8('splash', 'shell', False)
 cfg_services         = badge.nvs_get_u8('splash', 'services', True)
 cfg_logo             = badge.nvs_get_str('splash', 'logo', default_logo)
 cfg_nickname         = badge.nvs_get_u8('splash', 'nickname', True)
 cfg_led_animation    = badge.nvs_get_str('splash', 'ledApp', None)
-
-# Drop directly into uPython shell if requested
-if cfg_shell:
-	system.shell(True)
 
 # Small hack to install logo if needed
 try:
@@ -213,8 +207,10 @@ def drawLogo(offset = 0, max_height = ugfx.height(), center = True):
 	if center:
 		if max_height - height < 0:
 			print("Not enough space for logo",max_height,height)
-			return 0
-		y = int((max_height - height) / 2) + offset
+			#return 0
+			y = 0
+		else:
+			y = int((max_height - height) / 2) + offset
 	else:
 		y = offset
 	try:
