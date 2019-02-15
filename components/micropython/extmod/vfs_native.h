@@ -73,7 +73,7 @@ extern sdcard_config_t sdcard_config;
 bool native_vfs_mounted[2];
 
 
-int physicalPath(const char *path, char *ph_path);
+int physicalPath(const char *path, char *ph_path) __attribute__((deprecated));
 int physicalPathN(const char *path, char *ph_path, size_t ph_path_maxlen);
 char *getcwd(char *buf, size_t size);
 const char * mkabspath(fs_user_mount_t *vfs, const char *path, char *absbuf, int buflen);
