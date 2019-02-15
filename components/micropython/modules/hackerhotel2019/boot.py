@@ -1,6 +1,6 @@
 # This file is executed on every boot (including wake-boot from deepsleep)
 
-import badge, machine, esp, ugfx, sys, time
+import badge, machine, esp, ugfx, sys, time, system
 
 # Initialise UGFX
 ugfx.init()
@@ -49,7 +49,7 @@ try:
 				esp.rtcmem_write_string("")
 				machine.deepsleep(1)
 		ugfx.input_attach(ugfx.BTN_B, back_button_default_action)
-		
+		system.__current_app__ = splash
 		__import__(splash)
 	else:
 		ugfx.clear(ugfx.WHITE)
