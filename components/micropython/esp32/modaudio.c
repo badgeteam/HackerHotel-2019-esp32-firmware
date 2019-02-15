@@ -17,6 +17,7 @@
 #include "i2s_stream.h"
 #include "wav_decoder.h"
 #include "mp3_decoder.h"
+#include "aac_decoder.h"
 #include "badge_pins.h"
 #include "badge_nvs.h"
 #include "badge_power.h"
@@ -143,11 +144,13 @@ const char *input_stream_str[] = {
 enum decoder_type_t {
     DECODER_WAV=1,
     DECODER_MP3,
+    DECODER_AAC,
 };
 
 const char *decoder_str[] = {
     [DECODER_WAV] "wav",
     [DECODER_MP3] "mp3",
+    [DECODER_AAC] "aac",
 };
 
 static bool audio_stream_active = false;
@@ -219,15 +222,14 @@ _modaudio_event_listener_task(void *arg)
         }
 
         if (msg.source_type == AUDIO_ELEMENT_TYPE_ELEMENT
-            && decoder_type == DECODER_MP3
             && msg.source == (void *) decoder
             && msg.cmd == AEL_MSG_CMD_REPORT_MUSIC_INFO) {
 
             audio_element_info_t music_info = {0};
             audio_element_getinfo(decoder, &music_info);
 
-            ESP_LOGI(TAG, "[ * ] Receive music info from mp3 decoder, sample_rates=%d, bits=%d, ch=%d",
-                     music_info.sample_rates, music_info.bits, music_info.channels);
+            ESP_LOGI(TAG, "[ * ] Receive music info from %s decoder, sample_rates=%d, bits=%d, ch=%d",
+                     decoder_str[decoder_type], music_info.sample_rates, music_info.bits, music_info.channels);
 
             audio_element_setinfo(i2s_stream_writer, &music_info);
             i2s_stream_set_clk(i2s_stream_writer, music_info.sample_rates, music_info.bits, music_info.channels);
@@ -291,6 +293,12 @@ static void _init_mp3_decoder(void) {
     static const mp3_decoder_cfg_t mp3_cfg = DEFAULT_MP3_DECODER_CONFIG();
     decoder_type = DECODER_MP3;
     decoder = mp3_decoder_init(&mp3_cfg);
+    assert( decoder != NULL );
+}
+static void _init_aac_decoder(void) {
+    static const aac_decoder_cfg_t aac_cfg = DEFAULT_AAC_DECODER_CONFIG();
+    decoder_type = DECODER_AAC;
+    decoder = aac_decoder_init(&aac_cfg);
     assert( decoder != NULL );
 }
 
@@ -500,6 +508,57 @@ STATIC mp_obj_t audio_play_mp3_stream(mp_obj_t _url) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(audio_play_mp3_stream_obj, audio_play_mp3_stream);
 
+STATIC mp_obj_t audio_play_aac_file(mp_obj_t _file) {
+    const char *file_mp = mp_obj_str_get_str(_file);
+
+    if (*file_mp == 0) { // empty string; keep as hack to test audio
+        file_mp = "/sdcard/audio/ff-16b-2c-44100hz.aac";
+    }
+
+    char file[128] = {'\0'};
+    int res = physicalPath(file_mp, file);
+    if ((res != 0) || (strlen(file) == 0)) {
+        mp_raise_ValueError("Error resolving file name");
+        return mp_const_false;
+    }
+
+    if (audio_stream_active) {
+        ESP_LOGE(TAG, "another audio stream is already playing");
+        return mp_const_false;
+    }
+
+    audio_stream_active = true;
+    _init_pipeline();
+    _init_fatfs_stream();
+    _init_i2s_stream();
+    _init_aac_decoder();
+
+    return _audio_play_generic(file);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(audio_play_aac_file_obj, audio_play_aac_file);
+
+STATIC mp_obj_t audio_play_aac_stream(mp_obj_t _url) {
+    const char *url = mp_obj_str_get_str(_url);
+
+    if (*url == 0) { // empty string; keep as hack to test audio
+        url = "https://dl.espressif.com/dl/audio/ff-16b-2c-44100hz.aac";
+    }
+
+    if (audio_stream_active) {
+        ESP_LOGE(TAG, "another audio stream is already playing");
+        return mp_const_false;
+    }
+
+    audio_stream_active = true;
+    _init_pipeline();
+    _init_http_stream();
+    _init_i2s_stream();
+    _init_aac_decoder();
+
+    return _audio_play_generic(url);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(audio_play_aac_stream_obj, audio_play_aac_stream);
+
 STATIC mp_obj_t audio_stop(void) {
     if (pipeline != NULL) {
         audio_pipeline_stop(pipeline);
@@ -532,6 +591,8 @@ STATIC const mp_rom_map_elem_t audio_module_globals_table[] = {
     {MP_OBJ_NEW_QSTR(MP_QSTR_play_wav_stream), (mp_obj_t)&audio_play_wav_stream_obj},
     {MP_OBJ_NEW_QSTR(MP_QSTR_play_mp3_file), (mp_obj_t)&audio_play_mp3_file_obj},
     {MP_OBJ_NEW_QSTR(MP_QSTR_play_mp3_stream), (mp_obj_t)&audio_play_mp3_stream_obj},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_play_aac_file), (mp_obj_t)&audio_play_aac_file_obj},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_play_aac_stream), (mp_obj_t)&audio_play_aac_stream_obj},
 
     {MP_OBJ_NEW_QSTR(MP_QSTR_stop), (mp_obj_t)&audio_stop_obj},
 #endif // IIS_SCLK
