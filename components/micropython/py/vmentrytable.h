@@ -29,6 +29,9 @@
 #pragma clang diagnostic ignored "-Winitializer-overrides"
 #endif // __clang__
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverride-init"
+
 static const void *const entry_table[256] = {
     [0 ... 255] = &&entry_default,
     [MP_BC_LOAD_CONST_FALSE] = &&entry_MP_BC_LOAD_CONST_FALSE,
@@ -112,6 +115,8 @@ static const void *const entry_table[256] = {
     [MP_BC_UNARY_OP_MULTI ... MP_BC_UNARY_OP_MULTI + MP_UNARY_OP_NUM_BYTECODE - 1] = &&entry_MP_BC_UNARY_OP_MULTI,
     [MP_BC_BINARY_OP_MULTI ... MP_BC_BINARY_OP_MULTI + MP_BINARY_OP_NUM_BYTECODE - 1] = &&entry_MP_BC_BINARY_OP_MULTI,
 };
+
+#pragma GCC diagnostic pop
 
 #if __clang__
 #pragma clang diagnostic pop
