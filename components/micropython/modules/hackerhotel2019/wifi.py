@@ -11,15 +11,13 @@ def status():
 		return False
 	return sta_if.isconnected()
 
-def connect(ssid=defaultSsid, password=defaultPassword, wait=False, waitDuration=timeout, waitStatus=False):
+def connect(ssid=defaultSsid, password=defaultPassword):
 	init()
 	sta_if.active(True)
 	if password:
 		sta_if.connect(ssid, password)
 	else:
 		sta_if.connect(ssid)
-	if wait:
-		return wait(waitDuration, waitStatus)
 
 def disconnect():
 	sta_if.disconnect()
@@ -31,17 +29,23 @@ def init():
 
 def wait(duration=timeout, showStatus=False):
 	if showStatus:
-		import easydraw
-		easydraw.msg("Connecting to WiFi...")
+		import easydraw, term
+		term.header(True, "Connecting...")
+		print("Connecting to WiFi...")
+		easydraw.messageCentered("Connecting...", True, "/media/wifi.png")
 	while not status():
 		time.sleep(1)
 		duration -= 1
 		if duration < 0:
 			if showStatus:
-				easydraw.msg("Failed!")
+				term.header(True, "Failed!")
+				print("Could not connect to WiFi.")
+				easydraw.messageCentered("Failed!", True, "/media/alert.png")
 			return False
 	if showStatus:
-		easydraw.msg("Connected!")
+		term.header(True, "Connected!")
+		print("Connected to WiFi.")
+		easydraw.messageCentered("Connected!", True, "/media/ok.png")
 	return True
 
 def ntp(onlyIfNeeded=True):
