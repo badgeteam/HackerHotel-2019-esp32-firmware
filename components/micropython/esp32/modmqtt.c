@@ -462,7 +462,7 @@ STATIC mp_obj_t mqtt_make_new(const mp_obj_type_t *type, size_t n_args, size_t n
 
         fname = (char *)mp_obj_str_get_str(args[ARG_cert].u_obj);
 
-        int res = physicalPath(fname, fullname);
+        int res = physicalPathN(fname, fullname, sizeof(fullname));
         if ((res != 0) || (strlen(fullname) == 0)) {
     		mp_raise_ValueError("Certificate file not found");
         }

@@ -463,7 +463,7 @@ static int handle_file(esp_http_client_handle_t client, char *bndry, char *key, 
     if (strlen(fname) < 128) {
         FILE* file = NULL;
         char fullname[128] = {'\0'};
-        int res = physicalPath(fname, fullname);
+        int res = physicalPathN(fname, fullname, sizeof(fullname));
         if ((res == 0) && (strlen(fullname) > 0)) {
             file = fopen(fullname, "rb");
             if (file == NULL) return flen;
@@ -648,7 +648,7 @@ static mp_obj_t request(int method, bool multipart, mp_obj_t post_data_in, char 
     rqbody_file = NULL;
     if (tofile) {
         // GET to file
-        int res = physicalPath(tofile, fullname);
+        int res = physicalPathN(tofile, fullname, sizeof(fullname));
         if ((res != 0) || (strlen(fullname) == 0)) {
             nlr_raise(mp_obj_new_exception_msg(&mp_type_OSError, "Error resolving file name"));
         }
@@ -848,7 +848,7 @@ void get_certificate(mp_obj_t cert, char *cert_pem_buf)
         char certname[128] = {'\0'};
 
         fname = (char *)mp_obj_str_get_str(cert);
-        esp_err_t res = physicalPath(fname, certname);
+        esp_err_t res = physicalPathN(fname, certname, sizeof(certname));
         if ((res != 0) || (strlen(certname) == 0)) {
             nlr_raise(mp_obj_new_exception_msg(&mp_type_OSError, "Error resolving file name"));
         }

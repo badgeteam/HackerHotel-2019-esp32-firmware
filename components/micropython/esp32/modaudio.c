@@ -414,7 +414,7 @@ STATIC mp_obj_t audio_play_wav_file(mp_obj_t _file) {
     }
 
     char file[128] = {'\0'};
-    int res = physicalPath(file_mp, file);
+    int res = physicalPathN(file_mp, file, sizeof(file));
     if ((res != 0) || (strlen(file) == 0)) {
         mp_raise_ValueError("Error resolving file name");
         return mp_const_false;
@@ -465,7 +465,7 @@ STATIC mp_obj_t audio_play_mp3_file(mp_obj_t _file) {
     }
 
     char file[128] = {'\0'};
-    int res = physicalPath(file_mp, file);
+    int res = physicalPathN(file_mp, file, sizeof(file));
     if ((res != 0) || (strlen(file) == 0)) {
         mp_raise_ValueError("Error resolving file name");
         return mp_const_false;
@@ -516,7 +516,7 @@ STATIC mp_obj_t audio_play_aac_file(mp_obj_t _file) {
     }
 
     char file[128] = {'\0'};
-    int res = physicalPath(file_mp, file);
+    int res = physicalPathN(file_mp, file, sizeof(file));
     if ((res != 0) || (strlen(file) == 0)) {
         mp_raise_ValueError("Error resolving file name");
         return mp_const_false;

@@ -768,7 +768,7 @@ STATIC mp_obj_t ugfx_display_image(mp_uint_t n_args, const mp_obj_t *args){
 		if (MP_OBJ_IS_STR(img_obj)){
 			const char *img_str = mp_obj_str_get_str(img_obj);
 			char fullname[128] = {'\0'};
-			int res = physicalPath(img_str, fullname);
+			int res = physicalPathN(img_str, fullname, sizeof(fullname));
 			if ((res != 0) || (strlen(fullname) == 0)) {
 				mp_raise_ValueError("Error resolving file name");
 				return mp_const_none;

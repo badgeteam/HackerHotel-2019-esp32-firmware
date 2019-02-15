@@ -105,7 +105,7 @@ STATIC mp_obj_t curl_SSH_helper(size_t n_args, const mp_obj_t *pos_args, mp_map_
 	if (MP_OBJ_IS_STR(args[ARG_key].u_obj)) {
 		// Authenticate using a key pair
 		key = (char *)mp_obj_str_get_str(args[ARG_key].u_obj);
-		res = physicalPath(key, fullkey);
+		res = physicalPathN(key, fullkey, sizeof(fullkey));
 		if ((res != 0) || (strlen(fullkey) == 0)) {
 			nlr_raise(mp_obj_new_exception_msg(&mp_type_OSError, "Error resolving key file name"));
 		}
@@ -118,7 +118,7 @@ STATIC mp_obj_t curl_SSH_helper(size_t n_args, const mp_obj_t *pos_args, mp_map_
 		if (MP_OBJ_IS_STR(args[ARG_file].u_obj)) {
 			// GET/PUT to/from file
 			fname = (char *)mp_obj_str_get_str(args[ARG_file].u_obj);
-			res = physicalPath(fname, fullname);
+			res = physicalPathN(fname, fullname, sizeof(fullname));
 			if ((res != 0) || (strlen(fullname) == 0)) {
 				nlr_raise(mp_obj_new_exception_msg(&mp_type_OSError, "Error resolving file name"));
 			}
