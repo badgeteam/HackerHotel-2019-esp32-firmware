@@ -3,7 +3,6 @@
 #include "esp_event_loop.h"
 #include "esp_system.h"
 #include "esp_wifi.h"
-#include "uart.h"
 #include <font.h>
 #include <string.h>
 
@@ -19,7 +18,6 @@
 #include <badge_ota.h>
 #include "rom/rtc.h"
 #include "esprtcmem.h"
-
 #include <badge_infrared.h>
 
 extern void micropython_entry(void);
