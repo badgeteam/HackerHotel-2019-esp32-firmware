@@ -33,7 +33,7 @@ except:
 try:
 	badge.i2c_read_reg(0x5a, 0x00, 0x01) # Test the i2c connection
 except:
-	system.start("bricked", True)
+	system.start("dashboard.other.bricked", True)
 
 # Initialise the default button actions
 def btn_start(pressed):
