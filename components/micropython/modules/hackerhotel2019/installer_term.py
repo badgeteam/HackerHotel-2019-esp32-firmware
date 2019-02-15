@@ -55,7 +55,7 @@ def list_apps(slug):
 	print("Downloading list of eggs...")
 	packages=None
 	try:
-		f = urequests.get(version.hatcheryurl+"/eggs/category/%s/json" % slug, timeout=30)
+		f = urequests.get(version.hatcheryurl+"/basket/hackerhotel2019/category/%s/json" % slug, timeout=30)
 		try:
 			packages = f.json()
 		finally:
@@ -75,7 +75,7 @@ def list_categories():
 		except:
 			update_repo()
 		cat_list = []
-		
+
 		for category in categories:
 			if category['eggs']>0:
 				cat_list.append(category["name"])
@@ -127,7 +127,7 @@ def show_app(app,category):
 	else:
 		return
 	gc.collect()
-	
+
 def install_app(app):
 	latest = False
 	import woezel
@@ -154,7 +154,7 @@ def install_app(app):
 		return
 	gc.collect()
 
-	
+
 
 if not connectWiFi():
 		print('No network. Returning to launcher :(')

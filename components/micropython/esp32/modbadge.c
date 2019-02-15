@@ -79,18 +79,18 @@
 	};
 
 	unsigned char check[PARTITIONS_16MB_BIN_LEN];
-	
+
 	esp_err_t err = spi_flash_read(PARTITIONS_LOCATION, check, PARTITIONS_16MB_BIN_LEN);
 	if (err != ESP_OK) {
 		ESP_LOGE(TAG, "Error while reading (1)! 0x%02x", err);
 		return mp_obj_new_bool(false);
 	}
-		
+
 	if (memcmp(check, partitions_16MB_bin, PARTITIONS_16MB_BIN_LEN)==0) {
 		ESP_LOGW(TAG, "PARTITIONS HAVE ALREADY BEEN UPDATED");
 		return mp_obj_new_bool(true);
 	}
-	
+
 	int key = mp_obj_get_int(_key);
 	if (key != 0x35C3) {
 		ESP_LOGE(TAG, "NOT UPDATING PARTITIONS BECAUSE OF INVALID KEY (0x%x)\nThis function is dangerous, do not run it if you do not know what you are doing!", key);
@@ -103,7 +103,7 @@
 		return mp_obj_new_bool(false);
 	}
 	ESP_LOGE(TAG, "WARNING: Updating partitions table! Do NOT power off!");
-	
+
 	err = spi_flash_erase_sector(PARTITIONS_SECTOR);
 	if (err != ESP_OK) {
 		ESP_LOGE(TAG, "Could not erase sector! 0x%02x", err);
@@ -115,28 +115,28 @@
 			ESP_LOGW(TAG, "DONE WRITING PARTITION TABLE");
 		}
 	}
-	
+
 	err = spi_flash_read(PARTITIONS_LOCATION, check, PARTITIONS_16MB_BIN_LEN);
 	if (err != ESP_OK) {
 		ESP_LOGE(TAG, "Error while reading (2)! 0x%02x", err);
 		//return mp_obj_new_bool(false);
 	}
-	
+
 	if (memcmp(check, partitions_16MB_bin, PARTITIONS_16MB_BIN_LEN)==0) {
 		ESP_LOGW(TAG, "PARTITIONS HAVE BEEN UPDATE SUCCESFULLY, ENJOY THE EXTRA SPACE");
 		return mp_obj_new_bool(true);
 	}
-	
+
 	ESP_LOGE(TAG, "ERROR: Failure while updating partitions. You might have a brick now!");
 	ESP_LOGE(TAG, "Try flashing the partition table again or flash over serial using 'make deploy'.");
 	ESP_LOGE(TAG, "");
-	
+
 	for (uint16_t i = 0; i < PARTITIONS_16MB_BIN_LEN; i++) {
 		if (check[i]!=partitions_16MB_bin[i]) {
 			ESP_LOGE(TAG, "Expected %02X at %02X, read %02X", partitions_16MB_bin[i], i, check[i]);
 		}
 	}
-	
+
 	printf("Memory dump\n--------------");
 	uint8_t j = 0;
 	for (uint16_t i = 0; i < PARTITIONS_16MB_BIN_LEN; i++) {
@@ -148,13 +148,21 @@
 		j++;
 	}
 	printf("\n");
-	
+
 	return mp_obj_new_bool(false);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(remove_bpp_partition_obj, remove_bpp_partition);
 
 #endif
 #endif
+
+// INIT
+
+STATIC mp_obj_t badge_init_() {
+	ESP_LOGW(TAG, "badge.init() is deprecated!");
+  return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(badge_init_obj, badge_init_);
 
 /*** nvs access ***/
 
@@ -865,7 +873,10 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_0(badge_read_state_obj, badge_read_state);
 
 STATIC const mp_rom_map_elem_t badge_module_globals_table[] = {
     {MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_badge)},
-    
+
+		{MP_ROM_QSTR(MP_QSTR_init), MP_ROM_PTR(&badge_init_obj)},
+		{MP_ROM_QSTR(MP_QSTR_eink_init), MP_ROM_PTR(&badge_init_obj)},
+
     //Firmware configuration
 #ifdef CONFIG_HACKERHOTEL_BADGE_V1
     {MP_ROM_QSTR(MP_QSTR_deviceType), MP_ROM_QSTR(MP_QSTR_Hackerhotel_2019)},
@@ -977,7 +988,7 @@ STATIC const mp_rom_map_elem_t badge_module_globals_table[] = {
 	{MP_OBJ_NEW_QSTR(MP_QSTR_rawrepl), (mp_obj_t)&rawrepl_obj},
 
     {MP_OBJ_NEW_QSTR(MP_QSTR_safe_mode), (mp_obj_t)&badge_safe_mode_obj},
-    
+
     {MP_OBJ_NEW_QSTR(MP_QSTR_native_path), (mp_obj_t)&badge_native_path_obj},
 
 };

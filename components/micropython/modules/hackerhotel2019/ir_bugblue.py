@@ -8,7 +8,7 @@ import machine, time, badge
 # * Read the pulses with time_pulse_us (it's extremely fast)
 # * Store this in a buffer with a fixed size, (256 empty arrays)
 # * Set a timer to decode the data instantly after interrupts are enabled again.
-# * a class can inherit this class and just define a decoder and specify a send pattern 
+# * a class can inherit this class and just define a decoder and specify a send pattern
 # * if a send pattern is not the way to go (some totally different protocols) you can just implement another tx function
 
 class BadgeIr():
@@ -105,35 +105,180 @@ class BadgeIr():
 	def txByte(self,byte):
 		for bit in range(8):
 				self.txBit( ( byte >> ( 7 - bit ) ) & 1 ) # MSB
-
 class NecIR(BadgeIr):
-	# Implements NEC Infrared 
-	# Example:
-	#    IR=NecIR()
-	#    NecIR.command= <function (address,command)>
-	#    NecIR.repeat=  <function ()>
-	#    NecIR.rx_enable()
-	#  To stop receiving:
-	#    NecIR.rx_disable()
-	#  To send:
-	#    NecIR.tx(<byte address>,<byte command>)
-	#    NecIR.tx_repeat()
-	command = None
-	repeat = None
-	bitform = { 0: [[1,562],[0,562]], 1: [[1,562],[0,1687]], 's': [[1,9000],[0,4500]], 'e': [[1,562],[0,100]], 'r': [[1,9000],[0,2500],[1,562],[0,100]] }
+    # Implements NEC Infrared
+    # Example:
+    #    IR=NecIR()
+    #    NecIR.command= <function (address,command)>
+    #    NecIR.repeat=  <function ()>
+    #    NecIR.rx_enable()
+    #  To stop receiving:
+    #    NecIR.rx_disable()
+    #  To send:
+    #    NecIR.tx(<byte address>,<byte command>)
+    #    NecIR.tx_repeat()
+    command = None
+    repeat = None
+    bitform = { 0: [[1,562],[0,562]], 1: [[1,562],[0,1687]], 's': [[1,9000],[0,4500]], 'e': [[1,562],[0,100]], 'r': [[1,9000],[0,2500],[1,562],[0,100]] }
 
-	def tx(self,addr,cmd):
-		self.tx_enable()
-		self.txBit('s')
-		self.txByte(addr)
-		self.txByte(addr ^ 0xFF)
-		self.txByte(cmd)
-		self.txByte(cmd ^ 0xFF)
-		self.txBit('e')
-		self.tx_disable()
+    def tx(self,addr,cmd):
+        self.tx_enable()
+        self.txBit('s')
+        self.txByte(addr)
+        self.txByte(addr ^ 0xFF)
+        self.txByte(cmd)
+        self.txByte(cmd ^ 0xFF)
+        self.txBit('e')
+        self.tx_disable()
 
-	def tx_repeat(self):
-		self.txBit('r')
+    def tx_repeat(self):
+        self.txBit('r')
+
+    def decoder(self):
+        decoded=0
+        i=0
+        while True and self.bufpos-i>0:
+            (val,time)=self.buffer[i]
+            i+=1
+            if val==0 and time==9:
+                if self.bufpos<66: return(0) # Not yet complete....
+                p1=None
+                p2=None
+                bits=0
+                while True and self.bufpos-i>0:
+                    (val,time)=self.buffer[i]
+                    i+=1
+                    if time>0:
+                        if p1==None:
+                            p1=(val,time)
+                            if bits==32 and p1[1]==1:
+                                self.cleanbuffer(i)
+                                if (decoded >> 24 & 0xFF) == (0xFF ^ (decoded >> 16 & 0xFF)) and (decoded >> 8 & 0xFF) == (0xFF ^ (decoded >> 0 & 0xFF)) and self.command:
+                                    self.command(decoded >> 24 & 0xFF,decoded >> 8 & 0xFF)
+                                return(0)
+                        else:
+                            p2=(val,time)
+                            if p1[1]==1 and p2[1]==3:
+                                decoded=decoded<<1 | 1
+                                bits+=1
+                            elif p1[1]==1 and p2[1]==1:
+                                decoded=decoded<<1
+                                bits+=1
+                            if bits==32 and p2==None:
+                                self.cleanbuffer(i)
+                                return(0)
+                            p1=None
+                            p2=None
+                    elif time<0:
+                        self.cleanbuffer(i)
+                        return(0)
+            elif val==1 and time==18:
+                if self.buffer[i] == [0,4] and self.buffer[i+1] == [1,1]:
+                    i+=2
+                    if self.repeat: self.repeat()
+                    return(0)
+        self.cleanbuffer(i)
+        return(0)
+
+class SamsungIR(BadgeIr):
+    # Implements Samsung Infrared
+    # Example:
+    #    IR=SamsungIR()
+    #    SamsungIR.command= <function (long data)>
+    #    SamsungIR.repeat=  <function ()>
+    #    SamsungIR.rx_enable()
+    #  To stop receiving:
+    #    SamsungIR.rx_disable()
+    #  To send:
+    #    SamsungIR.tx(<long data>,<int datalen in bits>)
+    #    SamsungIR.tx_repeat()
+    command = None
+    repeat = None
+    bitform = { 0: [[1,560],[0,560]], 1: [[1,560],[0,1600]], 's': [[1,4500],[0,4500]], 'e': [[1,562],[0,100]], 'r': [[1,4500],[0,2250],[1,562],[0,100]] }
+    ticks = 250
+
+    def tx(self,data,bits):
+        self.tx_enable()
+        self.txBit('s')
+        for mask in range(0,bits):
+            self.txBit((data >> (bits-mask)) & 1)
+        self.txBit('e')
+        self.tx_disable()
+
+    def tx_repeat(self):
+        self.txBit('r')
+
+    def decoder(self):
+        decoded=0
+        i=0
+        while True and self.bufpos-i>0:
+            (val,time)=self.buffer[i]
+            i+=1
+            if val==0 and time==18:
+                if self.bufpos<10: return(0) # Not yet complete....
+                if self.buffer[i] == [0,9] and self.buffer[i+1] == [1,2]:
+                    i+=2
+                    if self.repeat: self.repeat()
+                    return(0)
+                p1=None
+                p2=None
+                bits=0
+                while True and self.bufpos-i>0:
+                    (val,time)=self.buffer[i]
+                    i+=1
+                    if time>0:
+                        if p1==None:
+                            p1=(val,time)
+                            if bits==32 and p1[1]==1:
+                                self.cleanbuffer(i)
+                                self.command(decoded)
+                                return(0)
+                        else:
+                            p2=(val,time)
+                            if p1[1]==2 and p2[1]==6:
+                                decoded=decoded<<1 | 1
+                                bits+=1
+                            elif p1[1]==2 and p2[1]==2:
+                                decoded=decoded<<1
+                                bits+=1
+                            if bits==32 and p2==None:
+                                self.cleanbuffer(i)
+                                return(0)
+                            p1=None
+                            p2=None
+                    elif time<0:
+                        self.cleanbuffer(i)
+                        return(0)
+        self.cleanbuffer(i)
+        return(0)
+
+class NokiaIR(BadgeIr):
+    # Implements Nokia Infrared
+    # Example:
+    #    IR=NokiaIR()
+    #    NokiaIR.command= <function (command,address,subcode)>
+    #    NokiaIR.rx_enable()
+    #  To stop receiving:
+    #    NokiaIR.rx_disable()
+    #  To send:
+    #    NokiaIR.tx(command,address,subcode)
+    #    NokiaIR.tx_repeat()
+    command = None
+    repeat = None
+    bitform = { 0: [[0,500],[1,500]], 1: [[1,500],[0,500]], 's': [[1,500],[0,2500]], 'e': [[1,500],[0,100]] }
+    ticks = 250
+
+    def tx(self,command,address,subcode):
+        self.tx_enable()
+        self.txBit('s')
+        for mask in range(0,8):
+            self.txBit((command >> (bits-mask)) & 1)
+        for mask in range(0,4):
+            self.txBit((address >> (bits-mask)) & 1)
+        for mask in range(0,4):
+            self.txBit((subcode >> (bits-mask)) & 1)
+        self.txBit('e')
+        self.tx_disable()
 
 	def decoder(self):
 		decoded=0
@@ -180,6 +325,3 @@ class NecIR(BadgeIr):
 					return(0)
 		self.cleanbuffer(i)
 		return(0)
-
-ir = NecIR()
-ir.rx_enable()
