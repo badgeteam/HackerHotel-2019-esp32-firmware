@@ -15,6 +15,7 @@
 #include "fatfs_stream.h"
 #include "http_stream.h"
 #include "i2s_stream.h"
+#include "wav_decoder.h"
 #include "mp3_decoder.h"
 #include "badge_pins.h"
 #include "badge_nvs.h"
@@ -25,6 +26,8 @@
 #ifdef IIS_SCLK
 
 #define TAG "esp32/modaudio"
+
+#define PERSISTENT_I2S_STREAM
 
 void
 modaudio_init(void)
@@ -127,13 +130,36 @@ STATIC mp_obj_t audio_mixer_ctl_1(mp_uint_t n_args, const mp_obj_t *args) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(audio_mixer_ctl_1_obj, 0, 2, audio_mixer_ctl_1);
 
 /* current active stream */
+enum input_stream_type_t {
+    INPUT_STREAM_FILE=1,
+    INPUT_STREAM_HTTP,
+};
+
+const char *input_stream_str[] = {
+    [INPUT_STREAM_FILE] "file",
+    [INPUT_STREAM_HTTP] "http",
+};
+
+enum decoder_type_t {
+    DECODER_WAV=1,
+    DECODER_MP3,
+};
+
+const char *decoder_str[] = {
+    [DECODER_WAV] "wav",
+    [DECODER_MP3] "mp3",
+};
+
 static bool audio_stream_active = false;
 static audio_event_iface_handle_t evt;
 static audio_pipeline_handle_t pipeline = NULL;
-static audio_element_handle_t fatfs_stream_reader = NULL;
-static audio_element_handle_t http_stream_reader = NULL;
-static audio_element_handle_t wav_decoder = NULL;
-static audio_element_handle_t mp3_decoder = NULL;
+// input stream
+static enum input_stream_type_t input_stream_type = 0;
+static audio_element_handle_t input_stream_reader = NULL;
+// decoder
+static enum decoder_type_t decoder_type = 0;
+static audio_element_handle_t decoder = NULL;
+// output stream
 static audio_element_handle_t i2s_stream_writer = NULL;
 
 static void
@@ -143,19 +169,13 @@ _modaudio_stream_cleanup(void)
     audio_pipeline_terminate(pipeline);
 
     /* Terminate the pipeline before removing the listener */
-    if (fatfs_stream_reader != NULL) {
-        audio_pipeline_unregister(pipeline, fatfs_stream_reader);
-    } else if (http_stream_reader != NULL) {
-        audio_pipeline_unregister(pipeline, http_stream_reader);
+    if (input_stream_reader != NULL) {
+        audio_pipeline_unregister(pipeline, input_stream_reader);
     }
 
     audio_pipeline_unregister(pipeline, i2s_stream_writer);
 
-    if (wav_decoder != NULL) {
-        audio_pipeline_unregister(pipeline, wav_decoder);
-    } else if (mp3_decoder != NULL) {
-        audio_pipeline_unregister(pipeline, mp3_decoder);
-    }
+    audio_pipeline_unregister(pipeline, decoder);
 
     audio_pipeline_remove_listener(pipeline);
 
@@ -167,23 +187,21 @@ _modaudio_stream_cleanup(void)
     audio_pipeline_deinit(pipeline);
     pipeline = NULL;
 
-    if (fatfs_stream_reader != NULL) {
-        audio_element_deinit(fatfs_stream_reader);
-        fatfs_stream_reader = NULL;
-    } else if (http_stream_reader != NULL) {
-        audio_element_deinit(http_stream_reader);
-        http_stream_reader = NULL;
+    if (input_stream_reader != NULL) {
+        audio_element_deinit(input_stream_reader);
+        input_stream_reader = NULL;
+        input_stream_type = 0;
     }
 
+#ifndef PERSISTENT_I2S_STREAM
     audio_element_deinit(i2s_stream_writer);
     i2s_stream_writer = NULL;
+#endif // ! PERSISTENT_I2S_STREAM
 
-    if (wav_decoder != NULL) {
-        audio_element_deinit(wav_decoder);
-        wav_decoder = NULL;
-    } else if (mp3_decoder != NULL) {
-        audio_element_deinit(mp3_decoder);
-        mp3_decoder = NULL;
+    if (decoder != NULL) {
+        audio_element_deinit(decoder);
+        decoder = NULL;
+        decoder_type = 0;
     }
 
     audio_stream_active = false;
@@ -201,10 +219,12 @@ _modaudio_event_listener_task(void *arg)
         }
 
         if (msg.source_type == AUDIO_ELEMENT_TYPE_ELEMENT
-            && msg.source == (void *) mp3_decoder
+            && decoder_type == DECODER_MP3
+            && msg.source == (void *) decoder
             && msg.cmd == AEL_MSG_CMD_REPORT_MUSIC_INFO) {
+
             audio_element_info_t music_info = {0};
-            audio_element_getinfo(mp3_decoder, &music_info);
+            audio_element_getinfo(decoder, &music_info);
 
             ESP_LOGI(TAG, "[ * ] Receive music info from mp3 decoder, sample_rates=%d, bits=%d, ch=%d",
                      music_info.sample_rates, music_info.bits, music_info.channels);
@@ -240,25 +260,50 @@ static void _init_pipeline(void) {
 }
 
 static void _init_fatfs_stream(void) {
-    static fatfs_stream_cfg_t fatfs_cfg = FATFS_STREAM_CFG_DEFAULT();
-    fatfs_cfg.type = AUDIO_STREAM_READER; // FIXME: to make const structure
-    fatfs_stream_reader = fatfs_stream_init(&fatfs_cfg);
-    assert( fatfs_stream_reader != NULL );
+    static const fatfs_stream_cfg_t fatfs_cfg = {
+        .type        = AUDIO_STREAM_READER,
+        .task_prio   = FATFS_STREAM_TASK_PRIO,
+        .task_core   = FATFS_STREAM_TASK_CORE,
+        .task_stack  = FATFS_STREAM_TASK_STACK,
+        .out_rb_size = FATFS_STREAM_RINGBUFFER_SIZE,
+        .buf_sz      = FATFS_STREAM_BUF_SIZE,
+    };
+    input_stream_type = INPUT_STREAM_FILE;
+    input_stream_reader = fatfs_stream_init(&fatfs_cfg);
+    assert( input_stream_reader != NULL );
 }
 
 static void _init_http_stream(void) {
     http_stream_cfg_t http_cfg = HTTP_STREAM_CFG_DEFAULT();
-    http_stream_reader = http_stream_init(&http_cfg);
-    assert( http_stream_reader != NULL );
+    input_stream_type = INPUT_STREAM_HTTP;
+    input_stream_reader = http_stream_init(&http_cfg);
+    assert( input_stream_reader != NULL );
+}
+
+static void _init_wav_decoder(void) {
+    static const wav_decoder_cfg_t wav_cfg = DEFAULT_WAV_DECODER_CONFIG();
+    decoder_type = DECODER_WAV;
+    decoder = wav_decoder_init(&wav_cfg);
+    assert( decoder != NULL );
 }
 
 static void _init_mp3_decoder(void) {
     static const mp3_decoder_cfg_t mp3_cfg = DEFAULT_MP3_DECODER_CONFIG();
-    mp3_decoder = mp3_decoder_init(&mp3_cfg);
-    assert( mp3_decoder != NULL );
+    decoder_type = DECODER_MP3;
+    decoder = mp3_decoder_init(&mp3_cfg);
+    assert( decoder != NULL );
 }
 
 static void _init_i2s_stream(void) {
+
+#ifdef AUDIO_NEEDS_EXT_POWER
+    badge_power_sdcard_enable();
+#endif // AUDIO_NEEDS_EXT_POWER
+
+#ifdef PERSISTENT_I2S_STREAM
+    if (i2s_stream_writer != NULL) return;
+#endif // PERSISTENT_I2S_STREAM
+
     static const i2s_stream_cfg_t i2s_cfg = {
         .type           = AUDIO_STREAM_WRITER,
         .task_prio      = I2S_STREAM_TASK_PRIO,
@@ -294,6 +339,116 @@ STATIC mp_obj_t audio_is_playing(void) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(audio_is_playing_obj, audio_is_playing);
 
+static mp_obj_t _audio_play_generic(const char *uri) {
+    // configure pipeline
+    audio_pipeline_register(pipeline, input_stream_reader, input_stream_str[input_stream_type]);
+    audio_pipeline_register(pipeline, decoder, decoder_str[decoder_type]);
+    audio_pipeline_register(pipeline, i2s_stream_writer,  "i2s");
+
+    audio_pipeline_link(pipeline, (const char *[]) {input_stream_str[input_stream_type], decoder_str[decoder_type], "i2s"}, 3);
+
+    // start stream
+    audio_element_set_uri(input_stream_reader, uri);
+
+    _init_event();
+
+    audio_pipeline_set_listener(pipeline, evt);
+
+    audio_pipeline_run(pipeline);
+
+    while (1) {
+        audio_event_iface_msg_t msg;
+        esp_err_t ret = audio_event_iface_listen(evt, &msg, portMAX_DELAY);
+        if (ret != ESP_OK) {
+            ESP_LOGE(TAG, "[ * ] Event interface error : %d", ret);
+            continue;
+        }
+
+        if (msg.source_type == AUDIO_ELEMENT_TYPE_ELEMENT
+            && msg.source == (void *) decoder
+            && msg.cmd == AEL_MSG_CMD_REPORT_MUSIC_INFO) {
+
+            audio_element_info_t music_info = {0};
+            audio_element_getinfo(decoder, &music_info);
+
+            ESP_LOGI(TAG, "[ * ] Receive music info from %s decoder, sample_rates=%d, bits=%d, ch=%d",
+                     decoder_str[decoder_type], music_info.sample_rates, music_info.bits, music_info.channels);
+
+            audio_element_setinfo(i2s_stream_writer, &music_info);
+            i2s_stream_set_clk(i2s_stream_writer, music_info.sample_rates, music_info.bits, music_info.channels);
+
+            // stream is playing; return
+            xTaskCreate(&_modaudio_event_listener_task, "modaudio event-listener task", 4096, NULL, 10, NULL);
+            return mp_const_true;
+        }
+
+        /* Stop when the last pipeline element (i2s_stream_writer in this case) receives stop event */
+        if (msg.source_type == AUDIO_ELEMENT_TYPE_ELEMENT
+            && msg.source == (void *) i2s_stream_writer
+            && msg.cmd == AEL_MSG_CMD_REPORT_STATUS
+            && (int) msg.data == AEL_STATUS_STATE_STOPPED) {
+
+            ESP_LOGW(TAG, "[ * ] Stop event received");
+            break;
+        }
+    }
+
+    _modaudio_stream_cleanup();
+
+    return mp_const_false;
+}
+
+STATIC mp_obj_t audio_play_wav_file(mp_obj_t _file) {
+    const char *file_mp = mp_obj_str_get_str(_file);
+
+    if (*file_mp == 0) { // empty string; keep as hack to test audio
+        file_mp = "/sdcard/audio/ff-16b-2c-44100hz.wav";
+    }
+
+    char file[128] = {'\0'};
+    int res = physicalPath(file_mp, file);
+    if ((res != 0) || (strlen(file) == 0)) {
+        mp_raise_ValueError("Error resolving file name");
+        return mp_const_false;
+    }
+
+    if (audio_stream_active) {
+        ESP_LOGE(TAG, "another audio stream is already playing");
+        return mp_const_false;
+    }
+
+    audio_stream_active = true;
+    _init_pipeline();
+    _init_fatfs_stream();
+    _init_i2s_stream();
+    _init_wav_decoder();
+
+    return _audio_play_generic(file_mp);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(audio_play_wav_file_obj, audio_play_wav_file);
+
+STATIC mp_obj_t audio_play_wav_stream(mp_obj_t _url) {
+    const char *url = mp_obj_str_get_str(_url);
+
+    if (*url == 0) { // empty string; keep as hack to test audio
+        url = "https://dl.espressif.com/dl/audio/ff-16b-2c-44100hz.wav";
+    }
+
+    if (audio_stream_active) {
+        ESP_LOGE(TAG, "another audio stream is already playing");
+        return mp_const_false;
+    }
+
+    audio_stream_active = true;
+    _init_pipeline();
+    _init_http_stream();
+    _init_i2s_stream();
+    _init_wav_decoder();
+
+    return _audio_play_generic(url);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(audio_play_wav_stream_obj, audio_play_wav_stream);
+
 STATIC mp_obj_t audio_play_mp3_file(mp_obj_t _file) {
     const char *file_mp = mp_obj_str_get_str(_file);
 
@@ -314,73 +469,21 @@ STATIC mp_obj_t audio_play_mp3_file(mp_obj_t _file) {
     }
 
     audio_stream_active = true;
-
-#ifdef AUDIO_NEEDS_EXT_POWER
-    badge_power_sdcard_enable();
-#endif // AUDIO_NEEDS_EXT_POWER
-
     _init_pipeline();
     _init_fatfs_stream();
     _init_i2s_stream();
     _init_mp3_decoder();
 
-    // configure pipeline
-    audio_pipeline_register(pipeline, fatfs_stream_reader,"file");
-    audio_pipeline_register(pipeline, mp3_decoder,        "mp3");
-    audio_pipeline_register(pipeline, i2s_stream_writer,  "i2s");
-
-    audio_pipeline_link(pipeline, (const char *[]) {"file", "mp3", "i2s"}, 3);
-
-    // start stream
-    audio_element_set_uri(fatfs_stream_reader, file);
-
-    _init_event();
-
-    audio_pipeline_set_listener(pipeline, evt);
-
-    audio_pipeline_run(pipeline);
-
-    while (1) {
-        audio_event_iface_msg_t msg;
-        esp_err_t ret = audio_event_iface_listen(evt, &msg, portMAX_DELAY);
-        if (ret != ESP_OK) {
-            ESP_LOGE(TAG, "[ * ] Event interface error : %d", ret);
-            continue;
-        }
-
-        if (msg.source_type == AUDIO_ELEMENT_TYPE_ELEMENT
-            && msg.source == (void *) mp3_decoder
-            && msg.cmd == AEL_MSG_CMD_REPORT_MUSIC_INFO) {
-            audio_element_info_t music_info = {0};
-            audio_element_getinfo(mp3_decoder, &music_info);
-
-            ESP_LOGI(TAG, "[ * ] Receive music info from mp3 decoder, sample_rates=%d, bits=%d, ch=%d",
-                     music_info.sample_rates, music_info.bits, music_info.channels);
-
-            audio_element_setinfo(i2s_stream_writer, &music_info);
-            i2s_stream_set_clk(i2s_stream_writer, music_info.sample_rates, music_info.bits, music_info.channels);
-
-            // stream is playing; return
-            xTaskCreate(&_modaudio_event_listener_task, "modaudio event-listener task", 4096, NULL, 10, NULL);
-            return mp_const_true;
-        }
-
-        /* Stop when the last pipeline element (i2s_stream_writer in this case) receives stop event */
-        if (msg.source_type == AUDIO_ELEMENT_TYPE_ELEMENT && msg.source == (void *) i2s_stream_writer
-            && msg.cmd == AEL_MSG_CMD_REPORT_STATUS && (int) msg.data == AEL_STATUS_STATE_STOPPED) {
-            ESP_LOGW(TAG, "[ * ] Stop event received");
-            break;
-        }
-    }
-
-    _modaudio_stream_cleanup();
-
-    return mp_const_false;
+    return _audio_play_generic(file_mp);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(audio_play_mp3_file_obj, audio_play_mp3_file);
 
 STATIC mp_obj_t audio_play_mp3_stream(mp_obj_t _url) {
     const char *url = mp_obj_str_get_str(_url);
+
+    if (*url == 0) { // empty string; keep as hack to test audio
+        url = "https://dl.espressif.com/dl/audio/ff-16b-2c-44100hz.mp3";
+    }
 
     if (audio_stream_active) {
         ESP_LOGE(TAG, "another audio stream is already playing");
@@ -388,72 +491,12 @@ STATIC mp_obj_t audio_play_mp3_stream(mp_obj_t _url) {
     }
 
     audio_stream_active = true;
-
-#ifdef AUDIO_NEEDS_EXT_POWER
-    badge_power_sdcard_enable();
-#endif // AUDIO_NEEDS_EXT_POWER
-
     _init_pipeline();
     _init_http_stream();
     _init_i2s_stream();
     _init_mp3_decoder();
 
-    // configure pipeline
-    audio_pipeline_register(pipeline, http_stream_reader, "http");
-    audio_pipeline_register(pipeline, mp3_decoder,        "mp3");
-    audio_pipeline_register(pipeline, i2s_stream_writer,  "i2s");
-
-    audio_pipeline_link(pipeline, (const char *[]) {"http", "mp3", "i2s"}, 3);
-
-    // start stream
-    if (*url == 0) { // empty string; keep as hack to test audio
-        audio_element_set_uri(http_stream_reader, "https://dl.espressif.com/dl/audio/ff-16b-2c-44100hz.mp3");
-    } else {
-        audio_element_set_uri(http_stream_reader, url);
-    }
-
-    _init_event();
-
-    audio_pipeline_set_listener(pipeline, evt);
-
-    audio_pipeline_run(pipeline);
-
-    while (1) {
-        audio_event_iface_msg_t msg;
-        esp_err_t ret = audio_event_iface_listen(evt, &msg, portMAX_DELAY);
-        if (ret != ESP_OK) {
-            ESP_LOGE(TAG, "[ * ] Event interface error : %d", ret);
-            continue;
-        }
-
-        if (msg.source_type == AUDIO_ELEMENT_TYPE_ELEMENT
-            && msg.source == (void *) mp3_decoder
-            && msg.cmd == AEL_MSG_CMD_REPORT_MUSIC_INFO) {
-            audio_element_info_t music_info = {0};
-            audio_element_getinfo(mp3_decoder, &music_info);
-
-            ESP_LOGI(TAG, "[ * ] Receive music info from mp3 decoder, sample_rates=%d, bits=%d, ch=%d",
-                     music_info.sample_rates, music_info.bits, music_info.channels);
-
-            audio_element_setinfo(i2s_stream_writer, &music_info);
-            i2s_stream_set_clk(i2s_stream_writer, music_info.sample_rates, music_info.bits, music_info.channels);
-
-            // stream is playing; return
-            xTaskCreate(&_modaudio_event_listener_task, "modaudio event-listener task", 4096, NULL, 10, NULL);
-            return mp_const_true;
-        }
-
-        /* Stop when the last pipeline element (i2s_stream_writer in this case) receives stop event */
-        if (msg.source_type == AUDIO_ELEMENT_TYPE_ELEMENT && msg.source == (void *) i2s_stream_writer
-            && msg.cmd == AEL_MSG_CMD_REPORT_STATUS && (int) msg.data == AEL_STATUS_STATE_STOPPED) {
-            ESP_LOGW(TAG, "[ * ] Stop event received");
-            break;
-        }
-    }
-
-    _modaudio_stream_cleanup();
-
-    return mp_const_false;
+    return _audio_play_generic(url);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(audio_play_mp3_stream_obj, audio_play_mp3_stream);
 
@@ -485,6 +528,8 @@ STATIC const mp_rom_map_elem_t audio_module_globals_table[] = {
 
     {MP_OBJ_NEW_QSTR(MP_QSTR_is_playing), (mp_obj_t)&audio_is_playing_obj},
 
+    {MP_OBJ_NEW_QSTR(MP_QSTR_play_wav_file), (mp_obj_t)&audio_play_wav_file_obj},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_play_wav_stream), (mp_obj_t)&audio_play_wav_stream_obj},
     {MP_OBJ_NEW_QSTR(MP_QSTR_play_mp3_file), (mp_obj_t)&audio_play_mp3_file_obj},
     {MP_OBJ_NEW_QSTR(MP_QSTR_play_mp3_stream), (mp_obj_t)&audio_play_mp3_stream_obj},
 
