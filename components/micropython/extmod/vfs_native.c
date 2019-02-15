@@ -165,10 +165,10 @@ int physicalPathN(const char *path, char *ph_path, size_t ph_path_maxlen)
 {
 	if (path[0] == '/') {
 		// absolute path
-		if (strncpy(path, VFS_NATIVE_INTERNAL_MP, strlen(VFS_NATIVE_INTERNAL_MP)) == 0) {
+		if (strncmp(path, VFS_NATIVE_INTERNAL_MP, strlen(VFS_NATIVE_INTERNAL_MP)) == 0) {
 			int res = snprintf(ph_path, ph_path_maxlen, "%s%s", VFS_NATIVE_MOUNT_POINT, path+strlen(VFS_NATIVE_INTERNAL_MP)-1);
 			if (res >= ph_path_maxlen) return -3;
-		} else if (strncpy(path, VFS_NATIVE_EXTERNAL_MP, strlen(VFS_NATIVE_EXTERNAL_MP)) == 0) {
+		} else if (strncmp(path, VFS_NATIVE_EXTERNAL_MP, strlen(VFS_NATIVE_EXTERNAL_MP)) == 0) {
 			int res = snprintf(ph_path, ph_path_maxlen, "%s%s", VFS_NATIVE_SDCARD_MOUNT_POINT, path+strlen(VFS_NATIVE_EXTERNAL_MP)-1);
 			if (res >= ph_path_maxlen) return -3;
 		} else {
