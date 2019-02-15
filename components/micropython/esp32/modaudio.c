@@ -423,7 +423,7 @@ STATIC mp_obj_t audio_play_wav_file(mp_obj_t _file) {
     _init_i2s_stream();
     _init_wav_decoder();
 
-    return _audio_play_generic(file_mp);
+    return _audio_play_generic(file);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(audio_play_wav_file_obj, audio_play_wav_file);
 
@@ -474,7 +474,7 @@ STATIC mp_obj_t audio_play_mp3_file(mp_obj_t _file) {
     _init_i2s_stream();
     _init_mp3_decoder();
 
-    return _audio_play_generic(file_mp);
+    return _audio_play_generic(file);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(audio_play_mp3_file_obj, audio_play_mp3_file);
 
