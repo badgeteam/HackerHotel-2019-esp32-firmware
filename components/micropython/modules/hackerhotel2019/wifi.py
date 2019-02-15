@@ -3,7 +3,7 @@ import network, badge, time
 sta_if = None
 defaultSsid = badge.nvs_get_str('badge', 'wifi.ssid', 'hackerhotel-insecure')
 defaultPassword = badge.nvs_get_str('badge', 'wifi.password')
-timeout = badge.nvs_get_str('badge', 'wifi.timeout', 5)
+timeout = badge.nvs_get_str('badge', 'wifi.timeout', 10)
 
 def status():
 	global sta_if

@@ -7,7 +7,7 @@ if lvl<3:
 		badge.nvs_set_u16("modaudio", "mixer_ctl_1", (0 << 15) + (32 << 8) + (0 << 7) + (32 << 0))
 	badge.nvs_set_u8('ota', 'fixlvl', 3)
 
-if lvl<4:
+if lvl<5:
 	wifi.connect()
 	if wifi.wait(30, True):
 		for bloatware in ['event_schedule','de_rode_hack','hacker_gallery','angry_nerds_podcast']:
@@ -17,4 +17,4 @@ if lvl<4:
 				woezel.install(bloatware)
 			except:
 				pass
-		badge.nvs_set_u8('ota', 'fixlvl', 4)
+		badge.nvs_set_u8('ota', 'fixlvl', 5)
