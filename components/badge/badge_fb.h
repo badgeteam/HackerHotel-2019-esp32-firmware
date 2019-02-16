@@ -16,11 +16,15 @@ __BEGIN_DECLS
 	#define BADGE_FB_WIDTH  BADGE_ERC12864_WIDTH
 	#define BADGE_FB_HEIGHT BADGE_ERC12864_HEIGHT
 #else
-	#define BADGE_FB_WIDTH BADGE_EINK_WIDTH
-	#define BADGE_FB_HEIGHT BADGE_EINK_HEIGHT
+	//#define BADGE_FB_WIDTH BADGE_EINK_WIDTH
+	//#define BADGE_FB_HEIGHT BADGE_EINK_HEIGHT
+	#define BADGE_FB_WIDTH 640
+	#define BADGE_FB_HEIGHT 384
 #endif
 
-#define BADGE_FB_LEN (BADGE_EINK_WIDTH * BADGE_EINK_HEIGHT) //Hack, because the E-INK buffer is larger and not all code has been adapted yet
+//#define BADGE_FB_LEN (BADGE_EINK_WIDTH * BADGE_EINK_HEIGHT) //Hack, because the E-INK buffer is larger and not all code has been adapted yet
+
+#define BADGE_FB_LEN (640 * 384)
 
 /** The frame-buffer */
 extern uint8_t *badge_fb;

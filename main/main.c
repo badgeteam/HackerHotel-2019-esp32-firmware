@@ -20,6 +20,8 @@
 #include "rom/rtc.h"
 #include "esprtcmem.h"
 
+#include <badge_infrared.h>
+
 extern void micropython_entry(void);
 extern uint32_t reset_cause;
 extern bool in_safe_mode;
@@ -64,6 +66,8 @@ void app_main(void) {
 				in_safe_mode = true;
 			}
 		}
+		//start_infrared_rx();
+		//start_infrared_tx();
 		micropython_entry();
 	}
 }

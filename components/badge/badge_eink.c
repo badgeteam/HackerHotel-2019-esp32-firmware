@@ -138,77 +138,155 @@ badge_eink_write_bitplane(const uint32_t *buf)
 	badge_eink_dev_write_command_stream_u32(0x24, buf, DISP_SIZE_X_B * DISP_SIZE_Y/4);
 }
 
+#include "badge_fb.h"
+
 void
 badge_eink_update(const uint32_t *buf, const struct badge_eink_update *upd_conf)
 {
-	// generate lut data
-	const struct badge_eink_lut_entry *lut_entries;
+	if (badge_eink_dev_type == BADGE_EINK_WAVESHARE75) {
+		unsigned char temp1, temp2;
+		badge_eink_dev_write_command(0x10);
+#define EPD_WIDTH 640
+#define EPD_HEIGHT 384
+		uint16_t x = 0;
+		uint16_t y = 0;
+		uint16_t fbpos = 0;
+		for(long i = 0; i < EPD_WIDTH / 8 * EPD_HEIGHT; i++) {
+			temp1 = 255;
+			
+			/*if (x < BADGE_EINK_WIDTH/8) {
+				if (y < BADGE_EINK_HEIGHT) {
+					fbpos = y*296*8 + x*8;
+					temp1  = (badge_fb[fbpos]&&0x01);
+					temp1 += ((badge_fb[fbpos+1]&&0x01) << 1);
+					temp1 += ((badge_fb[fbpos+2]&&0x01) << 2);
+					temp1 += ((badge_fb[fbpos+3]&&0x01) << 3);
+					temp1 += ((badge_fb[fbpos+4]&&0x01) << 4);
+					temp1 += ((badge_fb[fbpos+5]&&0x01) << 5);
+					temp1 += ((badge_fb[fbpos+6]&&0x01) << 6);
+					temp1 += ((badge_fb[fbpos+7]&&0x01) << 7);
+					printf("Pos %d %d = %d\n", x,y,fbpos);
+				}
+			}*/
+			
+			//if (x < BADGE_EINK_WIDTH/8) {
+			//	if (y < BADGE_EINK_HEIGHT) {
+					long fbpos = i*8;//x*8 + y * 640;//296;
+					temp1  = (badge_fb[fbpos + 7]>200);
+					temp1 += (badge_fb[fbpos + 6]>200)<<1;
+					temp1 += (badge_fb[fbpos + 5]>200)<<2;
+					temp1 += (badge_fb[fbpos + 4]>200)<<3;
+					temp1 += (badge_fb[fbpos + 3]>200)<<4;
+					temp1 += (badge_fb[fbpos + 2]>200)<<5;
+					temp1 += (badge_fb[fbpos + 1]>200)<<6;
+					temp1 += (badge_fb[fbpos + 0]>200)<<7;
+			//	}
+			//}
+			
+			
+			/*temp1  = (badge_fb[x*8+y*8*BAGE_EINK_HEIGHT]*1);
+			temp1 += ((badge_fb[x*8+y*8*BAGE_EINK_HEIGHT+1]*1) << 1);
+			temp1 += ((badge_fb[x*8+y*8*BAGE_EINK_HEIGHT+2]*1) << 2);
+			temp1 += ((badge_fb[x*8+y*8*BAGE_EINK_HEIGHT+3]*1) << 3);
+			temp1 += ((badge_fb[x*8+y*8*BAGE_EINK_HEIGHT+4]*1) << 4);
+			temp1 += ((badge_fb[x*8+y*8*BAGE_EINK_HEIGHT+5]*1) << 5);
+			temp1 += ((badge_fb[x*8+y*8*BAGE_EINK_HEIGHT+6]*1) << 6);
+			temp1 += ((badge_fb[x*8+y*8*BAGE_EINK_HEIGHT+7]*1) << 7);*/
+						
+			x++;
+			if (x >= EPD_WIDTH/8) {
+				x = 0;
+				y++;
+			}
+			
+			for(unsigned char j = 0; j < 8; j++) {
+				if(temp1 & 0x80)
+					temp2 = 0x03;
+				else
+					temp2 = 0x00;
+				
+				temp2 <<= 4;
+				temp1 <<= 1;
+				j++;
+				if(temp1 & 0x80)
+					temp2 |= 0x03;
+				else
+					temp2 |= 0x00;
+				temp1 <<= 1;
+				badge_eink_dev_write_byte(temp2); 
+			}
+		}
+		badge_eink_dev_write_command(0x12);
+	} else {
+		// generate lut data
+		const struct badge_eink_lut_entry *lut_entries;
 
-	if (upd_conf->lut == BADGE_EINK_LUT_CUSTOM)
-	{
-		lut_entries = upd_conf->lut_custom;
+		if (upd_conf->lut == BADGE_EINK_LUT_CUSTOM)
+		{
+			lut_entries = upd_conf->lut_custom;
+		}
+		else if (upd_conf->lut >= 0 && upd_conf->lut <= BADGE_EINK_LUT_MAX)
+		{
+			const struct badge_eink_lut_entry *lut_lookup[BADGE_EINK_LUT_MAX + 1] = {
+				badge_eink_lut_full,
+				badge_eink_lut_normal,
+				badge_eink_lut_faster,
+				badge_eink_lut_fastest,
+			};
+			lut_entries = lut_lookup[upd_conf->lut];
+		}
+		else
+		{
+			lut_entries = badge_eink_lut_full;
+		}
+
+		uint8_t lut[BADGE_EINK_LUT_MAX_SIZE];
+		int lut_len = badge_eink_lut_generate(lut_entries, upd_conf->lut_flags, lut);
+		assert( lut_len >= 0 );
+
+		badge_eink_dev_write_command_stream(0x32, lut, lut_len);
+
+		if (buf == NULL)
+			buf = badge_eink_tmpbuf;
+
+		badge_eink_write_bitplane(buf);
+
+		if (badge_eink_dev_type == BADGE_EINK_DEPG0290B1 && badge_eink_have_oldbuf)
+			badge_eink_dev_write_command_stream_u32(0x26, badge_eink_oldbuf, DISP_SIZE_X_B * DISP_SIZE_Y/4);
+
+		// write number of overscan lines
+		badge_eink_dev_write_command_p1(0x3a, upd_conf->reg_0x3a);
+
+		// write time to write every line
+		badge_eink_dev_write_command_p1(0x3b, upd_conf->reg_0x3b);
+
+		uint16_t y_len = upd_conf->y_end - upd_conf->y_start;
+		// configure length of update
+		badge_eink_dev_write_command_p3(0x01, y_len & 0xff, y_len >> 8, 0x00);
+
+		// configure starting-line of update
+		badge_eink_dev_write_command_p2(0x0f, upd_conf->y_start & 0xff, upd_conf->y_start >> 8);
+
+		// bitmapped enabled phases of the update: (in this order)
+		//   80 - enable clock signal
+		//   40 - enable CP
+		//   20 - load temperature value
+		//   10 - load LUT
+		//   08 - initial display
+		//   04 - pattern display
+		//   02 - disable CP
+		//   01 - disable clock signal
+		badge_eink_dev_write_command_p1(0x22, 0xc7);
+
+		// start update
+		badge_eink_dev_write_command(0x20);
+
+		if (badge_eink_dev_type == BADGE_EINK_DEPG0290B1)
+		{
+			memcpy_u32(badge_eink_oldbuf, buf, DISP_SIZE_X_B * DISP_SIZE_Y/4);
+		}
+		badge_eink_have_oldbuf = true;
 	}
-	else if (upd_conf->lut >= 0 && upd_conf->lut <= BADGE_EINK_LUT_MAX)
-	{
-		const struct badge_eink_lut_entry *lut_lookup[BADGE_EINK_LUT_MAX + 1] = {
-			badge_eink_lut_full,
-			badge_eink_lut_normal,
-			badge_eink_lut_faster,
-			badge_eink_lut_fastest,
-		};
-		lut_entries = lut_lookup[upd_conf->lut];
-	}
-	else
-	{
-		lut_entries = badge_eink_lut_full;
-	}
-
-	uint8_t lut[BADGE_EINK_LUT_MAX_SIZE];
-	int lut_len = badge_eink_lut_generate(lut_entries, upd_conf->lut_flags, lut);
-	assert( lut_len >= 0 );
-
-	badge_eink_dev_write_command_stream(0x32, lut, lut_len);
-
-	if (buf == NULL)
-		buf = badge_eink_tmpbuf;
-
-	badge_eink_write_bitplane(buf);
-
-	if (badge_eink_dev_type == BADGE_EINK_DEPG0290B1 && badge_eink_have_oldbuf)
-		badge_eink_dev_write_command_stream_u32(0x26, badge_eink_oldbuf, DISP_SIZE_X_B * DISP_SIZE_Y/4);
-
-	// write number of overscan lines
-	badge_eink_dev_write_command_p1(0x3a, upd_conf->reg_0x3a);
-
-	// write time to write every line
-	badge_eink_dev_write_command_p1(0x3b, upd_conf->reg_0x3b);
-
-	uint16_t y_len = upd_conf->y_end - upd_conf->y_start;
-	// configure length of update
-	badge_eink_dev_write_command_p3(0x01, y_len & 0xff, y_len >> 8, 0x00);
-
-	// configure starting-line of update
-	badge_eink_dev_write_command_p2(0x0f, upd_conf->y_start & 0xff, upd_conf->y_start >> 8);
-
-	// bitmapped enabled phases of the update: (in this order)
-	//   80 - enable clock signal
-	//   40 - enable CP
-	//   20 - load temperature value
-	//   10 - load LUT
-	//   08 - initial display
-	//   04 - pattern display
-	//   02 - disable CP
-	//   01 - disable clock signal
-	badge_eink_dev_write_command_p1(0x22, 0xc7);
-
-	// start update
-	badge_eink_dev_write_command(0x20);
-
-	if (badge_eink_dev_type == BADGE_EINK_DEPG0290B1)
-	{
-		memcpy_u32(badge_eink_oldbuf, buf, DISP_SIZE_X_B * DISP_SIZE_Y/4);
-	}
-	badge_eink_have_oldbuf = true;
 }
 
 void
@@ -382,6 +460,7 @@ badge_eink_init(enum badge_eink_dev_t dev_type)
 
 	if (badge_eink_dev_type == BADGE_EINK_DEPG0290B1)
 	{
+		printf("DEPG0290B1 BLAH\n");
 		badge_eink_oldbuf = heap_caps_malloc(DISP_SIZE_X_B * DISP_SIZE_Y, MALLOC_CAP_32BIT);
 		if (badge_eink_oldbuf == NULL)
 			return ESP_ERR_NO_MEM;
@@ -389,6 +468,7 @@ badge_eink_init(enum badge_eink_dev_t dev_type)
 
 	if (badge_eink_dev_type == BADGE_EINK_GDEH029A1)
 	{
+		printf("GDE029A1 BLAH\n");
 		/* initialize GDEH029A1 */
 
 		// Hardware reset
@@ -405,6 +485,26 @@ badge_eink_init(enum badge_eink_dev_t dev_type)
 
 		// 11: data entry mode setting
 		badge_eink_dev_write_command_p1(0x11, 0x03); // X inc, Y inc
+	}
+	
+	if (badge_eink_dev_type == BADGE_EINK_WAVESHARE75)
+	{
+		printf("WAVESHARE INIT\n");
+		badge_eink_dev_reset();
+		badge_eink_dev_write_command_p2(0x01, 0x37, 0x00);
+		badge_eink_dev_write_command_p2(0x00, 0xCF, 0x08);
+		badge_eink_dev_write_command_p3(0x06, 0xC7, 0xCC, 0x28);
+		badge_eink_dev_write_command(0x04);
+		printf("Wait for power on.\n");
+		badge_eink_dev_busy_wait();
+		badge_eink_dev_write_command_p1(0x30, 0x3C);
+		badge_eink_dev_write_command_p1(0x41, 0x00);
+		badge_eink_dev_write_command_p1(0x50, 0x77);
+		badge_eink_dev_write_command_p1(0x60, 0x22);
+		badge_eink_dev_write_command_p4(0x61, 0x02, 0x80, 0x01, 0x80);
+		badge_eink_dev_write_command_p1(0x82, 0x1E);
+		badge_eink_dev_write_command_p1(0xe5, 0x03);
+		printf("7 inch eink done\n");
 	}
 
 	if (badge_eink_dev_type == BADGE_EINK_DEPG0290B1)

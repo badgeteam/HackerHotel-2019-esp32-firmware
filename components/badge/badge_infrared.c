@@ -160,19 +160,19 @@ static int nec_parse_items(rmt_item32_t* item, int item_num, uint16_t* addr, uin
     }
     int i = 0, j = 0;
     if(!nec_header_if(item++)) {
-		//ESP_LOGW(NEC_TAG, "no header");
+		ESP_LOGW(NEC_TAG, "no header");
         return -1;
     }
     uint16_t addr_t = 0;
     for(j = 0; j < 16; j++) {
         if(nec_bit_one_if(item)) {
-			//ESP_LOGW(NEC_TAG, "j one %d", j);
+			ESP_LOGW(NEC_TAG, "j one %d", j);
             addr_t |= (1 << j);
         } else if(nec_bit_zero_if(item)) {
-			//ESP_LOGW(NEC_TAG, "j zero %d", j);
+			ESP_LOGW(NEC_TAG, "j zero %d", j);
             addr_t |= (0 << j);
         } else {
-			//ESP_LOGW(NEC_TAG, "j error %d", j);
+			ESP_LOGW(NEC_TAG, "j error %d", j);
             return -1;
         }
         item++;
@@ -181,13 +181,13 @@ static int nec_parse_items(rmt_item32_t* item, int item_num, uint16_t* addr, uin
     uint16_t data_t = 0;
     for(j = 0; j < 16; j++) {
         if(nec_bit_one_if(item)) {
-			//ESP_LOGW(NEC_TAG, "2 j one %d", j);
+			ESP_LOGW(NEC_TAG, "2 j one %d", j);
             data_t |= (1 << j);
         } else if(nec_bit_zero_if(item)) {
-			//ESP_LOGW(NEC_TAG, "2 j zero %d", j);
+			ESP_LOGW(NEC_TAG, "2 j zero %d", j);
             data_t |= (0 << j);
         } else {
-			//ESP_LOGW(NEC_TAG, "2 j error %d", j);
+			ESP_LOGW(NEC_TAG, "2 j error %d", j);
             return -1;
         }
         item++;

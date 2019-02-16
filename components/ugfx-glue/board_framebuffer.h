@@ -47,8 +47,8 @@ uint8_t target_lut;
 		err = badge_fb_init();
 		assert( err == ESP_OK );
 
-		g->g.Width = BADGE_EINK_WIDTH;
-		g->g.Height = BADGE_EINK_HEIGHT;
+		g->g.Width = 640;//BADGE_EINK_WIDTH;
+		g->g.Height = 384;//BADGE_EINK_HEIGHT;
 		g->g.Backlight = 100;
 		g->g.Contrast = 50;
 		fbi->linelen = g->g.Width;

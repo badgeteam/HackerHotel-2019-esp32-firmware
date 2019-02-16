@@ -11,6 +11,8 @@
 
 #include "badge_pins.h"
 
+#include "esp_heap_caps.h"
+
 static const char *TAG = "badge_fb";
 
 uint8_t *badge_fb = NULL;
@@ -23,7 +25,7 @@ badge_fb_init(void)
 
 	ESP_LOGD(TAG, "init called");
 
-	badge_fb = (uint8_t *) malloc(BADGE_FB_LEN);
+	badge_fb = (uint8_t *) heap_caps_malloc(BADGE_FB_LEN, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);//malloc(BADGE_FB_LEN);
 	if (badge_fb == NULL)
 		return ESP_ERR_NO_MEM;
 
