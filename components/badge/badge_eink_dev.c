@@ -129,7 +129,7 @@ badge_eink_dev_reset(void) {
 bool
 badge_eink_dev_is_busy(void)
 {
-	if (badge_eink_dev_type == BADGE_EINK_WAVESHARE75) {
+	if ((badge_eink_dev_type == BADGE_EINK_WAVESHARE75)||(badge_eink_dev_type == BADGE_EINK_WAVESHARE75B)) {
 		return !gpio_get_level(PIN_NUM_EPD_BUSY);
 	} else {
 		return gpio_get_level(PIN_NUM_EPD_BUSY);
