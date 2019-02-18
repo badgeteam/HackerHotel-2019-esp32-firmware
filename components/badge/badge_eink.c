@@ -141,82 +141,95 @@ badge_eink_write_bitplane(const uint32_t *buf)
 #include "badge_fb.h"
 
 void
-badge_eink_update(const uint32_t *buf, const struct badge_eink_update *upd_conf)
+badge_eink_update(const uint32_t *buf, const struct badge_eink_update *upd_conf, badge_eink_flags_t flags)
 {
-	if (badge_eink_dev_type == BADGE_EINK_WAVESHARE75) {
-		unsigned char temp1, temp2;
+	if (flags & DISPLAY_FLAG_8BITPIXEL) {
+		printf("8bit\n");
+	} else {
+		printf("1bit\n");
+	}
+	
+	if ((badge_eink_dev_type == BADGE_EINK_WAVESHARE75)||(badge_eink_dev_type == BADGE_EINK_WAVESHARE75B)) {
+		uint8_t temp2;
+		uint8_t pixels_black = 0xFF;
+		uint8_t pixels_red   = 0xFF;
 		badge_eink_dev_write_command(0x10);
 #define EPD_WIDTH 640
 #define EPD_HEIGHT 384
-		uint16_t x = 0;
-		uint16_t y = 0;
-		uint16_t fbpos = 0;
-		for(long i = 0; i < EPD_WIDTH / 8 * EPD_HEIGHT; i++) {
-			temp1 = 255;
-			
-			/*if (x < BADGE_EINK_WIDTH/8) {
-				if (y < BADGE_EINK_HEIGHT) {
-					fbpos = y*296*8 + x*8;
-					temp1  = (badge_fb[fbpos]&&0x01);
-					temp1 += ((badge_fb[fbpos+1]&&0x01) << 1);
-					temp1 += ((badge_fb[fbpos+2]&&0x01) << 2);
-					temp1 += ((badge_fb[fbpos+3]&&0x01) << 3);
-					temp1 += ((badge_fb[fbpos+4]&&0x01) << 4);
-					temp1 += ((badge_fb[fbpos+5]&&0x01) << 5);
-					temp1 += ((badge_fb[fbpos+6]&&0x01) << 6);
-					temp1 += ((badge_fb[fbpos+7]&&0x01) << 7);
-					printf("Pos %d %d = %d\n", x,y,fbpos);
-				}
-			}*/
-			
-			//if (x < BADGE_EINK_WIDTH/8) {
-			//	if (y < BADGE_EINK_HEIGHT) {
-					long fbpos = i*8;//x*8 + y * 640;//296;
-					temp1  = (badge_fb[fbpos + 7]>200);
-					temp1 += (badge_fb[fbpos + 6]>200)<<1;
-					temp1 += (badge_fb[fbpos + 5]>200)<<2;
-					temp1 += (badge_fb[fbpos + 4]>200)<<3;
-					temp1 += (badge_fb[fbpos + 3]>200)<<4;
-					temp1 += (badge_fb[fbpos + 2]>200)<<5;
-					temp1 += (badge_fb[fbpos + 1]>200)<<6;
-					temp1 += (badge_fb[fbpos + 0]>200)<<7;
-			//	}
-			//}
-			
-			
-			/*temp1  = (badge_fb[x*8+y*8*BAGE_EINK_HEIGHT]*1);
-			temp1 += ((badge_fb[x*8+y*8*BAGE_EINK_HEIGHT+1]*1) << 1);
-			temp1 += ((badge_fb[x*8+y*8*BAGE_EINK_HEIGHT+2]*1) << 2);
-			temp1 += ((badge_fb[x*8+y*8*BAGE_EINK_HEIGHT+3]*1) << 3);
-			temp1 += ((badge_fb[x*8+y*8*BAGE_EINK_HEIGHT+4]*1) << 4);
-			temp1 += ((badge_fb[x*8+y*8*BAGE_EINK_HEIGHT+5]*1) << 5);
-			temp1 += ((badge_fb[x*8+y*8*BAGE_EINK_HEIGHT+6]*1) << 6);
-			temp1 += ((badge_fb[x*8+y*8*BAGE_EINK_HEIGHT+7]*1) << 7);*/
-						
-			x++;
-			if (x >= EPD_WIDTH/8) {
-				x = 0;
-				y++;
-			}
-			
-			for(unsigned char j = 0; j < 8; j++) {
-				if(temp1 & 0x80)
-					temp2 = 0x03;
-				else
-					temp2 = 0x00;
 				
-				temp2 <<= 4;
-				temp1 <<= 1;
-				j++;
-				if(temp1 & 0x80)
-					temp2 |= 0x03;
-				else
-					temp2 |= 0x00;
-				temp1 <<= 1;
-				badge_eink_dev_write_byte(temp2); 
+		for(long i = 0; i < EPD_WIDTH / 8 * EPD_HEIGHT; i++) {
+			if (flags & DISPLAY_FLAG_8BITPIXEL) {
+				long fbpos = i*8;
+				for (uint8_t x = 0; x < 8; x++) {
+					pixels_black = (pixels_black << 1);// + (badge_fb[fbpos + x]>>7);
+					pixels_red   = (pixels_red   << 1);
+					uint8_t currentPixel = badge_fb[fbpos + x];
+					if (currentPixel < 0x30) {
+						pixels_black += 1;
+					} else if (currentPixel < 0xE0) {
+						pixels_red += 1;
+					}
+					
+					//printf("%02X ", badge_fb[fbpos + x]);
+				}
+				//printf("\n");
+			} else {
+				static unsigned char lookup[16] = {
+				0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6, 0xe,
+				0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf
+				}; //Swap the bits in the byte
+
+				pixels_black = (lookup[badge_fb[i]&0b1111] << 4) | lookup[badge_fb[i]>>4];
 			}
+			
+			if (badge_eink_dev_type == BADGE_EINK_WAVESHARE75) {
+				for(unsigned char j = 0; j < 8; j++) {
+					if(pixels_black & 0x80)
+						temp2 = 0x03;
+					else
+						temp2 = 0x00;
+					
+					temp2 <<= 4;
+					pixels_black <<= 1;
+					
+					j++;
+					if(pixels_black & 0x80)
+						temp2 |= 0x03;
+					else
+						temp2 |= 0x00;
+					pixels_black <<= 1;
+					badge_eink_dev_write_byte(temp2); 
+				}
+			} else {
+				for (unsigned char j = 0; j < 8; j++) {
+					if(pixels_black & 0x80) {
+						temp2 = 0x00; //Black
+					} else if (pixels_red & 0x80) {
+						temp2 = 0x04; //Red
+					} else {
+						temp2 = 0x03; //White
+					}
+					
+					temp2 <<= 4;
+					pixels_black <<= 1;
+					pixels_red <<= 1;
+					
+					j++;
+					if(pixels_black & 0x80) {
+						temp2 |= 0x00;
+					} else if (pixels_red & 0x80) {
+						temp2 |= 0x04;
+					} else {
+						temp2 |= 0x03;
+					}
+					pixels_black <<= 1;
+					pixels_red <<= 1;
+					badge_eink_dev_write_byte(temp2); 
+				}
+			}
+			
 		}
-		badge_eink_dev_write_command(0x12);
+		badge_eink_dev_write_command(0x12); //Display refresh
 	} else {
 		// generate lut data
 		const struct badge_eink_lut_entry *lut_entries;
@@ -330,7 +343,7 @@ badge_eink_display(const uint8_t *img, badge_eink_flags_t flags)
 		.y_start   = 0,
 		.y_end     = 295,
 	};
-	badge_eink_update(buf, &eink_upd);
+	badge_eink_update(buf, &eink_upd, flags);
 }
 
 void
@@ -418,7 +431,7 @@ badge_eink_display_greyscale(const uint8_t *img, badge_eink_flags_t flags, int l
 				.y_start    = y_start,
 				.y_end      = y_end + 1,
 			};
-			badge_eink_update(buf, &eink_upd);
+			badge_eink_update(buf, &eink_upd, flags);
 			badge_eink_have_oldbuf = false;
 		}
 	}
@@ -487,24 +500,28 @@ badge_eink_init(enum badge_eink_dev_t dev_type)
 		badge_eink_dev_write_command_p1(0x11, 0x03); // X inc, Y inc
 	}
 	
-	if (badge_eink_dev_type == BADGE_EINK_WAVESHARE75)
+	if ((badge_eink_dev_type == BADGE_EINK_WAVESHARE75) || (badge_eink_dev_type == BADGE_EINK_WAVESHARE75B))
 	{
-		printf("WAVESHARE INIT\n");
+		printf("Waveshare EINK\n");
 		badge_eink_dev_reset();
-		badge_eink_dev_write_command_p2(0x01, 0x37, 0x00);
-		badge_eink_dev_write_command_p2(0x00, 0xCF, 0x08);
-		badge_eink_dev_write_command_p3(0x06, 0xC7, 0xCC, 0x28);
-		badge_eink_dev_write_command(0x04);
-		printf("Wait for power on.\n");
+		badge_eink_dev_write_command_p2(0x01, 0x37, 0x00); //Power setting
+		badge_eink_dev_write_command_p2(0x00, 0xCF, 0x08); //Panel setting
+		badge_eink_dev_write_command_p3(0x06, 0xC7, 0xCC, 0x28); //Booster soft start
+		badge_eink_dev_write_command(0x04); //Power on
+		printf("Wait...\n");
 		badge_eink_dev_busy_wait();
-		badge_eink_dev_write_command_p1(0x30, 0x3C);
-		badge_eink_dev_write_command_p1(0x41, 0x00);
-		badge_eink_dev_write_command_p1(0x50, 0x77);
-		badge_eink_dev_write_command_p1(0x60, 0x22);
-		badge_eink_dev_write_command_p4(0x61, 0x02, 0x80, 0x01, 0x80);
-		badge_eink_dev_write_command_p1(0x82, 0x1E);
-		badge_eink_dev_write_command_p1(0xe5, 0x03);
-		printf("7 inch eink done\n");
+		if (badge_eink_dev_type == BADGE_EINK_WAVESHARE75) {
+			badge_eink_dev_write_command_p1(0x30, 0x3C); //PLL control
+		} else {
+			badge_eink_dev_write_command_p1(0x30, 0x3A); //PLL control
+		}
+		badge_eink_dev_write_command_p1(0x41, 0x00); //Temperature calibration
+		badge_eink_dev_write_command_p1(0x50, 0x77); //Vcom and data interval
+		badge_eink_dev_write_command_p1(0x60, 0x22); //Tcon setting
+		badge_eink_dev_write_command_p4(0x61, 0x02, 0x80, 0x01, 0x80); //Tcon resolution
+		badge_eink_dev_write_command_p1(0x82, 0x1E); //VCM DC setting (decide by LUT file)
+		badge_eink_dev_write_command_p1(0xe5, 0x03); //Flash mode
+		printf("Waveshare EINK done.\n");
 	}
 
 	if (badge_eink_dev_type == BADGE_EINK_DEPG0290B1)

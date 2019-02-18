@@ -53,14 +53,14 @@ struct badge_eink_update {
 	int y_end;
 };
 
+/** badge_eink_display flags settings */
+typedef int badge_eink_flags_t;
+
 /** refresh the eink display with given config-settings
  * @param buf the raw buffer to write to the screen
  * @param upd_conf the config-settings to use
  */
-extern void badge_eink_update(const uint32_t *buf, const struct badge_eink_update *upd_conf);
-
-/** badge_eink_display flags settings */
-typedef int badge_eink_flags_t;
+extern void badge_eink_update(const uint32_t *buf, const struct badge_eink_update *upd_conf, badge_eink_flags_t flags);
 
 // bitmapped flags:
 /** the input buffer is 8 bits per pixel instead of 1 bit per pixel */
