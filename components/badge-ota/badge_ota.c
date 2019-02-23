@@ -33,12 +33,10 @@
 #include "mbedtls/ssl.h"
 
 #include "badge.h"
-//#include "badge_eink.h"
-//#include "badge_eink_dev.h"
 #include "badge_nvs.h"
 #include "letsencrypt.h"
-#include "graphics.h"
-#include <gfx.h>
+
+#include <textconsole.h>
 
 #define TAG "ota-update"
 
@@ -142,7 +140,7 @@ static void __attribute__((noreturn))
 task_fatal_error(void)
 {
 	ESP_LOGE(TAG, "Exiting task due to fatal error...");
-	graphics_show("OTA Update failed :(", 0, false, true);
+	disp_line("OTA Update failed :(",FONT_16PX);
 	vTaskDelay(1000 / portTICK_PERIOD_MS);
 	esp_restart();
 	(void)vTaskDelete(NULL);
@@ -257,7 +255,7 @@ badge_ota_task(void *pvParameter)
 	ESP_LOGW(TAG, "Writing to partition type %d subtype %d (offset 0x%08x)",
 			part_update->type, part_update->subtype, part_update->address);
 
-	graphics_show("Connecting to WiFi", 0, false, true);
+	disp_line("Connecting to WiFi", 0);
 	/* Wait for the callback to set the CONNECTED_BIT in the
 	   event group.
 	 */
@@ -336,7 +334,7 @@ badge_ota_task(void *pvParameter)
 
 	mbedtls_net_init(&server_fd);
 
-	graphics_show("Handshaking server", 0, false, true);
+	disp_line("Handshaking server", 0);
 
 	ESP_LOGW(TAG, "Connecting to %s:%s...", BADGE_OTA_WEB_SERVER,
 			BADGE_OTA_WEB_PORT);
@@ -383,7 +381,7 @@ badge_ota_task(void *pvParameter)
 	}
 	ESP_LOGW(TAG, "%d bytes written", strlen(REQUEST));
 
-	graphics_show("Starting OTA update", 0, false, true);
+	disp_line("Starting OTA update", 0);
 
 	/* read until we have received the status line */
 	ESP_LOGW(TAG, "Reading HTTP response status line.");
@@ -527,7 +525,9 @@ badge_ota_task(void *pvParameter)
 		uint8_t newperc = (uint8_t) round(((float) content_pos * 100) / content_length);
 		if (newperc != percentage) {
 			percentage = newperc;
-			graphics_show("Updating", percentage, true, false);
+			char line[50];
+			sprintf(line, "Updating... %d%%", percentage);
+			disp_line(line, 0);
 		}
 	}
 
@@ -545,7 +545,7 @@ badge_ota_task(void *pvParameter)
 	 * new OTA partition.
 	 */
 
-	graphics_show("Rebooting the badge", 0, false, true);
+	disp_line("Rebooting the badge", 0);
 
 	err = esp_ota_set_boot_partition(part_update);
 	if (err != ESP_OK) {
@@ -561,7 +561,7 @@ void badge_ota_update() {
 	esp_err_t err = nvs_flash_init();
 	// Init the badge
 	badge_init();
-	graphics_init("OTA UPDATE");
+	console_init();
 
 	if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
 		// OTA app partition table has a smaller NVS partition size than the non-OTA

@@ -27,6 +27,7 @@ extern bool in_safe_mode;
 #define BUTTON_SAFE_MODE ((1 << BADGE_BUTTON_START))
 
 void app_main(void) {
+	badge_ota_update(); //TEST
 	badge_check_first_run();
 	badge_init();
 	

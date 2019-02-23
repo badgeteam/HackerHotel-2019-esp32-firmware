@@ -29,13 +29,14 @@
 #include <badge_i2c.h>
 #include <badge_disobey_samd.h>
 #include <badge_erc12864.h>
-#include <font.h>
 #include <badge_ota.h>
 
 #include <file_reader.h>
 #include <flash_reader.h>
 #include <deflate_reader.h>
 #include <png_reader.h>
+
+#include <textconsole.h>
 
 #define TAG "badge_first_run"
 
@@ -74,98 +75,6 @@ const char *touch_name[8] = {
 };
 #endif // I2C_MPR121_ADDR
 
-bool
-load_png(int x, int y, const char *filename)
-{
-	struct lib_file_reader *fr = lib_file_new(filename, 1024);
-	if (fr == NULL)
-	{
-		fprintf(stderr, "file not found (or out of memory).\n");
-		return false;
-	}
-
-	struct lib_png_reader *pr = lib_png_new((lib_reader_read_t) &lib_file_read, fr);
-	if (pr == NULL)
-	{
-		fprintf(stderr, "out of memory.\n");
-		lib_file_destroy(fr);
-		return false;
-	}
-
-	int res = lib_png_load_image(pr, &badge_fb[x + y*BADGE_FB_WIDTH], 0, 0, BADGE_FB_WIDTH-x, BADGE_FB_HEIGHT-y, BADGE_FB_WIDTH);
-	lib_png_destroy(pr);
-	lib_file_destroy(fr);
-
-	if (res < 0)
-	{
-		fprintf(stderr, "failed to load image: res = %i\n", res);
-		return false;
-	}
-	return true;
-}
-
-#ifdef I2C_ERC12864_ADDR
-	#define NUM_DISP_LINES 8
-	#define COLOR_WHITE 0xFF
-	#define COLOR_BLACH 0x00
-#else
-	#define NUM_DISP_LINES 12
-	#define COLOR_WHITE 0x00
-	#define COLOR_BLACH 0xFF
-#endif
-
-#define NO_NEWLINE 0x80
-
-// can use the lower <n> lines for showing measurements
-void
-disp_line(const char *line, int flags)
-{
-	ESP_LOGI(TAG, "# %s", line);
-	static int next_line = 0;
-	while (1)
-	{
-		int height = (flags & FONT_16PX) ? 2 : 1;
-		while (next_line >= NUM_DISP_LINES - height)
-		{ // scroll up
-			next_line--;
-			memmove(badge_fb, &badge_fb[BADGE_FB_WIDTH], (NUM_DISP_LINES-1)*BADGE_FB_WIDTH);
-			memset(&badge_fb[(NUM_DISP_LINES-1)*BADGE_FB_WIDTH], COLOR_WHITE, BADGE_FB_WIDTH);
-		}
-		int len = draw_font(badge_fb, 0, 8*next_line, BADGE_FB_WIDTH, line, (FONT_FULL_WIDTH|FONT_INVERT)^flags);
-		if (height == 2)
-			next_line++;
-		if ((flags & NO_NEWLINE) == 0)
-		{
-			next_line++;
-			draw_font(badge_fb, 0, 8*next_line, BADGE_FB_WIDTH, "_", FONT_FULL_WIDTH|FONT_INVERT);
-		}
-#ifdef CONFIG_DEBUG_ADD_DELAYS
-#ifdef I2C_ERC12864_ADDR
-		badge_erc12864_write(badge_fb);
-#endif
-#ifdef PIN_NUM_EPD_CLK
-		badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(2));
-#endif
-		vTaskDelay(1000 / portTICK_PERIOD_MS);
-#endif // CONFIG_DEBUG_ADD_DELAYS
-
-		if (len == 0 || line[len] == 0)
-		{
-#ifndef CONFIG_DEBUG_ADD_DELAYS
-#ifdef I2C_ERC12864_ADDR
-		badge_erc12864_write(badge_fb);
-#endif
-#ifdef PIN_NUM_EPD_CLK
-		badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(2));
-#endif
-#endif // CONFIG_DEBUG_ADD_DELAYS
-			return;
-		}
-
-		line = &line[len];
-	}
-}
-
 #ifdef I2C_MPR121_ADDR
 void
 update_mpr121_bars( const struct badge_mpr121_touch_info *ti, const uint32_t *baseline_top, const uint32_t *baseline_bottom )
@@ -198,9 +107,6 @@ update_mpr121_bars( const struct badge_mpr121_touch_info *ti, const uint32_t *ba
 #ifdef PIN_NUM_EPD_CLK
 		badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(2));
 #endif
-#ifdef CONFIG_DEBUG_ADD_DELAYS
-	vTaskDelay(100 / portTICK_PERIOD_MS);
-#endif // CONFIG_DEBUG_ADD_DELAYS
 }
 #endif // I2C_MPR121_ADDR
 
@@ -442,35 +348,12 @@ void
 badge_first_run(void)
 {
 	char line[100];
-
-	// initialize display
-#ifdef CONFIG_DISOBEY
-	esp_err_t err = badge_i2c_init();
-	assert( err == ESP_OK );
-	err = badge_disobey_samd_init();
-	assert( err == ESP_OK );
-	err = badge_erc12864_init();
-	err = badge_fb_init();
-	assert( err == ESP_OK );
-	memset(badge_fb, 0x00, BADGE_FB_LEN);
-	badge_disobey_samd_write_backlight(255);
-	badge_erc12864_write(badge_fb);
-#else
-	esp_err_t err = badge_eink_init(BADGE_EINK_DEFAULT);
-	assert( err == ESP_OK );
-
-	err = badge_fb_init();
-	assert( err == ESP_OK );
-
-	// start with white screen
-	memset(badge_fb, 0xff, BADGE_FB_LEN);
-	badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(0));
-#endif
+	console_init();
 
 	// add line in split-screen
-	if (NUM_DISP_LINES < 16) {
-		memset(&badge_fb[NUM_DISP_LINES*BADGE_FB_WIDTH], 0x00, BADGE_FB_WIDTH/8);
-	}
+	//if (NUM_DISP_LINES < 16) {
+	//	memset(&badge_fb[NUM_DISP_LINES*BADGE_FB_WIDTH], 0x00, BADGE_FB_WIDTH/8);
+	//}
 
 	disp_line("Factory test", FONT_16PX);
 	disp_line("",0);
@@ -493,7 +376,7 @@ badge_first_run(void)
 #ifdef I2C_MPR121_ADDR
 	// mpr121
 	disp_line("initializing MPR121",0);
-	err = badge_mpr121_init();
+	esp_err_t err = badge_mpr121_init();
 	assert( err == ESP_OK );
 	err = badge_mpr121_configure(NULL, false);
 	assert( err == ESP_OK );
