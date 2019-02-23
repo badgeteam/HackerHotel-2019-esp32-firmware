@@ -85,7 +85,6 @@ MP_EXTRA_INC += -I$(PROJECT_PATH)/components/badge
 MP_EXTRA_INC += -I$(PROJECT_PATH)/components/png
 MP_EXTRA_INC += -I$(PROJECT_PATH)/components/graph
 MP_EXTRA_INC += -I$(PROJECT_PATH)/components/badge-ota
-MP_EXTRA_INC += -I$(PROJECT_PATH)/components/ugfx-glue
 MP_EXTRA_INC += -I$(COMPONENT_PATH)/py
 MP_EXTRA_INC += -I$(COMPONENT_PATH)/lib/mp-readline
 MP_EXTRA_INC += -I$(COMPONENT_PATH)/lib/netutils
@@ -136,9 +135,6 @@ MP_EXTRA_INC += -I$(ESPCOMP)/heap/include
 MP_EXTRA_INC += -I$(ESPCOMP)/openssl/include
 MP_EXTRA_INC += -I$(ESPCOMP)/app_update/include
 MP_EXTRA_INC += -I$(ESPCOMP)/mdns/include
-MP_EXTRA_INC += -I$(UGFX_PATH)
-MP_EXTRA_INC += -I$(UGFX_PATH)/drivers/gdisp/framebuffer
-MP_EXTRA_INC += -I$(UGFX_PATH)/src/gdisp/mcufont
 MP_EXTRA_INC += -I$(IDF_PATH)/components/freertos/include/freertos
 MP_EXTRA_INC += -I$(PROJECT_PATH)/components/audio_pipeline/include
 MP_EXTRA_INC += -I$(PROJECT_PATH)/components/audio_hal/include
@@ -233,13 +229,7 @@ SRC_C =  $(addprefix esp32/,\
 	modbadge.c \
 	modaudio.c \
 	modesp.c \
-	modfreedomgfx.c \
-	modfreedomgfx_eink.c \
-	modugfx.c \
 	esprtcmem.c \
-	ugfx_containers.c \
-	ugfx_styles.c \
-	ugfx_widgets.c \
 	)
 
 ifdef CONFIG_MICROPY_USE_DISPLAY

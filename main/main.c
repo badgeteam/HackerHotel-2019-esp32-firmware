@@ -29,13 +29,6 @@ extern bool in_safe_mode;
 void app_main(void) {
 	badge_check_first_run();
 	badge_init();
-
-/*#ifdef I2C_ERC12864_ADDR
-	badge_disobey_samd_write_backlight(255);
-#endif*/
-
-	/*esp_err_t err = badge_fb_init();
-	assert( err == ESP_OK );*/
 	
 	uint8_t magic = esp_rtcmem_read(0);
 	uint8_t inv_magic = esp_rtcmem_read(1);
@@ -67,7 +60,3 @@ void app_main(void) {
 		micropython_entry();
 	}
 }
-
-//void vPortCleanUpTCB ( void *pxTCB ) {
-	// place clean up code here
-//}

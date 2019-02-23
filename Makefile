@@ -15,7 +15,4 @@ IDF_PATH := $(PROJECT_PATH)/esp-idf
 export IDF_PATH
 endif
 
-UGFX_PATH := $(PROJECT_PATH)/ugfx
-export UGFX_PATH
-
 include $(IDF_PATH)/make/project.mk

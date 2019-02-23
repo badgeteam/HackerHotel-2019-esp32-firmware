@@ -1,7 +1,3 @@
-[submodule "ugfx"]
-	path = ugfx
-	url = https://github.com/badgeteam/ugfx.git
-	branch = master
 [submodule "micropython-lib"]
 	path = micropython-lib
 	url = https://github.com/badgeteam/micropython-lib.git

@@ -46,7 +46,6 @@ struct menu_item {
 #include "demo_dot1.h"
 #include "demo_test_adc.h"
 #include "demo_leds.h"
-#include "demo_ugfx.h"
 #include "demo_power.h"
 #include "demo_mpr121.h"
 #include "demo_sdcard_image.h"
