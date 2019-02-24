@@ -46,15 +46,18 @@ void display_flush(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_colo
 	printf("Flush %d,%d / %d,%d\n", x1, y1, x2, y2);
 	uint8_t* colors = color_map;
 	//memset(badge_fb, 0xff, DISPLAY_FB_WIDTH*DISPLAY_FB_HEIGHT);
-	for (int32_t x = x1; x <= x2; x++) {
-		for (int32_t y = y1; y <= y2; y++) {
-			uint8_t color = 255-colors[x+y*(x2-x1+1)];// > 64) * 255;//DISPLAY_FB_WIDTH
+	int32_t dx = x2 - x1+1;
+	int32_t dy = y2 - y1+1;
+	
+	for (int32_t x = 0; x < dx; x++) {
+		for (int32_t y = 0; y < dy; y++) {
+			uint8_t color = colors[x+y*dx];// < 128)*255;// > 64) * 255;//DISPLAY_FB_WIDTH
 			//printf("%d,%d: %d\n", x,y,color);
-			draw_pixel(badge_fb, x, y, color);//255-colors[x+y*DISPLAY_FB_WIDTH]);
+			draw_pixel(badge_fb, x+x1, y+y1, color);//255-colors[x+y*DISPLAY_FB_WIDTH]);
 			//printf("%d, %d: %d\n", x, y,  colors[x+y*DISPLAY_FB_WIDTH]);
 		}
 	}
-	badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(BADGE_EINK_LUT_NORMAL));
+	badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(BADGE_EINK_LUT_FASTER));
 	//badge_eink_display_greyscale(badge_fb, DISPLAY_FLAG_8BITPIXEL, 2);
 	lv_flush_ready();
 }
