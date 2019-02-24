@@ -23,7 +23,7 @@ badge_fb_init(void)
 
 	ESP_LOGD(TAG, "init called");
 
-	badge_fb = (uint8_t *) malloc(BADGE_FB_LEN);
+	badge_fb = (uint8_t *) malloc(DISPLAY_FB_LEN);
 	if (badge_fb == NULL)
 		return ESP_ERR_NO_MEM;
 
@@ -34,7 +34,7 @@ badge_fb_init(void)
 
 #ifdef I2C_ERC12864_ADDR
 
-void draw_pixel(uint8_t *buf, int x, int y, int c)
+void draw_pixel(uint8_t *buf, int x, int y, uint8_t c)
 {
 	uint16_t targetByte = ((y/8)*BADGE_ERC12864_WIDTH) + x;
 	uint8_t targetBit = y%8;
@@ -46,18 +46,18 @@ void draw_pixel(uint8_t *buf, int x, int y, int c)
 	}
 }
 
-void draw_pixel_8b(uint8_t *buf, int x, int y, int c)
+void draw_pixel_8b(uint8_t *buf, int x, int y, uint8_t c)
 {
 	draw_pixel(buf, x, y, c); //The ERC12864 is monochrome only
 }
 
 #else
 
-void draw_pixel(uint8_t *buf, int x, int y, int c)
+void draw_pixel(uint8_t *buf, int x, int y, uint8_t c)
 {
-	if (x < 0 || x > (BADGE_FB_WIDTH-1) || y < 0 || y > (BADGE_FB_HEIGHT-1))
+	if (x < 0 || x > (DISPLAY_FB_WIDTH-1) || y < 0 || y > (DISPLAY_FB_HEIGHT-1))
 		return;
-	int pos = (x >> 3) + y * (BADGE_FB_WIDTH / 8);
+	int pos = (x >> 3) + y * (DISPLAY_FB_WIDTH / 8);
 	if (c < 128) {
 		buf[pos] &= 0xff - (1 << (x&7));
 	} else {
@@ -65,11 +65,11 @@ void draw_pixel(uint8_t *buf, int x, int y, int c)
 	}
 }
 
-void draw_pixel_8b(uint8_t *buf, int x, int y, int c)
+void draw_pixel_8b(uint8_t *buf, int x, int y, uint8_t c)
 {
-	if (x < 0 || x > (BADGE_FB_WIDTH-1) || y < 0 || y > (BADGE_FB_HEIGHT-1))
+	if (x < 0 || x > (DISPLAY_FB_WIDTH-1) || y < 0 || y > (DISPLAY_FB_HEIGHT-1))
 		return;
-	int pos = x + y * BADGE_FB_WIDTH;
+	int pos = x + y * DISPLAY_FB_WIDTH;
 	buf[pos] = c;
 }
 

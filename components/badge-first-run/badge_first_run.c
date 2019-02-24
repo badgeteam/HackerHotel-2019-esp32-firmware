@@ -15,14 +15,13 @@
 #include <nvs_flash.h>
 #include <nvs.h>
 #include <wear_levelling.h>
-
+#include <badge_pins.h>
 #include <badge.h>
+#include <badge_fb.h>
 #include <badge_input.h>
 #include <badge_mpr121.h>
 #include <badge_eink.h>
-#include <badge_fb.h>
 #include <badge_leds.h>
-#include <badge_pins.h>
 #include <badge_button.h>
 #include <badge_power.h>
 #include <badge_sdcard.h>
@@ -89,17 +88,17 @@ update_mpr121_bars( const struct badge_mpr121_touch_info *ti, const uint32_t *ba
 		if (xu > 295) xu = 295;
 		if (xd > 295) xd = 295;
 
-		int pos = ( 102 + y*3 ) * (BADGE_FB_WIDTH/8);
-		memset(&badge_fb[pos-(BADGE_FB_WIDTH/8)], 0xff, (BADGE_FB_WIDTH/8)*3);
+		int pos = ( 102 + y*3 ) * (DISPLAY_FB_WIDTH/8);
+		memset(&badge_fb[pos-(DISPLAY_FB_WIDTH/8)], 0xff, (DISPLAY_FB_WIDTH/8)*3);
 		while (x >= 0)
 		{
 			badge_fb[pos + (x >> 3)] &= ~( 1 << (x&7) );
 			x--;
 		}
-		badge_fb[pos - (BADGE_FB_WIDTH/8) + (xu >> 3)] &= ~( 1 << (xu&7) );
+		badge_fb[pos - (DISPLAY_FB_WIDTH/8) + (xu >> 3)] &= ~( 1 << (xu&7) );
 		badge_fb[pos           + (xu >> 3)] &= ~( 1 << (xu&7) );
 		badge_fb[pos           + (xd >> 3)] &= ~( 1 << (xd&7) );
-		badge_fb[pos + (BADGE_FB_WIDTH/8) + (xd >> 3)] &= ~( 1 << (xd&7) );
+		badge_fb[pos + (DISPLAY_FB_WIDTH/8) + (xd >> 3)] &= ~( 1 << (xd&7) );
 	}
 #ifdef I2C_ERC12864_ADDR
 		badge_erc12864_write(badge_fb);
@@ -352,7 +351,7 @@ badge_first_run(void)
 
 	// add line in split-screen
 	//if (NUM_DISP_LINES < 16) {
-	//	memset(&badge_fb[NUM_DISP_LINES*BADGE_FB_WIDTH], 0x00, BADGE_FB_WIDTH/8);
+	//	memset(&badge_fb[NUM_DISP_LINES*DISPLAY_FB_WIDTH], 0x00, DISPLAY_FB_WIDTH/8);
 	//}
 
 	disp_line("Factory test", FONT_16PX);

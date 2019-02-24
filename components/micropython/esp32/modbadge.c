@@ -501,7 +501,7 @@ STATIC mp_obj_t badge_eink_png(mp_obj_t obj_x, mp_obj_t obj_y, mp_obj_t obj_file
 	int x = mp_obj_get_int(obj_x);
 	int y = mp_obj_get_int(obj_y);
 
-	if (x >= BADGE_FB_WIDTH || y >= BADGE_FB_HEIGHT)
+	if (x >= DISPLAY_FB_WIDTH || y >= DISPLAY_FB_HEIGHT)
 	{
 		nlr_raise(mp_obj_new_exception_msg_varg(&mp_type_ValueError, "PNG too large!"));
 		return mp_const_none;
@@ -556,7 +556,7 @@ STATIC mp_obj_t badge_eink_png(mp_obj_t obj_x, mp_obj_t obj_y, mp_obj_t obj_file
 
 	uint32_t dst_min_x = x < 0 ? -x : 0;
 	uint32_t dst_min_y = y < 0 ? -y : 0;
-	int res = lib_png_load_image(pr, &badge_fb[y * BADGE_FB_WIDTH + x], dst_min_x, dst_min_y, BADGE_FB_WIDTH - x, BADGE_FB_HEIGHT - y, BADGE_FB_WIDTH);
+	int res = lib_png_load_image(pr, &badge_fb[y * DISPLAY_FB_WIDTH + x], dst_min_x, dst_min_y, DISPLAY_FB_WIDTH - x, DISPLAY_FB_HEIGHT - y, DISPLAY_FB_WIDTH);
 
 	lib_png_destroy(pr);
 	if (is_bytes) {
@@ -665,7 +665,7 @@ STATIC mp_obj_t badge_eink_display_raw(mp_obj_t obj_img, mp_obj_t obj_flags)
 	uint8_t *buffer = (uint8_t *)mp_obj_str_get_data(obj_img, &len);
 
 	int flags = mp_obj_get_int(obj_flags);
-	int expect_len = (flags & DISPLAY_FLAG_8BITPIXEL) ? BADGE_FB_WIDTH*BADGE_FB_HEIGHT : BADGE_FB_WIDTH*BADGE_FB_HEIGHT/8;
+	int expect_len = (flags & DISPLAY_FLAG_8BITPIXEL) ? DISPLAY_FB_WIDTH*DISPLAY_FB_HEIGHT : DISPLAY_FB_WIDTH*DISPLAY_FB_HEIGHT/8;
 	if (len != expect_len) {
 		mp_raise_msg(&mp_type_AttributeError, "First argument has wrong length");
 	}

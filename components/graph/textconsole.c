@@ -11,16 +11,16 @@ void disp_line(const char *line, int flags)
 		while (next_line >= NUM_DISP_LINES - height)
 		{ // scroll up
 			next_line--;
-			memmove(badge_fb, &badge_fb[BADGE_FB_WIDTH], (NUM_DISP_LINES-1)*BADGE_FB_WIDTH);
-			memset(&badge_fb[(NUM_DISP_LINES-1)*BADGE_FB_WIDTH], COLOR_WHITE, BADGE_FB_WIDTH);
+			memmove(badge_fb, &badge_fb[DISPLAY_FB_WIDTH], (NUM_DISP_LINES-1)*DISPLAY_FB_WIDTH);
+			memset(&badge_fb[(NUM_DISP_LINES-1)*DISPLAY_FB_WIDTH], COLOR_WHITE, DISPLAY_FB_WIDTH);
 		}
-		int len = draw_font(badge_fb, 0, 8*next_line, BADGE_FB_WIDTH, line, (FONT_FULL_WIDTH|FONT_INVERT)^flags);
+		int len = draw_font(badge_fb, 0, 8*next_line, DISPLAY_FB_WIDTH, line, (FONT_FULL_WIDTH|FONT_INVERT)^flags);
 		if (height == 2)
 			next_line++;
 		if ((flags & NO_NEWLINE) == 0)
 		{
 			next_line++;
-			draw_font(badge_fb, 0, 8*next_line, BADGE_FB_WIDTH, "_", FONT_FULL_WIDTH|FONT_INVERT);
+			draw_font(badge_fb, 0, 8*next_line, DISPLAY_FB_WIDTH, "_", FONT_FULL_WIDTH|FONT_INVERT);
 		}
 
 		if (len == 0 || line[len] == 0)
@@ -55,7 +55,7 @@ bool load_png(int x, int y, const char *filename)
 		return false;
 	}
 
-	int res = lib_png_load_image(pr, &badge_fb[x + y*BADGE_FB_WIDTH], 0, 0, BADGE_FB_WIDTH-x, BADGE_FB_HEIGHT-y, BADGE_FB_WIDTH);
+	int res = lib_png_load_image(pr, &badge_fb[x + y*DISPLAY_FB_WIDTH], 0, 0, DISPLAY_FB_WIDTH-x, DISPLAY_FB_HEIGHT-y, DISPLAY_FB_WIDTH);
 	lib_png_destroy(pr);
 	lib_file_destroy(fr);
 
@@ -77,7 +77,7 @@ void console_init(void)
 	err = badge_erc12864_init();
 	err = badge_fb_init();
 	assert( err == ESP_OK );
-	memset(badge_fb, 0x00, BADGE_FB_LEN);
+	memset(badge_fb, 0x00, DISPLAY_FB_LEN);
 	badge_disobey_samd_write_backlight(255);
 	badge_erc12864_write(badge_fb);
 #else
@@ -86,7 +86,7 @@ void console_init(void)
 	err = badge_fb_init();
 	assert( err == ESP_OK );
 	// start with white screen
-	memset(badge_fb, 0xff, BADGE_FB_LEN);
+	memset(badge_fb, 0xff, DISPLAY_FB_LEN);
 	badge_eink_display(badge_fb, DISPLAY_FLAG_LUT(0));
 #endif
 }

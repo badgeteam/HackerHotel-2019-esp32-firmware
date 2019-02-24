@@ -1,0 +1,55 @@
+menu "Display"
+
+choice DISPLAY_TYPE
+    prompt "Display type"
+    default DISPLAY_NONE
+config DISPLAY_NONE
+    bool "No display"
+config DISPLAY_EINK_DEPG0290B1
+    bool "DEPG0290B1 - 2.9 inch eink - SPI"
+config DISPLAY_EINK_GDEH029A1
+    bool "GDEH029A1 - 2.9 inch eink - SPI"
+config DISPLAY_EINK_WAVESHARE75
+    bool "Waveshare - 7.5 inch eink - black & white - SPI"
+config DISPLAY_EINK_WAVESHARE75B
+    bool "Waveshare - 7.5 inch eink - black, white and red - SPI"
+config DISPLAY_OLED_SSD1307_SPI
+    bool "SSD1307 - OLED screen - SPI"
+config DISPLAY_OLED_SSD1307_I2C
+    bool "SSD1307 - OLED screen - I2C"
+config DISPLAY_LCD_ERC12864
+    bool "ERC12864 - LCD screen - I2C"
+endchoice
+
+choice DISPLAY_SPI_BUS
+    prompt "SPI bus"
+    default DISPLAY_SPI_BUS_VSPI
+    depends on DISPLAY_EINK_DEPG0290B1 || DISPLAY_EINK_GDEH029A1 || ISPLAY_EINK_WAVESHARE75 || DISPLAY_EINK_WAVESHARE75B || DISPLAY_OLED_SSD1307_SPI
+config DISPLAY_SPI_BUS_VSPI
+    bool "VSPI bus"
+config DISPLAY_SPI_BUS_HSPI
+    bool "HSPI bus"
+endchoice
+
+config DISPLAY_PIN_CS
+    int "Chip select pin"
+    default 19
+    depends on DISPLAY_EINK_DEPG0290B1 || DISPLAY_EINK_GDEH029A1 || ISPLAY_EINK_WAVESHARE75 || DISPLAY_EINK_WAVESHARE75B
+
+config DISPLAY_PIN_DC
+    int "Data/command pin"
+    default 21
+    depends on DISPLAY_EINK_DEPG0290B1 || DISPLAY_EINK_GDEH029A1 || ISPLAY_EINK_WAVESHARE75 || DISPLAY_EINK_WAVESHARE75B
+
+config DISPLAY_PIN_RESET
+    int "Reset pin"
+    default 23
+    depends on DISPLAY_EINK_DEPG0290B1 || DISPLAY_EINK_GDEH029A1 || ISPLAY_EINK_WAVESHARE75 || DISPLAY_EINK_WAVESHARE75B
+
+config DISPLAY_PIN_BUSY
+    int "Busy pin"
+    default 22
+    depends on DISPLAY_EINK_DEPG0290B1 || DISPLAY_EINK_GDEH029A1 || ISPLAY_EINK_WAVESHARE75 || DISPLAY_EINK_WAVESHARE75B
+
+
+endmenu
