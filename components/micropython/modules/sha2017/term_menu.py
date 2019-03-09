@@ -63,10 +63,13 @@ class UartMenu():
 		
 	def opt_downloader(self):
 		system.start("dashboard.terminal.downloader", True)
+	
+	def opt_downloadmorerom(self):
+		system.start("downloadmorerom", True)
 		
 	def menu_settings(self):
-		items = ["Change nickname", "Configure WiFi", "Set default orientation", "Homescreen services (beta)", "Homescreen LED animation", "Homescreen logo", "Update firmware", "< Return to main menu"]
-		callbacks = [self.opt_change_nickname, self.opt_configure_wifi, self.opt_configure_orientation, self.opt_configure_services, self.opt_configure_led, self.opt_configure_picture, self.opt_ota, self.menu_main, self.menu_main]
+		items = ["Change nickname", "Configure WiFi", "Set default orientation", "Homescreen services (beta)", "Homescreen LED animation", "Homescreen logo", "(Reclaim unused flash space)", "Update firmware", "< Return to main menu"]
+		callbacks = [self.opt_change_nickname, self.opt_configure_wifi, self.opt_configure_orientation, self.opt_configure_services, self.opt_configure_led, self.opt_configure_picture, self.opt_downloadmorerom, self.opt_ota, self.menu_main, self.menu_main]
 		cb = term.menu("Settings", items)
 		self.menu = callbacks[cb]
 	

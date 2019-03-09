@@ -51,7 +51,7 @@
 #define TAG "esp32/modbadge"
 
 #ifndef CONFIG_SHA_BPP_ENABLE
-#ifdef CONFIG_DISOBEY
+#if defined(CONFIG_DISOBEY) || defined(CONFIG_SHA_BADGE_V3) || defined(CONFIG_SHA_BADGE_V3_LITE)
 
 #define PARTITIONS_16MB_BIN_LEN 192
 #define PARTITIONS_LOCATION 0x8000
@@ -903,7 +903,7 @@ STATIC const mp_rom_map_elem_t badge_module_globals_table[] = {
     {MP_ROM_QSTR(MP_QSTR_firmwareName), MP_ROM_PTR(&badge_firmware_name_obj)},
 
 #ifndef CONFIG_SHA_BPP_ENABLE
-#ifdef CONFIG_DISOBEY
+#if defined(CONFIG_DISOBEY) || defined(CONFIG_SHA_BADGE_V3) || defined(CONFIG_SHA_BADGE_V3_LITE)
     {MP_ROM_QSTR(MP_QSTR_remove_bpp_partition), MP_ROM_PTR(&remove_bpp_partition_obj)},
 #endif
 #endif
