@@ -1,5 +1,4 @@
-import time, machine, gc, easydraw, term, uos, json, urequests, gc, sys
-
+import time, machine, gc, easydraw, term, uos, json, urequests, gc, sys, badge
 class Repository():
 	def __init__(self, path="/woezel_packages"):
 		self.path = path
@@ -56,6 +55,10 @@ class Repository():
 		except BaseException as e:
 			sys.print_exception(e)
 			self._showProgress("Failed!", True)
+
+			badge.raminfo()
+			print("MEM FREE:",gc.mem_free())
+			
 			gc.collect()
 		return False
 
@@ -77,6 +80,10 @@ class Repository():
 			return True
 		except BaseException as e:
 			sys.print_exception(e)
+			
+			badge.raminfo()
+			print("MEM FREE:",gc.mem_free())
+			
 			time.sleep(2)
 			return False
 

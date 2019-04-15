@@ -137,6 +137,9 @@ def install_app(pressed=True):
 		showMessage("Installing "+slug+"...")
 		try:
 			woezel.install(slug)
+			showMessage("OK\n\n"+slug+" has been installed!", False, False, True)
+			time.sleep(2)
+			show_category()
 		except woezel.LatestInstalledError:
 			showMessage("NOTICE\n\nLatest version is already installed.", False, False, True)
 			time.sleep(2)
@@ -145,9 +148,6 @@ def install_app(pressed=True):
 			showMessage("Failed to install "+slug+"!", True)
 			time.sleep(2)
 			show_category()
-		showMessage("OK\n\n"+slug+" has been installed!", False, False, True)
-		time.sleep(2)
-		show_category()
 
 #Main application
 

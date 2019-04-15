@@ -156,6 +156,39 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(remove_bpp_partition_obj, remove_bpp_partition)
 #endif
 #endif
 
+//RAM USAGE DEBUGGING
+
+STATIC mp_obj_t badge_raminfo_() {
+    size_t free_8           = heap_caps_get_free_size(MALLOC_CAP_8BIT  | MALLOC_CAP_INTERNAL);
+    size_t free_32          = heap_caps_get_free_size(MALLOC_CAP_32BIT | MALLOC_CAP_INTERNAL);
+    size_t free_external    = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+
+    size_t largest_8        = heap_caps_get_largest_free_block(MALLOC_CAP_8BIT  | MALLOC_CAP_INTERNAL);
+    size_t largest_32       = heap_caps_get_largest_free_block(MALLOC_CAP_32BIT | MALLOC_CAP_INTERNAL);
+    size_t largest_external = heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM);
+
+    printf("\nFree memory\n---------------------------------------------\n");
+    printf("8  bit accessible:  %d\n", free_8);
+    printf("32 bit accessible:  %d\n", free_32);
+    printf("External (SPI) RAM: %d\n", free_external);
+    printf("IRAM (32 - 8):      %d\n", free_32-free_8);
+
+    printf("\nLargest available region\n---------------------------------------------\n");
+    printf("8  bit accessible:  %d\n", largest_8);
+    printf("32 bit accessible:  %d\n", largest_32);
+    printf("External (SPI) RAM: %d\n", largest_external);
+    printf("IRAM (32 - 8):      %d\n", largest_32-largest_8);
+
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(badge_raminfo_obj, badge_raminfo_);
+
+STATIC mp_obj_t badge_ramdump_() {
+    heap_caps_dump_all();
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(badge_ramdump_obj, badge_ramdump_);
+
 // INIT
 
 STATIC mp_obj_t badge_init_() {
@@ -873,9 +906,10 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_0(badge_read_state_obj, badge_read_state);
 
 STATIC const mp_rom_map_elem_t badge_module_globals_table[] = {
     {MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_badge)},
-
-		{MP_ROM_QSTR(MP_QSTR_init), MP_ROM_PTR(&badge_init_obj)},
-		{MP_ROM_QSTR(MP_QSTR_eink_init), MP_ROM_PTR(&badge_init_obj)},
+    {MP_ROM_QSTR(MP_QSTR_init), MP_ROM_PTR(&badge_init_obj)},
+    {MP_ROM_QSTR(MP_QSTR_raminfo), MP_ROM_PTR(&badge_raminfo_obj)},
+    {MP_ROM_QSTR(MP_QSTR_ramdump), MP_ROM_PTR(&badge_ramdump_obj)},
+    {MP_ROM_QSTR(MP_QSTR_eink_init), MP_ROM_PTR(&badge_init_obj)},
 
     //Firmware configuration
 #ifdef CONFIG_HACKERHOTEL_BADGE_V1
