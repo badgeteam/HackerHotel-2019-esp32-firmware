@@ -446,13 +446,13 @@ void micropython_entry(void)
 	// ================================================
 	//#if CONFIG_FREERTOS_UNICORE
 		MainTaskCore = 0;
-		MainTaskHandle = xTaskCreateStaticPinnedToCore(&mp_task, "mp_task", mp_task_stack_len, NULL, CONFIG_MICROPY_TASK_PRIORITY, mp_task_stack, &mp_task_tcb, 0);
+		MainTaskHandle = xTaskCreateStaticPinnedToCore(&mp_task, "mp_task", mp_task_stack_len, NULL, CONFIG_MICROPY_TASK_PRIORITY, mp_task_stack, &mp_task_tcb, MainTaskCore);
 	/*#else
 		MainTaskCore = 1;
 		#if CONFIG_MICROPY_USE_BOTH_CORES
 			MainTaskHandle = xTaskCreateStatic(&mp_task, "mp_task", mp_task_stack_len, NULL, CONFIG_MICROPY_TASK_PRIORITY, mp_task_stack, &mp_task_tcb);
 		#else
-			MainTaskHandle = xTaskCreateStaticPinnedToCore(&mp_task, "mp_task", mp_task_stack_len, NULL, CONFIG_MICROPY_TASK_PRIORITY, mp_task_stack, &mp_task_tcb, 1);
+			MainTaskHandle = xTaskCreateStaticPinnedToCore(&mp_task, "mp_task", mp_task_stack_len, NULL, CONFIG_MICROPY_TASK_PRIORITY, mp_task_stack, &mp_task_tcb, MainTaskCore);
 		#endif
 	#endif*/
 
