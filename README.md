@@ -52,7 +52,7 @@ make monitor
 # Building on OSX
 
 First you have to replace the linux toolchain:
-* download the [mac toolchain](https://dl.espressif.com/dl/xtensa-esp32-elf-osx-1.22.0-61-gab8375a-5.2.0.tar.gz) from [this page](https://dl.espressif.com/doc/esp-idf/latest/get-started/macos-setup.html)
+* download the [mac toolchain](https://dl.espressif.com/dl/xtensa-esp32-elf-osx-1.22.0-80-g6c4433a-5.2.0.tar.gz) from [this page](https://dl.espressif.com/doc/esp-idf/latest/get-started/macos-setup.html)
 * rename the linux toolchain: `mv xtensa-esp32-elf xtensa-esp32-elf-linux`
 * untar the mac toolchain: ` tar zxf ~/Downloads/xtensa-esp32-elf-osx-1.22.0-61-gab8375a-5.2.0.tar.gz`
 
