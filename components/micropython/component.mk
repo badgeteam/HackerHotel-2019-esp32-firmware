@@ -66,6 +66,10 @@ ifdef CONFIG_HACKERHOTEL_BADGE_V0
 FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/hackerhotel2019
 endif
 
+ifdef CONFIG_CAMPZONE19_BADGE_V1
+FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/campzone2019
+endif
+
 ifdef CONFIG_SHA_BADGE_NONE
 FROZEN_MPY_DIR =  $(COMPONENT_PATH)/modules/generic
 endif

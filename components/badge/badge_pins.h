@@ -238,6 +238,14 @@
 		#define I2C_MPR121_ADDR       0x5a
 		
 		#define EPD_ROTATED_180
+
+    #elif defined(CONFIG_CAMPZONE19_BADGE_V1) // CampZone 2019
+        #define PIN_NUM_BUTTON_FLASH     0
+		#define PIN_NUM_VUSB_SENSE      34
+		#define PIN_NUM_VBAT_SENSE      35
+
+		#define ADC1_CHAN_VUSB_SENSE     6
+		#define ADC1_CHAN_VBAT_SENSE     7
 	#else
 		#error unknown badge type
 	#endif

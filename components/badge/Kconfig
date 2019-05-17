@@ -29,6 +29,8 @@ choice SHA_BADGE_REV
           (december 2016)
         - Plain ESP32 hardware.
 
+config CAMPZONE19_BADGE_V1
+    bool "CampZone 2019 badge (Prototype)"
 config HACKERHOTEL_BADGE_V1
     bool "Hackerhotel badge"
 config HACKERHOTEL_BADGE_V0

@@ -6,3 +6,4 @@ doxygen/
 .DS_Store
 *.generated.h
 *.pyc
+.idea
