@@ -1,8 +1,8 @@
 import ugfx
 
-build                  = 22
-name                   = "Afterglow"
-badge_name             = "Disobey"
+build                  = 1
+name                   = "Harry Potter"
+badge_name             = "CampZone"
 dialog_title           = "Alert"
 default_orientation    = 0
 
@@ -19,5 +19,5 @@ nick_height_small      = 22
 btn_ok = ugfx.BTN_START
 btn_cancel = ugfx.BTN_B
 
-hatcheryurl             = "https://badge.disobey.fi"
-otacheckurl             ="https://badge.disobey.fi/firmware/version"
+hatcheryurl             = "https://badge.hack-zone.nl"
+otacheckurl             = "https://badge.hack-zone.nl/firmware/version"

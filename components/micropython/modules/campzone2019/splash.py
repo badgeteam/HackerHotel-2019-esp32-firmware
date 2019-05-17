@@ -9,8 +9,6 @@ import term, term_menu
 
 # Graphics
 
-def disobeyLogo(x,y):
-	badge.eink_png(x,y,b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00 \x00\x00\x00 \x01\x03\x00\x00\x00I\xb4\xe8\xb7\x00\x00\x00\x06PLTE\xff\xff\xff\x00\x00\x00U\xc2\xd3~\x00\x00\x00\tpHYs\x00\x00\x0e\xc4\x00\x00\x0e\xc4\x01\x95+\x0e\x1b\x00\x00\x00{IDAT\x08\x99M\x8e1\n\x840\x14D\x9f\x04\xb4\x91\xb8\x07\x08\xec\x15,\x7f\xe5^e!\x17\xc8\xf6\x82\x9e\xc03\xa5\xca9\x02[\xd8ZZH\xd8\x984\xcb\x0c\xaf\x9cy0\x1c\xc0\x92\xa09\x9f+\xca+O\x07\x11=\x1c\x0e\xf3\xba\x04\x99\'\xc3\x18\xbb\x9e\x8fW\x1bvm\x02\x16\x02;\xb9\x01\xbe7\xec\x1f<\xa8\x8aH^{C[\xe1$iFI=\xf2\xc0\xe4 hp\xf5\xb2\x9c\x17\x8d"t\xab\xfd\x00\x7f\x18%\\\x904\xdd\x82\x00\x00\x00\x00IEND\xaeB`\x82')
 
 def ledAnimationDisplay(i):
 	if i > 5:
@@ -65,7 +63,6 @@ def draw(mode, goingToSleep=False):
 		else:
 			info = ''
 		easydraw.disp_string_right_bottom(0, info)
-		disobeyLogo(0, ugfx.height()-32)
 
 # Button input
 
@@ -100,9 +97,9 @@ def onSleep(idleTime):
 
 ### PROGRAM
 
-badge.backlight(255)
-
-splash_input_init()
+# badge.backlight(255)
+#
+# splash_input_init()
 
 # post ota script
 import post_ota
@@ -125,25 +122,32 @@ import post_ota
 #	easyrtc.configure()
 # =======
 
+print('[BOOT] Choosing boot mode')
 if badge.safe_mode():
-	draw(False)
-	services.force_draw()
-	draw(True)
+	print('[BOOT] Safe mode')
+	# draw(False)
+	# services.force_draw()
+	# draw(True)
 else:
-	have_services = services.setup(draw) # Start services
+	print('[BOOT] Normal boot mode')
+	print('[BOOT] Finding services')
+	have_services = services.setup() # Start services
 	if not have_services:
-		draw(False)
-		services.force_draw()
-		draw(True)
+		print('[BOOT] No services found')
+		# draw(False)
+		# services.force_draw()
+		# draw(True)
 
+print('[BOOT] Disabling WiFi and running garbage collection')
 easywifi.disable()
 gc.collect()
 
-virtualtimers.activate(25)
-pm.callback(onSleep)
-pm.feed()
+# virtualtimers.activate(25)
+# pm.callback(onSleep)
+# pm.feed()
+#
+# virtualtimers.new(10, ledAnimationTask)
 
-virtualtimers.new(10, ledAnimationTask)
-
+print('[BOOT] Launching UART menu')
 umenu = term_menu.UartMenu(goToSleep, pm, badge.safe_mode())
 umenu.main()

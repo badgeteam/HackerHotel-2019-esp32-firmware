@@ -8,7 +8,7 @@ names = [
 	"Eric Poulsen", "Damien P. George", "Heikki Juva",
 	"Teemu Hakala", "Kliment", "Windytan",
 	"Purkkaviritys", "Otto Raila", "Jaga",
-	"uGFX", "EMF Badge Team", "",
+	"uGFX", "EMF Badge Team", "Tom Clement", "Khaled Nassar", "Evan Mandos", "",
 	"", "Press back or start", "to quit!"]
 
 def action_exit(pushed):
