@@ -1,6 +1,8 @@
-# Badge team ESP32 Firmware
+# Badge.team ESP32 Firmware
 
-This repository contains the firmware for the SHA2017 badge, the Hackerhotel badge and the Disobey badge.
+This repository contains the firmware for the Hackerhotel 2019 badge as it was used during the event.
+
+All future updates will be made using the Badge.team ESP32 platform firmware, this repository is archived.
  
 # Resources
 
